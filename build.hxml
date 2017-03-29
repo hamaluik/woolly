@@ -15,8 +15,8 @@
 -D source-map-content
 -dce full
 
---macro mammoth.macros.Assets.mkdirIfNotExists('bin')
---macro mammoth.macros.Assets.copyDir('src/resources', 'bin')
+--macro mammoth.macros.Assets.mkdirIfNotExists('docs')
+--macro mammoth.macros.Assets.copyDir('src/resources', 'docs')
 
--js bin/game.js
--cmd http-server -c-1 bin
+-js docs/game.js
+-cmd http-server -c-1 docs
