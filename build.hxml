@@ -1,0 +1,22 @@
+-cp src
+-main Main
+
+-lib edge
+-lib glm
+-lib promhx
+
+-D log_fatal
+-D log_error
+-D log_warning
+-D log_info
+-D assertions
+
+-debug
+-D source-map-content
+-dce full
+
+--macro mammoth.macros.Assets.mkdirIfNotExists('bin')
+--macro mammoth.macros.Assets.copyDir('src/resources', 'bin')
+
+-js bin/game.js
+-cmd http-server -c-1 bin

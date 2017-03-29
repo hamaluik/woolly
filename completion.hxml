@@ -1,0 +1,11 @@
+-cp src
+-main Main
+
+-lib edge
+-lib glm
+-lib promhx
+
+-D window.width=960
+-D window.height=540
+
+-js bin/game.js

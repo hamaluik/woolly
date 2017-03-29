@@ -1,0 +1,70 @@
+# auto-detect text files
+* text=auto
+
+## SOURCE CODE
+*.hx   text
+*.cpp  text
+*.h    text
+*.js   text
+*.html text
+*.css  text
+*.json text
+*.sql  text
+*.xml  text
+*.ini  text
+
+## DOCUMENTATION
+*.markdown   text
+*.md         text
+*.mdwn       text
+*.mdown      text
+*.mkd        text
+*.mkdn       text
+*.mdtxt      text
+*.mdtext     text
+*.txt        text
+AUTHORS      text
+CHANGELOG    text
+CHANGES      text
+CONTRIBUTING text
+COPYING      text
+INSTALL      text
+license      text
+LICENSE      text
+NEWS         text
+readme       text
+*README*     text
+TODO         text
+
+## CONFIGS
+.editorconfig  text
+.gitattributes text
+.gitconfig     text
+.gitignore     text
+
+## BINARY FILES
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.eps binary
+*.exe binary
+*.out binary
+*.app binary
+*.a binary
+*.dll binary
+*.so binary
+*.lib binary
+*.o binary
+*.ogg binary
+*.wav binary
+*.mp3 binary
+*.mp4 binary
+*.7z binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.ttf binary
+*.blend binary
