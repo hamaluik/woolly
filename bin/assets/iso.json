@@ -1,0 +1,235 @@
+{
+    "cameras": [
+        {
+            "clearColour": [
+                0.05087608844041824,
+                0.05087608844041824,
+                0.05087608844041824
+            ],
+            "far": 100.0,
+            "name": "Camera",
+            "near": 0.10000000149011612,
+            "ortho_size": 6.0,
+            "type": "orthographic"
+        }
+    ],
+    "images": [],
+    "lights": [
+        {
+            "colour": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "distance": 25.0,
+            "name": "Point",
+            "type": "point"
+        },
+        {
+            "colour": [
+                1.0,
+                0.9561488628387451,
+                0.7573099136352539
+            ],
+            "name": "Sun",
+            "type": "directional"
+        }
+    ],
+    "meshes": [
+        {
+            "indices": "data:text/plain;base64,DAAAAAgAAAAKAAAADwAAABAAAAAJAAAAEwAAABQAAAARAAAAFwAAAAsAAAAVAAAABgAAAAAAAAACAAAAAwAAAAUAAAAHAAAADAAAAA4AAAAIAAAADwAAABIAAAAQAAAAEwAAABYAAAAUAAAAFwAAAA0AAAALAAAABgAAAAQAAAAAAAAAAwAAAAEAAAAFAAAA",
+            "name": "Cube",
+            "vertices": "data:text/plain;base64,AAAAvwAAAL8AAAAAAAAAAAAAAAAAAIC/AAAAvwAAAL8AAIA/AAAAAAAAAAAAAIA/AAAAvwAAAD8AAAAAAAAAAAAAAAAAAIC/AAAAvwAAAD8AAIA/AAAAAAAAAAAAAIA/AAAAPwAAAL8AAAAAAAAAAAAAAAAAAIC/AAAAPwAAAL8AAIA/AAAAAAAAAAAAAIA/AAAAPwAAAD8AAAAAAAAAAAAAAAAAAIC/AAAAPwAAAD8AAIA/AAAAAAAAAAAAAIA/AAAAvwAAAD8AAAAAAACAvwAAAAAAAAAAAAAAvwAAAD8AAAAAAAAAAAAAgD8AAAAAAAAAvwAAAL8AAAAAAACAvwAAAAAAAAAAAAAAvwAAAL8AAAAAAAAAAAAAgL8AAAAAAAAAvwAAAL8AAIA/AACAvwAAAAAAAAAAAAAAvwAAAL8AAIA/AAAAAAAAgL8AAAAAAAAAvwAAAD8AAIA/AACAvwAAAAAAAAAAAAAAvwAAAD8AAIA/AAAAAAAAgD8AAAAAAAAAPwAAAD8AAAAAAAAAAAAAgD8AAAAAAAAAPwAAAD8AAAAAAACAPwAAAAAAAAAAAAAAPwAAAD8AAIA/AAAAAAAAgD8AAAAAAAAAPwAAAD8AAIA/AACAPwAAAAAAAAAAAAAAPwAAAL8AAAAAAACAPwAAAAAAAAAAAAAAPwAAAL8AAAAAAAAAAAAAgL8AAAAAAAAAPwAAAL8AAIA/AACAPwAAAAAAAAAAAAAAPwAAAL8AAIA/AAAAAAAAgL8AAAAA",
+            "vlayout": [
+                "position",
+                "normal"
+            ]
+        },
+        {
+            "indices": "data:text/plain;base64,AQAAAAIAAAAAAAAAAQAAAAMAAAACAAAA",
+            "name": "Plane",
+            "vertices": "data:text/plain;base64,AACgwQAAoMEAAAAAAAAAAAAAAAAAAIA/AACgQQAAoMEAAAAAAAAAAAAAAAAAAIA/AACgwQAAoEEAAAAAAAAAAAAAAAAAAIA/AACgQQAAoEEAAAAAAAAAAAAAAAAAAIA/",
+            "vlayout": [
+                "position",
+                "normal"
+            ]
+        },
+        {
+            "indices": "data:text/plain;base64,AQAAAAIAAAAAAAAAAQAAAAMAAAACAAAA",
+            "name": "Plane.001",
+            "vertices": "data:text/plain;base64,AAAgwQAAIMEAAAAAAAAAAAAAAAAAAIA/AAAgQQAAIMEAAAAAAAAAAAAAAAAAAIA/AAAgwQAAIEEAAAAAAAAAAAAAAAAAAIA/AAAgQQAAIEEAAAAAAAAAAAAAAAAAAIA/",
+            "vlayout": [
+                "position",
+                "normal"
+            ]
+        }
+    ],
+    "meta": {
+        "blender": "2.78 (sub 0)",
+        "exporter_version": "0.0.0",
+        "file": "default_blend"
+    },
+    "objects": [
+        {
+            "children": [
+                {
+                    "camera": "Camera",
+                    "name": "Camera",
+                    "transform": {
+                        "rotation": [
+                            0.41223302483558655,
+                            0.17075251042842865,
+                            0.34247657656669617,
+                            0.8268115520477295
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "translation": [
+                            6.940701484680176,
+                            -7.0285749435424805,
+                            7.968608856201172
+                        ]
+                    }
+                }
+            ],
+            "name": "CameraRoot",
+            "transform": {
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "translation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            }
+        },
+        {
+            "name": "Cube",
+            "render": {
+                "mesh": "Cube",
+                "shader": "Cube"
+            },
+            "transform": {
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "translation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            }
+        },
+        {
+            "name": "Plane",
+            "render": {
+                "mesh": "Plane.001",
+                "shader": "Plane"
+            },
+            "transform": {
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "translation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            }
+        },
+        {
+            "light": "Sun",
+            "name": "Sun",
+            "transform": {
+                "rotation": [
+                    0.04850759729743004,
+                    0.39150676131248474,
+                    -0.11298702657222748,
+                    0.9119229316711426
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "translation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            }
+        }
+    ],
+    "shaders": [
+        {
+            "diffuse": {
+                "ambient": [
+                    0.010504436679184437,
+                    0.012326709926128387,
+                    0.027537774294614792,
+                    1.0
+                ],
+                "colour": [
+                    0.5876288414001465,
+                    0.5876288414001465,
+                    0.5876288414001465,
+                    1.0
+                ]
+            },
+            "name": "Cube",
+            "textures": []
+        },
+        {
+            "diffuse": {
+                "ambient": [
+                    0.010504436679184437,
+                    0.012326709926128387,
+                    0.027537774294614792,
+                    1.0
+                ],
+                "colour": [
+                    0.044037021696567535,
+                    0.044037021696567535,
+                    0.044037021696567535,
+                    1.0
+                ]
+            },
+            "name": "Plane",
+            "textures": []
+        }
+    ],
+    "textures": [
+        {
+            "name": "Tex",
+            "type": "none"
+        }
+    ]
+}
