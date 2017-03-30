@@ -24,6 +24,7 @@ class Timing {
     private var lastTime:Float = 0;
     private var accumulator:Float = 0;
 
+    public var timescale:Float = 1.0;
     public var dt(default, null):Float = 1 / 30;
     public var alpha(default, null):Float = 0;
 
@@ -34,7 +35,7 @@ class Timing {
         time = ts / 1000;
 
         // figure out how long since we last ran
-        var delta:Float = time - lastTime;
+        var delta:Float = (time - lastTime) * timescale;
         lastTime = time;
 
         // updates
