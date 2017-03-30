@@ -13,7 +13,7 @@
 */
 package mammoth.render;
 
-import js.html.webgl.UniformLocation;
+import mammoth.gl.UniformLocation;
 
 enum TLocation {
 	Uniform(location:UniformLocation);

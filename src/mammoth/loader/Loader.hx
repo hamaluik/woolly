@@ -105,7 +105,7 @@ class Loader {
     }
 
     private static function loadMesh(me:mammoth.loader.Mesh):Void {
-        var mesh:mammoth.render.Mesh = new mammoth.render.Mesh(me.name, Mammoth.gl, me.vlayout);
+        var mesh:mammoth.render.Mesh = new mammoth.render.Mesh(me.name, me.vlayout);
 
         mesh.setVertexData(parseFloatArrayURI(me.vertices));
         mesh.setIndexData(parseIntArrayURI(me.indices));
@@ -139,8 +139,7 @@ class Loader {
 
             // create a material for this renderer
             var material:mammoth.render.Material = new mammoth.render.Material(
-                object.render.mesh + "->" + object.render.shader,
-                Mammoth.gl
+                object.render.mesh + "->" + object.render.shader
             );
             material.setStandardShader(shaders.get(object.render.shader));
 

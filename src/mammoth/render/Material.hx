@@ -14,11 +14,9 @@
 package mammoth.render;
 
 import haxe.ds.StringMap;
-import js.html.webgl.Program;
-import js.html.webgl.RenderingContext;
-import js.html.webgl.Shader;
+import mammoth.gl.Program;
+import mammoth.gl.Shader;
 import mammoth.debug.Exception;
-import mammoth.gl.Graphics;
 import mammoth.gl.GL;
 import mammoth.defaults.StandardShader;
 import mammoth.render.Attribute;
@@ -29,7 +27,6 @@ import mammoth.render.Uniform;
 
 // TODO: generalize for cross-compatibility?
 class Material {
-	private var context:RenderingContext;
 	private var program:Program;
 	private var vertexShader:String;
 	private var fragmentShader:String;
@@ -44,19 +41,18 @@ class Material {
 	public var depthWrite:Bool = true;
 	public var depthMode:DepthCompareMode = DepthCompareMode.LessOrEqual;
 
-	public function new(name:String, graphics:Graphics) {
+	public function new(name:String) {
 		this.name = name;
-		this.context = graphics.context;
 		this.attributes = new StringMap<Attribute>();
 		this.uniforms = new StringMap<Uniform>();
 	}
 
 	private function compileShader(type:TShaderType, source:String):Shader {
-		var shader:Shader = context.createShader(cast(type));
-		context.shaderSource(shader, source);
-		context.compileShader(shader);
-		if(!context.getShaderParameter(shader, GL.COMPILE_STATUS)) {
-			var info:String = context.getShaderInfoLog(shader);
+		var shader:Shader = Mammoth.gl.createShader(cast(type));
+		Mammoth.gl.shaderSource(shader, source);
+		Mammoth.gl.compileShader(shader);
+		if(!Mammoth.gl.getShaderParameter(shader, GL.COMPILE_STATUS)) {
+			var info:String = Mammoth.gl.getShaderInfoLog(shader);
 			var typeStr:String = type == TShaderType.Vertex ? 'Vertex' : 'Fragment';
 			throw new Exception(info, true, 'Compile${typeStr}Shader');
 		}
@@ -84,13 +80,13 @@ class Material {
 		var fragment:Shader = compileShader(TShaderType.Fragment, standardShader == null ? fragmentShader : standardShader.fragment);
 
 		// and link them together
-		program = context.createProgram();
-		context.attachShader(program, vertex);
-		context.attachShader(program, fragment);
+		program = Mammoth.gl.createProgram();
+		Mammoth.gl.attachShader(program, vertex);
+		Mammoth.gl.attachShader(program, fragment);
 
-		context.linkProgram(program);
-		if(!context.getProgramParameter(program, GL.LINK_STATUS)) {
-			var info:String = context.getProgramInfoLog(program);
+		Mammoth.gl.linkProgram(program);
+		if(!Mammoth.gl.getProgramParameter(program, GL.LINK_STATUS)) {
+			var info:String = Mammoth.gl.getProgramInfoLog(program);
 			throw new Exception(info, true, 'LinkProgram');
 		}
 		return this;
@@ -122,7 +118,7 @@ class Material {
 		for(name in attributes.keys()) {
 			var attribute:Attribute = attributes.get(name);
 			if(attribute.bound) continue;
-			attribute.location = context.getAttribLocation(program, name);
+			attribute.location = Mammoth.gl.getAttribLocation(program, name);
 			attribute.bound = true;
 		}
 	}
@@ -135,7 +131,7 @@ class Material {
 			uniform.location = switch(uniform.value) {
 				// TODO
 				//case Texture2D(_): TLocation.Texture(pipeline.getConstantLocation(name), pipeline.getTextureUnit(name));
-				case _: TLocation.Uniform(context.getUniformLocation(program, name));
+				case _: TLocation.Uniform(Mammoth.gl.getUniformLocation(program, name));
 			}
 			uniform.bound = true;
 		}
@@ -144,25 +140,25 @@ class Material {
 	private function applyCullMode() {
 		switch(cullMode) {
 			case None:
-				context.disable(GL.CULL_FACE);
+				Mammoth.gl.disable(GL.CULL_FACE);
 			case Back:
-				context.enable(GL.CULL_FACE);
-				context.cullFace(GL.BACK);
+				Mammoth.gl.enable(GL.CULL_FACE);
+				Mammoth.gl.cullFace(GL.BACK);
 			case Front:
-				context.enable(GL.CULL_FACE);
-				context.cullFace(GL.FRONT);
+				Mammoth.gl.enable(GL.CULL_FACE);
+				Mammoth.gl.cullFace(GL.FRONT);
 			case Both:
-				context.enable(GL.CULL_FACE);
-				context.cullFace(GL.FRONT_AND_BACK);
+				Mammoth.gl.enable(GL.CULL_FACE);
+				Mammoth.gl.cullFace(GL.FRONT_AND_BACK);
 		}
 	}
 
 	private function applyDepthMode() {
 		if(depthWrite)
-			context.enable(GL.DEPTH_TEST);
+			Mammoth.gl.enable(GL.DEPTH_TEST);
 		else
-			context.disable(GL.DEPTH_TEST);
-		context.depthFunc(switch(depthMode) {
+			Mammoth.gl.disable(GL.DEPTH_TEST);
+		Mammoth.gl.depthFunc(switch(depthMode) {
 			case Never: GL.NEVER;
 			case Less: GL.LESS;
 			case Equal: GL.EQUAL;
@@ -172,7 +168,7 @@ class Material {
 			case GreaterOrEqual: GL.GEQUAL;
 			case Always: GL.ALWAYS;
 		});
-		context.depthMask(depthWrite);
+		Mammoth.gl.depthMask(depthWrite);
 
 	}
 
@@ -193,7 +189,7 @@ class Material {
 		applyBlendingMode();
 
 		// use our program
-		context.useProgram(program);
+		Mammoth.gl.useProgram(program);
 
 		// set all the uniforms
 		bindUniforms();
@@ -201,19 +197,19 @@ class Material {
 			switch(uniform.location) {
 				case Uniform(location): {
 					switch(uniform.value) {
-						case Bool(b): context.uniform1i(location, b ? 1 : 0);
-						case Int(i): context.uniform1i(location, i);
-						case Float(x): context.uniform1f(location, x);
-						case Float2(x, y): context.uniform2f(location, x, y);
-						case Float3(x, y, z): context.uniform3f(location, x, y, z);
-						case Float4(x, y, z, w): context.uniform4f(location, x, y, z, w);
-						case Floats(x): context.uniform1fv(location, cast x);
-						case Vec2(v): context.uniform2f(location, v.x, v.y);
-						case Vec3(v): context.uniform3f(location, v.x, v.y, v.z);
-						case Vec4(v): context.uniform4f(location, v.x, v.y, v.z, v.w);
-						case Mat4(m): context.uniformMatrix4fv(location, false, cast(m));
-						case RGB(c): context.uniform3f(location, c.r, c.g, c.b);
-						case RGBA(c): context.uniform4f(location, c.r, c.g, c.b, c.a);
+						case Bool(b): Mammoth.gl.uniform1i(location, b ? 1 : 0);
+						case Int(i): Mammoth.gl.uniform1i(location, i);
+						case Float(x): Mammoth.gl.uniform1f(location, x);
+						case Float2(x, y): Mammoth.gl.uniform2f(location, x, y);
+						case Float3(x, y, z): Mammoth.gl.uniform3f(location, x, y, z);
+						case Float4(x, y, z, w): Mammoth.gl.uniform4f(location, x, y, z, w);
+						case Floats(x): Mammoth.gl.uniform1fv(location, cast x);
+						case Vec2(v): Mammoth.gl.uniform2f(location, v.x, v.y);
+						case Vec3(v): Mammoth.gl.uniform3f(location, v.x, v.y, v.z);
+						case Vec4(v): Mammoth.gl.uniform4f(location, v.x, v.y, v.z, v.w);
+						case Mat4(m): Mammoth.gl.uniformMatrix4fv(location, cast(m));
+						case RGB(c): Mammoth.gl.uniform3f(location, c.r, c.g, c.b);
+						case RGBA(c): Mammoth.gl.uniform4f(location, c.r, c.g, c.b, c.a);
 						case _: throw 'Unhandled uniform type ${uniform.value}!';
 					}
 				}

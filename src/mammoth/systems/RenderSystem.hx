@@ -40,11 +40,10 @@ class RenderSystem implements ISystem {
         var vpH:Int = Std.int((camera.viewportMax.y - camera.viewportMin.y) * Mammoth.height);
 
         // clear our region of the screen
-        var g:Graphics = Mammoth.gl;
-        g.context.viewport(vpX, vpY, vpW, vpH);
-        g.context.scissor(vpX, vpY, vpW, vpH);
-        g.clearColour(camera.clearColour);
-        g.context.clear(GL.COLOR_BUFFER_BIT | GL.DEPTH_BUFFER_BIT);
+        Mammoth.gl.viewport(vpX, vpY, vpW, vpH);
+        Mammoth.gl.scissor(vpX, vpY, vpW, vpH);
+        Mammoth.gl.clearColor(camera.clearColour);
+        Mammoth.gl.clear(GL.COLOR_BUFFER_BIT | GL.DEPTH_BUFFER_BIT);
 
         // render each object!
         for(o in objects) {
@@ -101,13 +100,13 @@ class RenderSystem implements ISystem {
             material.apply();
 
             // set up the attributes
-            g.context.bindBuffer(GL.ARRAY_BUFFER, mesh.vertexBuffer);
+            Mammoth.gl.bindBuffer(GL.ARRAY_BUFFER, mesh.vertexBuffer);
             for(attributeName in mesh.attributeNames) {
                 if(!material.attributes.exists(attributeName)) continue;
                 var attribute:Attribute = material.attributes.get(attributeName);
                 
-                g.context.enableVertexAttribArray(attribute.location);
-                g.context.vertexAttribPointer(
+                Mammoth.gl.enableVertexAttribArray(attribute.location);
+                Mammoth.gl.vertexAttribPointer(
                     attribute.location,
                     switch(attribute.type) {
                         case Float: 1;
@@ -122,10 +121,10 @@ class RenderSystem implements ISystem {
             }
 
             // bind the index buffer to the vertices for triangles
-            g.context.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
+            Mammoth.gl.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
 
             // and draw those suckers!
-            g.context.drawElements(GL.TRIANGLES, mesh.vertexCount, GL.UNSIGNED_SHORT, 0);
+            Mammoth.gl.drawElements(GL.TRIANGLES, mesh.vertexCount, GL.UNSIGNED_SHORT, 0);
             Mammoth.stats.drawCalls++;
             Mammoth.stats.triangles += Std.int(mesh.vertexCount / 3);
         }

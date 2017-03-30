@@ -16,6 +16,7 @@ package mammoth;
 import edge.Engine;
 import edge.Phase;
 import mammoth.gl.Graphics;
+import mammoth.input.Input;
 import mammoth.debug.DebugView;
 import tusk.Tusk;
 
