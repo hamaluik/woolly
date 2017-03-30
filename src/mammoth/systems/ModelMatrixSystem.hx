@@ -19,7 +19,6 @@ import glm.Quat;
 import glm.Vec3;
 import glm.Mat4;
 import mammoth.components.Transform;
-import mammoth.Timing;
 
 class ModelMatrixSystem implements ISystem {
     private var position:Vec3 = new Vec3();
@@ -28,9 +27,9 @@ class ModelMatrixSystem implements ISystem {
 
     private function calculateModelMatrix(transform:Transform) {
         // interpolate based on timing
-        Vec3.lerp(transform.lastPosition, transform.position, Timing.alpha, position);
-        Quat.slerp(transform.lastRotation, transform.rotation, Timing.alpha, rotation);
-        Vec3.lerp(transform.lastScale, transform.scale, Timing.alpha, scale);
+        Vec3.lerp(transform.lastPosition, transform.position, Mammoth.timing.alpha, position);
+        Quat.slerp(transform.lastRotation, transform.rotation, Mammoth.timing.alpha, rotation);
+        Vec3.lerp(transform.lastScale, transform.scale, Mammoth.timing.alpha, scale);
 
         // calculate the full transformation matrix
         GLM.transform(position, rotation, scale, transform.m);

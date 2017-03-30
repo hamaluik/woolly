@@ -11,18 +11,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package systems;
+package mammoth;
 
-import mammoth.Mammoth;
-import edge.ISystem;
-import mammoth.components.Transform;
-import components.Spin;
-
-class SpinSystem implements ISystem {
-    private var axis:Vec3 = new Vec3(0, 0, 1);
-
-    public function update(transform:Transform, spin:Spin) {
-        spin.angle += spin.speed * Mammoth.timing.dt;
-        Quat.axisAngle(axis, spin.angle, transform.rotation);
-    }
+@:build(mammoth.macros.Assets.buildAssetList())
+class AssetList {
 }

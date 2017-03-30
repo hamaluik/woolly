@@ -1,4 +1,4 @@
-package mammoth.input.js;
+package mammoth.platform.js;
 
 import mammoth.Mammoth;
 import js.html.MouseEvent;

@@ -322,7 +322,7 @@ Main.main = function() {
 };
 Main.onReady = function() {
 	mammoth_Log.log("Loading...",mammoth_LogFunctions.Info,{ fileName : "Main.hx", lineNumber : 26, className : "Main", methodName : "onReady"});
-	mammoth_Assets.loadJSON("assets/iso.json").then(function(data) {
+	mammoth_Mammoth.assets.loadJSON("assets/iso.json").then(function(data) {
 		mammoth_loader_Loader.load(data);
 		mammoth_Log.log("Done!",mammoth_LogFunctions.Info,{ fileName : "Main.hx", lineNumber : 30, className : "Main", methodName : "onReady"});
 		var entity = mammoth_Mammoth.engine.entities();
@@ -1739,58 +1739,6 @@ js_html_compat_Uint8Array._subarray = function(start,end) {
 	a.byteOffset = start;
 	return a;
 };
-var mammoth_Assets = function() { };
-mammoth_Assets.__name__ = ["mammoth","Assets"];
-mammoth_Assets.load = function(path) {
-	var d = new promhx_Deferred();
-	var p = d.promise();
-	var xhr = new XMLHttpRequest();
-	xhr.open("GET",path,true);
-	xhr.overrideMimeType("text/plain; charset=x-user-defined");
-	xhr.responseType = "arraybuffer";
-	xhr.onload = function() {
-		if(xhr.status >= 200 && xhr.status < 300) {
-			var buffer = xhr.response;
-			var view = new DataView(buffer);
-			var bytes = new haxe_io_Bytes(new ArrayBuffer(view.byteLength));
-			var _g1 = 0;
-			var _g = view.byteLength;
-			while(_g1 < _g) {
-				var i = _g1++;
-				bytes.b[i] = view.getUint8(i) & 255;
-			}
-			d.resolve(bytes);
-		} else {
-			var e = new mammoth_debug_Exception("error " + xhr.status + ": " + xhr.statusText,false,"HTTPResponse",null,{ fileName : "Assets.hx", lineNumber : 45, className : "mammoth.Assets", methodName : "load"});
-			d.handleError(e);
-		}
-	};
-	xhr.onerror = function() {
-		var e1 = new mammoth_debug_Exception("unknown error",false,"HTTPRequest",null,{ fileName : "Assets.hx", lineNumber : 48, className : "mammoth.Assets", methodName : "load"});
-		d.handleError(e1);
-	};
-	xhr.onabort = function() {
-		var e2 = new mammoth_debug_Exception("aborted",false,"HTTPRequest",null,{ fileName : "Assets.hx", lineNumber : 49, className : "mammoth.Assets", methodName : "load"});
-		d.handleError(e2);
-	};
-	xhr.ontimeout = function() {
-		var e3 = new mammoth_debug_Exception("timed out",false,"HTTPRequest",null,{ fileName : "Assets.hx", lineNumber : 50, className : "mammoth.Assets", methodName : "load"});
-		d.handleError(e3);
-	};
-	xhr.send();
-	return p;
-};
-mammoth_Assets.loadJSON = function(path) {
-	var d = new promhx_Deferred();
-	var p = d.promise();
-	mammoth_Assets.load(path).then(function(b) {
-		var tmp = JSON.parse(b.toString());
-		d.resolve(tmp);
-	},{ fileName : "Assets.hx", lineNumber : 60, className : "mammoth.Assets", methodName : "loadJSON"}).catchError(function(e) {
-		d.handleError(e);
-	});
-	return p;
-};
 var mammoth_LogFunctions = { __ename__ : true, __constructs__ : ["Fatal","Error","Warn","Info","Debug"] };
 mammoth_LogFunctions.Fatal = ["Fatal",0];
 mammoth_LogFunctions.Fatal.toString = $estr;
@@ -1830,6 +1778,62 @@ mammoth_Log.log = function(v,func,pos) {
 		break;
 	}
 };
+var mammoth_platform_js_Assets = function() {
+};
+mammoth_platform_js_Assets.__name__ = ["mammoth","platform","js","Assets"];
+mammoth_platform_js_Assets.prototype = {
+	load: function(path) {
+		var d = new promhx_Deferred();
+		var p = d.promise();
+		var xhr = new XMLHttpRequest();
+		xhr.open("GET",path,true);
+		xhr.overrideMimeType("text/plain; charset=x-user-defined");
+		xhr.responseType = "arraybuffer";
+		xhr.onload = function() {
+			if(xhr.status >= 200 && xhr.status < 300) {
+				var buffer = xhr.response;
+				var view = new DataView(buffer);
+				var bytes = new haxe_io_Bytes(new ArrayBuffer(view.byteLength));
+				var _g1 = 0;
+				var _g = view.byteLength;
+				while(_g1 < _g) {
+					var i = _g1++;
+					bytes.b[i] = view.getUint8(i) & 255;
+				}
+				d.resolve(bytes);
+			} else {
+				var e = new mammoth_debug_Exception("error " + xhr.status + ": " + xhr.statusText,false,"HTTPResponse",null,{ fileName : "Assets.hx", lineNumber : 33, className : "mammoth.platform.js.Assets", methodName : "load"});
+				d.handleError(e);
+			}
+		};
+		xhr.onerror = function() {
+			var e1 = new mammoth_debug_Exception("unknown error",false,"HTTPRequest",null,{ fileName : "Assets.hx", lineNumber : 36, className : "mammoth.platform.js.Assets", methodName : "load"});
+			d.handleError(e1);
+		};
+		xhr.onabort = function() {
+			var e2 = new mammoth_debug_Exception("aborted",false,"HTTPRequest",null,{ fileName : "Assets.hx", lineNumber : 37, className : "mammoth.platform.js.Assets", methodName : "load"});
+			d.handleError(e2);
+		};
+		xhr.ontimeout = function() {
+			var e3 = new mammoth_debug_Exception("timed out",false,"HTTPRequest",null,{ fileName : "Assets.hx", lineNumber : 38, className : "mammoth.platform.js.Assets", methodName : "load"});
+			d.handleError(e3);
+		};
+		xhr.send();
+		return p;
+	}
+	,loadJSON: function(path) {
+		var d = new promhx_Deferred();
+		var p = d.promise();
+		this.load(path).then(function(b) {
+			var tmp = JSON.parse(b.toString());
+			d.resolve(tmp);
+		},{ fileName : "Assets.hx", lineNumber : 48, className : "mammoth.platform.js.Assets", methodName : "loadJSON"}).catchError(function(e) {
+			d.handleError(e);
+		});
+		return p;
+	}
+	,__class__: mammoth_platform_js_Assets
+};
 var mammoth_gl_js_Graphics = function() {
 };
 mammoth_gl_js_Graphics.__name__ = ["mammoth","gl","js","Graphics"];
@@ -1863,13 +1867,13 @@ mammoth_gl_js_Graphics.prototype = {
 	}
 	,__class__: mammoth_gl_js_Graphics
 };
-var mammoth_input_js_Input = function() {
+var mammoth_platform_js_Input = function() {
 	this.mouseDown = false;
 	this.mouseY = 0;
 	this.mouseX = 0;
 };
-mammoth_input_js_Input.__name__ = ["mammoth","input","js","Input"];
-mammoth_input_js_Input.prototype = {
+mammoth_platform_js_Input.__name__ = ["mammoth","platform","js","Input"];
+mammoth_platform_js_Input.prototype = {
 	init: function() {
 		mammoth_Mammoth.gl.context.canvas.addEventListener("mousemove",$bind(this,this.updateMousePosition));
 		mammoth_Mammoth.gl.context.canvas.addEventListener("mousedown",$bind(this,this.updateMouseDown));
@@ -1890,7 +1894,7 @@ mammoth_input_js_Input.prototype = {
 			this.mouseDown = false;
 		}
 	}
-	,__class__: mammoth_input_js_Input
+	,__class__: mammoth_platform_js_Input
 };
 var mammoth_Stats = function() {
 	this.renderEnd = 0;
@@ -1923,6 +1927,34 @@ mammoth_Stats.prototype = {
 	}
 	,__class__: mammoth_Stats
 };
+var mammoth_platform_js_Timing = function() {
+	this.alpha = 0;
+	this.dt = 0.0333333333333333329;
+	this.accumulator = 0;
+	this.lastTime = 0;
+	this.time = 0;
+	this.animationFrameID = 0;
+};
+mammoth_platform_js_Timing.__name__ = ["mammoth","platform","js","Timing"];
+mammoth_platform_js_Timing.prototype = {
+	onRenderFrame: function(ts) {
+		this.time = ts / 1000;
+		var delta = this.time - this.lastTime;
+		this.lastTime = this.time;
+		this.accumulator += delta;
+		while(this.accumulator >= this.dt) {
+			this.onUpdate(this.dt);
+			this.accumulator -= this.dt;
+		}
+		this.alpha = this.accumulator / this.dt;
+		this.onRender(delta,this.alpha);
+		this.animationFrameID = window.requestAnimationFrame($bind(this,this.onRenderFrame));
+	}
+	,start: function() {
+		this.animationFrameID = window.requestAnimationFrame($bind(this,this.onRenderFrame));
+	}
+	,__class__: mammoth_platform_js_Timing
+};
 var mammoth_Mammoth = function() { };
 mammoth_Mammoth.__name__ = ["mammoth","Mammoth"];
 mammoth_Mammoth.init = function(onReady,updateRate) {
@@ -1932,7 +1964,7 @@ mammoth_Mammoth.init = function(onReady,updateRate) {
 	mammoth_Mammoth.gl.init();
 	mammoth_Mammoth.input.init();
 	mammoth_Mammoth.debugView = new mammoth_debug_DebugView();
-	mammoth_Timing.dt = 1 / updateRate;
+	mammoth_Mammoth.timing.dt = 1 / updateRate;
 	mammoth_Mammoth.engine = new edge_Engine();
 	mammoth_Mammoth.preUpdatePhase = mammoth_Mammoth.engine.createPhase();
 	mammoth_Mammoth.updatePhase = mammoth_Mammoth.engine.createPhase();
@@ -1947,9 +1979,9 @@ mammoth_Mammoth.init = function(onReady,updateRate) {
 	}
 };
 mammoth_Mammoth.begin = function() {
-	mammoth_Timing.onUpdate = mammoth_Mammoth.onUpdate;
-	mammoth_Timing.onRender = mammoth_Mammoth.onRender;
-	mammoth_Timing.start();
+	mammoth_Mammoth.timing.onUpdate = mammoth_Mammoth.onUpdate;
+	mammoth_Mammoth.timing.onRender = mammoth_Mammoth.onRender;
+	mammoth_Mammoth.timing.start();
 };
 mammoth_Mammoth.onUpdate = function(dt) {
 	tusk_Tusk.draw.newFrame();
@@ -1971,24 +2003,6 @@ mammoth_Mammoth.onRender = function(dt,alpha) {
 	mammoth_Mammoth.renderPhase.update(dt);
 	mammoth_Mammoth.stats.endRenderTimer();
 	mammoth_Mammoth.debugView.draw();
-};
-var mammoth_Timing = function() { };
-mammoth_Timing.__name__ = ["mammoth","Timing"];
-mammoth_Timing.onRenderFrame = function(ts) {
-	mammoth_Timing.time = ts / 1000;
-	var delta = mammoth_Timing.time - mammoth_Timing.lastTime;
-	mammoth_Timing.lastTime = mammoth_Timing.time;
-	mammoth_Timing.accumulator += delta;
-	while(mammoth_Timing.accumulator >= mammoth_Timing.dt) {
-		mammoth_Timing.onUpdate(mammoth_Timing.dt);
-		mammoth_Timing.accumulator -= mammoth_Timing.dt;
-	}
-	mammoth_Timing.alpha = mammoth_Timing.accumulator / mammoth_Timing.dt;
-	mammoth_Timing.onRender(delta,mammoth_Timing.alpha);
-	mammoth_Timing.animationFrameID = window.requestAnimationFrame(mammoth_Timing.onRenderFrame);
-};
-mammoth_Timing.start = function() {
-	mammoth_Timing.animationFrameID = window.requestAnimationFrame(mammoth_Timing.onRenderFrame);
 };
 var mammoth_components_ProjectionMode = { __ename__ : true, __constructs__ : ["Orthographic","Perspective"] };
 mammoth_components_ProjectionMode.Orthographic = function(size) { var $x = ["Orthographic",0,size]; $x.__enum__ = mammoth_components_ProjectionMode; $x.toString = $estr; return $x; };
@@ -3451,7 +3465,7 @@ mammoth_systems_ModelMatrixSystem.prototype = {
 	calculateModelMatrix: function(transform) {
 		var a = transform.lastPosition;
 		var b = transform.position;
-		var t = mammoth_Timing.alpha;
+		var t = mammoth_Mammoth.timing.alpha;
 		var dest = this.position;
 		var a1 = a[0];
 		dest[0] = a1 + t * (b[0] - a1);
@@ -3461,7 +3475,7 @@ mammoth_systems_ModelMatrixSystem.prototype = {
 		dest[2] = a3 + t * (b[2] - a3);
 		var a4 = transform.lastRotation;
 		var b1 = transform.rotation;
-		var t1 = mammoth_Timing.alpha;
+		var t1 = mammoth_Mammoth.timing.alpha;
 		var dest1 = this.rotation;
 		var bx = b1[0];
 		var by = b1[1];
@@ -3496,7 +3510,7 @@ mammoth_systems_ModelMatrixSystem.prototype = {
 		}
 		var a9 = transform.lastScale;
 		var b2 = transform.scale;
-		var t2 = mammoth_Timing.alpha;
+		var t2 = mammoth_Mammoth.timing.alpha;
 		var dest2 = this.scale;
 		var a10 = a9[0];
 		dest2[0] = a10 + t2 * (b2[0] - a10);
@@ -4369,7 +4383,7 @@ systems_SpinSystem.__name__ = ["systems","SpinSystem"];
 systems_SpinSystem.__interfaces__ = [edge_ISystem];
 systems_SpinSystem.prototype = {
 	update: function(transform,spin) {
-		spin.angle += spin.speed * mammoth_Timing.dt;
+		spin.angle += spin.speed * mammoth_Mammoth.timing.dt;
 		var axis = this.axis;
 		var angle = spin.angle;
 		var dest = transform.rotation;
@@ -4807,15 +4821,11 @@ haxe_io_FPHelper.i64tmp = (function($this) {
 js_Boot.__toStr = ({ }).toString;
 js_html_compat_Float32Array.BYTES_PER_ELEMENT = 4;
 js_html_compat_Uint8Array.BYTES_PER_ELEMENT = 1;
+mammoth_Mammoth.timing = new mammoth_platform_js_Timing();
 mammoth_Mammoth.gl = new mammoth_gl_js_Graphics();
-mammoth_Mammoth.input = new mammoth_input_js_Input();
+mammoth_Mammoth.assets = new mammoth_platform_js_Assets();
+mammoth_Mammoth.input = new mammoth_platform_js_Input();
 mammoth_Mammoth.stats = new mammoth_Stats();
-mammoth_Timing.animationFrameID = 0;
-mammoth_Timing.time = 0;
-mammoth_Timing.lastTime = 0;
-mammoth_Timing.accumulator = 0;
-mammoth_Timing.dt = 0.0333333333333333329;
-mammoth_Timing.alpha = 0;
 mammoth_defaults_StandardShader.vertexStandard = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\n// attribute inputs\nattribute vec3 position;\nattribute vec3 normal;\n\n#ifdef ATTRIBUTE_UV\nattribute vec2 uv;\n#endif\n#ifdef ATTRIBUTE_COLOUR\nattribute vec3 colour;\n#endif\n\n// camera uniforms\nuniform mat4 MVP;\nuniform mat4 M;\n\n// material uniforms\nuniform vec3 albedoColour;\nuniform vec3 ambientColour;\n\n// outputs\nvarying vec3 v_position;\nvarying vec3 v_normal;\nvarying vec3 v_colour;\n#ifdef ATTRIBUTE_UV\nvarying vec2 v_uv;\n#endif\n\nvoid main() {\n    // transform position to world space\n    vec3 worldPosition = (M * vec4(position, 1.0)).xyz;\n    v_position = worldPosition;\n\n\t// transform normals into world space\n\tvec3 worldNormal = (M * vec4(normal, 0.0)).xyz;\n    v_normal = worldNormal;\n\t\n    vec3 colour = albedoColour * ambientColour;\n\n    v_colour = colour;\n    #ifdef ATTRIBUTE_UV\n\tv_uv = uv;\n    #endif\n\n    // set the camera-space position of the vertex\n\tgl_Position = MVP * vec4(position, 1.0);\n}";
 mammoth_defaults_StandardShader.fragmentStandard = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\n// lights\n#ifdef UNIFORM_DIRECTIONAL_LIGHTS\nstruct SDirectionalLight {\n    vec3 direction;\n    vec3 colour;\n};\nuniform SDirectionalLight directionalLights[NUMBER_DIRECTIONAL_LIGHTS];\n#endif\n#ifdef UNIFORM_POINT_LIGHTS\nstruct SPointLight {\n    vec3 position;\n    vec3 colour;\n    float distance;\n};\nuniform SPointLight pointLights[NUMBER_POINT_LIGHTS];\n#endif\n\n// material uniforms\nuniform vec3 albedoColour;\nuniform vec3 ambientColour;\n\n// inputs\nvarying vec3 v_position;\nvarying vec3 v_normal;\nvarying vec3 v_colour;\n#ifdef ATTRIBUTE_UV\nvarying vec2 v_uv;\n#endif\n\n#ifdef UNIFORM_TEXTURE\nuniform sampler2D texture;\n#endif\n\nvoid main() {\n    // base colour from vertex shader\n    vec3 colour = v_colour;\n\n    #ifdef UNIFORM_DIRECTIONAL_LIGHTS\n\t// sun diffuse term\n\tfloat dLight0 = clamp(dot(v_normal, directionalLights[0].direction), 0.0, 1.0);\n    colour += directionalLights[0].colour * dLight0 * albedoColour;\n    #endif\n\n    #ifdef UNIFORM_POINT_LIGHTS\n    vec3 pLightDir0 = pointLights[0].position - v_position;\n    float pDist0 = length(pLightDir0);\n\tfloat pLight0 = clamp(dot(v_normal, pLightDir0), 0.0, 1.0) * pointLights[0].distance / (pDist0 * pDist0);\n    colour += pointLights[0].colour * pLight0 * albedoColour;\n    #endif\n\n    vec4 outColour = vec4(colour, 1.0);\n    #ifdef UNIFORM_TEXTURE\n    outColour *= texture2D(texture, v_uv);\n    #endif\n\n    // gamma\n    gl_FragColor = vec4(pow(outColour.rgb, vec3(1.0/2.2)), outColour.a);\n}";
 mammoth_loader_Loader.cameras = new haxe_ds_StringMap();

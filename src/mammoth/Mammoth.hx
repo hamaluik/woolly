@@ -16,7 +16,9 @@ package mammoth;
 import edge.Engine;
 import edge.Phase;
 import mammoth.gl.Graphics;
-import mammoth.input.Input;
+import mammoth.platform.Assets;
+import mammoth.platform.Input;
+import mammoth.platform.Timing;
 import mammoth.debug.DebugView;
 import tusk.Tusk;
 
@@ -28,16 +30,18 @@ class Mammoth {
     public static var postUpdatePhase:Phase;
     public static var renderPhase:Phase;
 
+    public static var timing:Timing = new Timing();
     public static var gl:Graphics = new Graphics();
+    public static var assets:Assets = new Assets();
     public static var input:Input = new Input();
     public static var stats:Stats = new Stats();
     private static var debugView:DebugView;
 
     // public timing variables
     public static var time(get, never):Float;
-    private inline static function get_time():Float return Timing.time;
+    private inline static function get_time():Float return timing.time;
     public static var alpha(get, never):Float;
-    private inline static function get_alpha():Float return Timing.alpha;
+    private inline static function get_alpha():Float return timing.alpha;
 
     // public size variables
     public static var width(get, never):Float;
@@ -57,7 +61,7 @@ class Mammoth {
         debugView = new DebugView();
 
         // calculate the clock period
-        Timing.dt = 1 / updateRate;
+        timing.dt = 1 / updateRate;
 
         // initialize the ECS
         engine = new Engine();
@@ -79,13 +83,13 @@ class Mammoth {
     }
 
     public static function begin() {
-        Timing.onUpdate = onUpdate;
-        Timing.onRender = onRender;
-        Timing.start();
+        timing.onUpdate = onUpdate;
+        timing.onRender = onRender;
+        timing.start();
     }
 
     public static function end() {
-        Timing.stop();
+        timing.stop();
     }
 
     private static function onUpdate(dt:Float):Void {

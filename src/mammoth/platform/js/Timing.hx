@@ -11,24 +11,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth;
+package mammoth.platform.js;
 
 import js.Browser;
 
 @:allow(mammoth.Mammoth)
 class Timing {
-    private static var animationFrameID:Int = 0;
-    private static var time:Float = 0;
-    private static var lastTime:Float = 0;
-    private static var accumulator:Float = 0;
+    public function new() {}
 
-    public static var dt(default, null):Float = 1 / 30;
-    public static var alpha(default, null):Float = 0;
+    private var animationFrameID:Int = 0;
+    private var time:Float = 0;
+    private var lastTime:Float = 0;
+    private var accumulator:Float = 0;
 
-    private static var onUpdate:Float->Void;
-    private static var onRender:Float->Float->Void;
+    public var dt(default, null):Float = 1 / 30;
+    public var alpha(default, null):Float = 0;
 
-    private static function onRenderFrame(ts:Float):Void {
+    private var onUpdate:Float->Void;
+    private var onRender:Float->Float->Void;
+
+    private function onRenderFrame(ts:Float):Void {
         time = ts / 1000;
 
         // figure out how long since we last ran
@@ -50,15 +52,15 @@ class Timing {
         requestFrame();
     }
 
-    private static inline function requestFrame() {
+    private inline function requestFrame() {
         animationFrameID = Browser.window.requestAnimationFrame(onRenderFrame);
     }
 
-    private static function start() {
+    private function start() {
         requestFrame();
     }
 
-    private static function stop() {
+    private function stop() {
         Browser.window.cancelAnimationFrame(animationFrameID);
     }
 }

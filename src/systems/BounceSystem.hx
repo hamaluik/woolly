@@ -13,14 +13,14 @@
 */
 package systems;
 
+import mammoth.Mammoth;
 import edge.ISystem;
 import mammoth.components.Transform;
 import components.Bounce;
-import mammoth.Timing;
 
 class BounceSystem implements ISystem {
     public function update(transform:Transform, bounce:Bounce) {
-        bounce.x += bounce.vx * Timing.dt;
+        bounce.x += bounce.vx * Mammoth.timing.dt;
         if(bounce.x > bounce.xMax) {
             bounce.x = bounce.xMax;
             bounce.vx *= -1;

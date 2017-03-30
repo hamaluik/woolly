@@ -14,7 +14,7 @@
 package;
 
 import mammoth.Mammoth;
-import mammoth.Assets;
+import mammoth.AssetList;
 import mammoth.Log;
 
 class Main {
@@ -24,7 +24,7 @@ class Main {
 
     private static function onReady():Void {
         Log.info("Loading...");
-        Assets.loadJSON(Assets.asset___iso__json)
+        Mammoth.assets.loadJSON(AssetList.asset___iso__json)
             .then(function(data:Dynamic) {
                 mammoth.loader.Loader.load(data);
                 Log.info("Done!");
