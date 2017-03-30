@@ -22,6 +22,7 @@ import mammoth.platform.Timing;
 import mammoth.debug.DebugView;
 import tusk.Tusk;
 
+@:expose
 class Mammoth {
 	// parts of our system
     public static var engine:Engine;
