@@ -17,6 +17,7 @@ import js.Browser;
 import js.html.CanvasElement;
 import js.html.webgl.RenderingContext;
 
+import mammoth.platform.ArrayBufferView;
 import mammoth.platform.Float32Array;
 import mammoth.platform.Int16Array;
 import mammoth.platform.Int32Array;
@@ -193,8 +194,10 @@ class Graphics {
 	// @:overload(function(target:Int, level:Int, internalformat:Int, format:Int, type:Int, image:js.html.ImageElement):Void {})
 	// @:overload(function(target:Int, level:Int, internalformat:Int, format:Int, type:Int, canvas:js.html.CanvasElement):Void {})
 	// public inline function texImage2D(target:Int, level:Int, internalformat:Int, format:Int, type:Int, video:js.html.VideoElement):Void;
+	public inline function texImage2D(target:Int, level:Int, internalformat:Int, width:Int, height:Int, border:Int, format:Int, type:Int, pixels:ArrayBufferView):Void
+		context.texImage2D(target, level, internalformat, width, height, border, format, type, pixels);
 	// public inline function texParameterf(target:Int, pname:Int, param:Float):Void;
-	// public inline function texParameteri(target:Int, pname:Int, param:Int):Void;
+	public inline function texParameteri(target:Int, pname:Int, param:Int):Void context.texParameteri(target, pname, param);
 	// @:overload(function(target:Int, level:Int, xoffset:Int, yoffset:Int, width:Int, height:Int, format:Int, type:Int, pixels:js.html.ArrayBufferView):Void {})
 	// @:overload(function(target:Int, level:Int, xoffset:Int, yoffset:Int, format:Int, type:Int, pixels:js.html.ImageData):Void {})
 	// @:overload(function(target:Int, level:Int, xoffset:Int, yoffset:Int, format:Int, type:Int, image:js.html.ImageElement):Void {})
