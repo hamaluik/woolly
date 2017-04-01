@@ -1836,6 +1836,7 @@ mammoth_platform_js_Assets.prototype = {
 	,__class__: mammoth_platform_js_Assets
 };
 var mammoth_gl_js_Graphics = function() {
+	this.extensions = new haxe_ds_StringMap();
 };
 mammoth_gl_js_Graphics.__name__ = ["mammoth","gl","js","Graphics"];
 mammoth_gl_js_Graphics.prototype = {
@@ -1843,18 +1844,86 @@ mammoth_gl_js_Graphics.prototype = {
 		var canvas = window.document.createElement("canvas");
 		this.context = js_html__$CanvasElement_CanvasUtil.getContextWebGL(canvas,{ alpha : false, antialias : false, depth : true, premultipliedAlpha : false, preserveDrawingBuffer : true, stencil : true});
 		if(this.context != null) {
-			this.context.getExtension("OES_texture_float");
-			this.context.getExtension("OES_texture_float_linear");
-			this.halfFloat = this.context.getExtension("OES_texture_half_float");
-			this.context.getExtension("OES_texture_half_float_linear");
-			this.depthTexture = this.context.getExtension("WEBGL_depth_texture");
-			this.context.getExtension("EXT_shader_texture_lod");
-			this.context.getExtension("OES_standard_derivatives");
-			this.anisotropicFilter = this.context.getExtension("EXT_texture_filter_anisotropic");
-			if(this.anisotropicFilter == null) {
-				this.anisotropicFilter = this.context.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
+			var _this = this.extensions;
+			var value = this.context.getExtension("OES_texture_float");
+			if(__map_reserved["texture_float"] != null) {
+				_this.setReserved("texture_float",value);
+			} else {
+				_this.h["texture_float"] = value;
 			}
-			this.drawBuffers = this.context.getExtension("WEBGL_draw_buffers");
+			var _this1 = this.extensions;
+			var value1 = this.context.getExtension("OES_texture_float_linear");
+			if(__map_reserved["texture_float_linear"] != null) {
+				_this1.setReserved("texture_float_linear",value1);
+			} else {
+				_this1.h["texture_float_linear"] = value1;
+			}
+			var _this2 = this.extensions;
+			var value2 = this.context.getExtension("OES_texture_half_float");
+			if(__map_reserved["texture_half_float"] != null) {
+				_this2.setReserved("texture_half_float",value2);
+			} else {
+				_this2.h["texture_half_float"] = value2;
+			}
+			var _this3 = this.extensions;
+			var value3 = this.context.getExtension("OES_texture_half_float_linear");
+			if(__map_reserved["texture_half_float_linear"] != null) {
+				_this3.setReserved("texture_half_float_linear",value3);
+			} else {
+				_this3.h["texture_half_float_linear"] = value3;
+			}
+			var _this4 = this.extensions;
+			var value4 = this.context.getExtension("EXT_frag_depth");
+			if(__map_reserved["frag_depth"] != null) {
+				_this4.setReserved("frag_depth",value4);
+			} else {
+				_this4.h["frag_depth"] = value4;
+			}
+			var _this5 = this.extensions;
+			var value5 = this.context.getExtension("WEBGL_depth_texture");
+			if(__map_reserved["depth_texture"] != null) {
+				_this5.setReserved("depth_texture",value5);
+			} else {
+				_this5.h["depth_texture"] = value5;
+			}
+			var _this6 = this.extensions;
+			var value6 = this.context.getExtension("EXT_shader_texture_lod");
+			if(__map_reserved["shader_texture_lod"] != null) {
+				_this6.setReserved("shader_texture_lod",value6);
+			} else {
+				_this6.h["shader_texture_lod"] = value6;
+			}
+			var _this7 = this.extensions;
+			var value7 = this.context.getExtension("OES_standard_derivatives");
+			if(__map_reserved["standard_derivatives"] != null) {
+				_this7.setReserved("standard_derivatives",value7);
+			} else {
+				_this7.h["standard_derivatives"] = value7;
+			}
+			var _this8 = this.extensions;
+			var value8 = this.context.getExtension("EXT_texture_filter_anisotropic");
+			if(__map_reserved["texture_filter_anisotropic"] != null) {
+				_this8.setReserved("texture_filter_anisotropic",value8);
+			} else {
+				_this8.h["texture_filter_anisotropic"] = value8;
+			}
+			var _this9 = this.extensions;
+			if((__map_reserved["texture_filter_anisotropic"] != null ? _this9.getReserved("texture_filter_anisotropic") : _this9.h["texture_filter_anisotropic"]) == null) {
+				var _this10 = this.extensions;
+				var value9 = this.context.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
+				if(__map_reserved["texture_filter_anisotropic"] != null) {
+					_this10.setReserved("texture_filter_anisotropic",value9);
+				} else {
+					_this10.h["texture_filter_anisotropic"] = value9;
+				}
+			}
+			var _this11 = this.extensions;
+			var value10 = this.context.getExtension("WEBGL_draw_buffers");
+			if(__map_reserved["draw_buffers"] != null) {
+				_this11.setReserved("draw_buffers",value10);
+			} else {
+				_this11.h["draw_buffers"] = value10;
+			}
 		}
 		window.document.body.appendChild(canvas);
 	}
@@ -1930,7 +1999,7 @@ mammoth_Stats.prototype = {
 };
 var mammoth_platform_js_Timing = function() {
 	this.alpha = 0;
-	this.dt = 0.033333333333333333;
+	this.dt = 0.0333333333333333329;
 	this.timescale = 1.0;
 	this.accumulator = 0;
 	this.lastTime = 0;
@@ -1975,6 +2044,7 @@ mammoth_Mammoth.init = function(onReady,updateRate) {
 	mammoth_Mammoth.preUpdatePhase.add(new mammoth_systems_PreTransformSystem());
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_ModelMatrixSystem());
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_CameraSystem());
+	mammoth_Mammoth.renderPhase.add(new mammoth_systems_DirectionalShadowSystem());
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_RenderSystem());
 	if(onReady != null) {
 		onReady();
@@ -2104,6 +2174,15 @@ mammoth_components_Camera.prototype = {
 	,__class__: mammoth_components_Camera
 };
 var mammoth_components_DirectionalLight = function() {
+	this.shadowmap = null;
+	this.colourmap = null;
+	this.shadowFramebuffer = null;
+	var this1 = new Float32Array(4);
+	this1[0] = 0;
+	this1[1] = 0;
+	this1[2] = 0;
+	this1[3] = 0;
+	this.direction = this1;
 	this.colour = mammoth_utilities_Colours.White;
 };
 mammoth_components_DirectionalLight.__name__ = ["mammoth","components","DirectionalLight"];
@@ -2116,41 +2195,6 @@ mammoth_components_DirectionalLight.prototype = {
 	,__class__: mammoth_components_DirectionalLight
 };
 var mammoth_components_MeshRenderer = function() {
-	var this1 = new Float32Array(16);
-	this1[0] = 0;
-	this1[1] = 0;
-	this1[2] = 0;
-	this1[3] = 0;
-	this1[4] = 0;
-	this1[5] = 0;
-	this1[6] = 0;
-	this1[7] = 0;
-	this1[8] = 0;
-	this1[9] = 0;
-	this1[10] = 0;
-	this1[11] = 0;
-	this1[12] = 0;
-	this1[13] = 0;
-	this1[14] = 0;
-	this1[15] = 0;
-	var dest = this1;
-	dest[0] = 1;
-	dest[1] = 0;
-	dest[2] = 0;
-	dest[3] = 0;
-	dest[4] = 0;
-	dest[5] = 1;
-	dest[6] = 0;
-	dest[7] = 0;
-	dest[8] = 0;
-	dest[9] = 0;
-	dest[10] = 1;
-	dest[11] = 0;
-	dest[12] = 0;
-	dest[13] = 0;
-	dest[14] = 0;
-	dest[15] = 1;
-	this.MVP = dest;
 };
 mammoth_components_MeshRenderer.__name__ = ["mammoth","components","MeshRenderer"];
 mammoth_components_MeshRenderer.__interfaces__ = [edge_IComponent];
@@ -2397,6 +2441,55 @@ mammoth_debug_Exception.prototype = {
 		return (this.fatal ? "fatal " : "") + this.type + " exception" + posInfo + ": " + this.message + (this.showStackTrace ? "\nstack trace:\n  " + stackString.join("\n  ") : "");
 	}
 	,__class__: mammoth_debug_Exception
+};
+var mammoth_defaults_Materials = function() { };
+mammoth_defaults_Materials.__name__ = ["mammoth","defaults","Materials"];
+mammoth_defaults_Materials.shadow = function() {
+	var mat = new mammoth_render_Material("shadow");
+	var vertexSrc = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\n// attribute inputs\nattribute vec3 position;\nattribute vec3 normal;\n\n// camera uniforms\nuniform mat4 MVP;\n\nvoid main() {\n    // set the camera-space position of the vertex\n\tgl_Position = MVP * vec4(position, 1.0);\n}";
+	var fragSrc = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\nvoid main() {\n    gl_FragColor = vec4(gl_FragCoord.zzz, 1.0);\n}";
+	mat.setVertexShader(vertexSrc);
+	mat.setFragmentShader(fragSrc);
+	mat.registerAttribute("position",new mammoth_render_Attribute("position",mammoth_render_TAttribute.Vec3,18,0));
+	mat.registerAttribute("normal",new mammoth_render_Attribute("normal",mammoth_render_TAttribute.Vec3,18,9));
+	mat.compile();
+	var this1 = new Float32Array(16);
+	this1[0] = 0;
+	this1[1] = 0;
+	this1[2] = 0;
+	this1[3] = 0;
+	this1[4] = 0;
+	this1[5] = 0;
+	this1[6] = 0;
+	this1[7] = 0;
+	this1[8] = 0;
+	this1[9] = 0;
+	this1[10] = 0;
+	this1[11] = 0;
+	this1[12] = 0;
+	this1[13] = 0;
+	this1[14] = 0;
+	this1[15] = 0;
+	var dest = this1;
+	dest[0] = 1;
+	dest[1] = 0;
+	dest[2] = 0;
+	dest[3] = 0;
+	dest[4] = 0;
+	dest[5] = 1;
+	dest[6] = 0;
+	dest[7] = 0;
+	dest[8] = 0;
+	dest[9] = 0;
+	dest[10] = 1;
+	dest[11] = 0;
+	dest[12] = 0;
+	dest[13] = 0;
+	dest[14] = 0;
+	dest[15] = 1;
+	var m4 = dest;
+	mat.setUniform("MVP",mammoth_render_TUniform.Mat4(m4));
+	return mat;
 };
 var mammoth_defaults_StandardAttributes = { __ename__ : true, __constructs__ : ["UV","Colour"] };
 mammoth_defaults_StandardAttributes.UV = ["UV",0];
@@ -2932,6 +3025,14 @@ mammoth_render_Material.prototype = {
 		this.standardShader = new mammoth_defaults_StandardShader(shader);
 		return this;
 	}
+	,setVertexShader: function(source) {
+		this.vertexShader = source;
+		return this;
+	}
+	,setFragmentShader: function(source) {
+		this.fragmentShader = source;
+		return this;
+	}
 	,compile: function() {
 		var vertex = this.compileShader(35633,this.standardShader == null ? this.vertexShader : this.standardShader.get_vertex());
 		var fragment = this.compileShader(35632,this.standardShader == null ? this.fragmentShader : this.standardShader.get_fragment());
@@ -3446,6 +3547,494 @@ mammoth_systems_CameraSystem_$SystemProcess.prototype = {
 	}
 	,__class__: mammoth_systems_CameraSystem_$SystemProcess
 };
+var mammoth_systems_DirectionalShadowSystem = function() {
+	var this1 = new Float32Array(16);
+	this1[0] = 0;
+	this1[1] = 0;
+	this1[2] = 0;
+	this1[3] = 0;
+	this1[4] = 0;
+	this1[5] = 0;
+	this1[6] = 0;
+	this1[7] = 0;
+	this1[8] = 0;
+	this1[9] = 0;
+	this1[10] = 0;
+	this1[11] = 0;
+	this1[12] = 0;
+	this1[13] = 0;
+	this1[14] = 0;
+	this1[15] = 0;
+	var dest = this1;
+	dest[0] = 1;
+	dest[1] = 0;
+	dest[2] = 0;
+	dest[3] = 0;
+	dest[4] = 0;
+	dest[5] = 1;
+	dest[6] = 0;
+	dest[7] = 0;
+	dest[8] = 0;
+	dest[9] = 0;
+	dest[10] = 1;
+	dest[11] = 0;
+	dest[12] = 0;
+	dest[13] = 0;
+	dest[14] = 0;
+	dest[15] = 1;
+	this.MVP = dest;
+	var this11 = new Float32Array(16);
+	this11[0] = 0;
+	this11[1] = 0;
+	this11[2] = 0;
+	this11[3] = 0;
+	this11[4] = 0;
+	this11[5] = 0;
+	this11[6] = 0;
+	this11[7] = 0;
+	this11[8] = 0;
+	this11[9] = 0;
+	this11[10] = 0;
+	this11[11] = 0;
+	this11[12] = 0;
+	this11[13] = 0;
+	this11[14] = 0;
+	this11[15] = 0;
+	var dest1 = this11;
+	dest1[0] = 1;
+	dest1[1] = 0;
+	dest1[2] = 0;
+	dest1[3] = 0;
+	dest1[4] = 0;
+	dest1[5] = 1;
+	dest1[6] = 0;
+	dest1[7] = 0;
+	dest1[8] = 0;
+	dest1[9] = 0;
+	dest1[10] = 1;
+	dest1[11] = 0;
+	dest1[12] = 0;
+	dest1[13] = 0;
+	dest1[14] = 0;
+	dest1[15] = 1;
+	this.viewProjectionMatrix = dest1;
+	var this12 = new Float32Array(16);
+	this12[0] = 0;
+	this12[1] = 0;
+	this12[2] = 0;
+	this12[3] = 0;
+	this12[4] = 0;
+	this12[5] = 0;
+	this12[6] = 0;
+	this12[7] = 0;
+	this12[8] = 0;
+	this12[9] = 0;
+	this12[10] = 0;
+	this12[11] = 0;
+	this12[12] = 0;
+	this12[13] = 0;
+	this12[14] = 0;
+	this12[15] = 0;
+	var dest2 = this12;
+	dest2[0] = 1;
+	dest2[1] = 0;
+	dest2[2] = 0;
+	dest2[3] = 0;
+	dest2[4] = 0;
+	dest2[5] = 1;
+	dest2[6] = 0;
+	dest2[7] = 0;
+	dest2[8] = 0;
+	dest2[9] = 0;
+	dest2[10] = 1;
+	dest2[11] = 0;
+	dest2[12] = 0;
+	dest2[13] = 0;
+	dest2[14] = 0;
+	dest2[15] = 1;
+	this.projectionMatrix = dest2;
+	var this13 = new Float32Array(16);
+	this13[0] = 0;
+	this13[1] = 0;
+	this13[2] = 0;
+	this13[3] = 0;
+	this13[4] = 0;
+	this13[5] = 0;
+	this13[6] = 0;
+	this13[7] = 0;
+	this13[8] = 0;
+	this13[9] = 0;
+	this13[10] = 0;
+	this13[11] = 0;
+	this13[12] = 0;
+	this13[13] = 0;
+	this13[14] = 0;
+	this13[15] = 0;
+	var dest3 = this13;
+	dest3[0] = 1;
+	dest3[1] = 0;
+	dest3[2] = 0;
+	dest3[3] = 0;
+	dest3[4] = 0;
+	dest3[5] = 1;
+	dest3[6] = 0;
+	dest3[7] = 0;
+	dest3[8] = 0;
+	dest3[9] = 0;
+	dest3[10] = 1;
+	dest3[11] = 0;
+	dest3[12] = 0;
+	dest3[13] = 0;
+	dest3[14] = 0;
+	dest3[15] = 1;
+	this.viewMatrix = dest3;
+	this.__process__ = new mammoth_systems_DirectionalShadowSystem_$SystemProcess(this);
+};
+mammoth_systems_DirectionalShadowSystem.__name__ = ["mammoth","systems","DirectionalShadowSystem"];
+mammoth_systems_DirectionalShadowSystem.__interfaces__ = [edge_ISystem];
+mammoth_systems_DirectionalShadowSystem.prototype = {
+	update: function(transform,light) {
+		var m = transform.m;
+		var v = mammoth_systems_DirectionalShadowSystem.zDir;
+		var dest = light.direction;
+		var x = v[0];
+		var y = v[1];
+		var z = v[2];
+		var w = v[3];
+		dest[0] = m[0] * x + m[4] * y + m[8] * z + m[12] * w;
+		dest[1] = m[1] * x + m[5] * y + m[9] * z + m[13] * w;
+		dest[2] = m[2] * x + m[6] * y + m[10] * z + m[14] * w;
+		dest[3] = m[3] * x + m[7] * y + m[11] * z + m[15] * w;
+		if(this.shadowMaterial == null) {
+			this.shadowMaterial = mammoth_defaults_Materials.shadow();
+		}
+		if(light.shadowFramebuffer == null) {
+			light.shadowFramebuffer = mammoth_Mammoth.gl.context.createFramebuffer();
+		}
+		mammoth_Mammoth.gl.context.bindFramebuffer(36160,light.shadowFramebuffer);
+		if(light.colourmap == null) {
+			light.colourmap = mammoth_Mammoth.gl.context.createTexture();
+			mammoth_Mammoth.gl.context.bindTexture(3553,light.colourmap);
+			mammoth_Mammoth.gl.context.texParameteri(3553,10240,9728);
+			mammoth_Mammoth.gl.context.texParameteri(3553,10241,9728);
+			mammoth_Mammoth.gl.context.texParameteri(3553,10242,33071);
+			mammoth_Mammoth.gl.context.texParameteri(3553,10243,33071);
+			mammoth_Mammoth.gl.context.texImage2D(3553,0,6408,1024,1024,0,6408,5121,null);
+			mammoth_Mammoth.gl.context.framebufferTexture2D(36160,36064,3553,light.colourmap,0);
+		}
+		if(light.shadowmap == null) {
+			light.shadowmap = mammoth_Mammoth.gl.context.createTexture();
+			mammoth_Mammoth.gl.context.bindTexture(3553,light.shadowmap);
+			mammoth_Mammoth.gl.context.texParameteri(3553,10240,9728);
+			mammoth_Mammoth.gl.context.texParameteri(3553,10241,9728);
+			mammoth_Mammoth.gl.context.texParameteri(3553,10242,33071);
+			mammoth_Mammoth.gl.context.texParameteri(3553,10243,33071);
+			mammoth_Mammoth.gl.context.texImage2D(3553,0,6402,1024,1024,0,6402,5123,null);
+			mammoth_Mammoth.gl.context.framebufferTexture2D(36160,36096,3553,light.shadowmap,0);
+		}
+		var dest1 = this.projectionMatrix;
+		var rl = 0.05;
+		var tb = 0.05;
+		var fn = 0.0333333333333333329;
+		dest1[0] = 2 * rl;
+		dest1[4] = 0;
+		dest1[8] = 0;
+		dest1[12] = 0 * rl;
+		dest1[1] = 0;
+		dest1[5] = 2 * tb;
+		dest1[9] = 0;
+		dest1[13] = 0 * tb;
+		dest1[2] = 0;
+		dest1[6] = 0;
+		dest1[10] = -2 * fn;
+		dest1[14] = -10 * fn;
+		dest1[3] = 0;
+		dest1[7] = 0;
+		dest1[11] = 0;
+		dest1[15] = 1;
+		var src = transform.m;
+		var dest2 = this.viewMatrix;
+		var a00 = src[0];
+		var a01 = src[4];
+		var a02 = src[8];
+		var a03 = src[12];
+		var a10 = src[1];
+		var a11 = src[5];
+		var a12 = src[9];
+		var a13 = src[13];
+		var a20 = src[2];
+		var a21 = src[6];
+		var a22 = src[10];
+		var a23 = src[14];
+		var a30 = src[3];
+		var a31 = src[7];
+		var a32 = src[11];
+		var a33 = src[15];
+		var t00 = a12 * a23 * a31 - a13 * a22 * a31 + a13 * a21 * a32 - a11 * a23 * a32 - a12 * a21 * a33 + a11 * a22 * a33;
+		var t01 = a03 * a22 * a31 - a02 * a23 * a31 - a03 * a21 * a32 + a01 * a23 * a32 + a02 * a21 * a33 - a01 * a22 * a33;
+		var t02 = a02 * a13 * a31 - a03 * a12 * a31 + a03 * a11 * a32 - a01 * a13 * a32 - a02 * a11 * a33 + a01 * a12 * a33;
+		var t03 = a03 * a12 * a21 - a02 * a13 * a21 - a03 * a11 * a22 + a01 * a13 * a22 + a02 * a11 * a23 - a01 * a12 * a23;
+		var det = a00 * t00 + a10 * t01 + a20 * t02 + a30 * t03;
+		if(Math.abs(det) <= glm_GLM.EPSILON) {
+			throw new js__$Boot_HaxeError("Can't invert matrix, det (" + det + ") is too small!");
+		}
+		var idet = 1 / det;
+		dest2[0] = t00 * idet;
+		dest2[1] = (a13 * a22 * a30 - a12 * a23 * a30 - a13 * a20 * a32 + a10 * a23 * a32 + a12 * a20 * a33 - a10 * a22 * a33) * idet;
+		dest2[2] = (a11 * a23 * a30 - a13 * a21 * a30 + a13 * a20 * a31 - a10 * a23 * a31 - a11 * a20 * a33 + a10 * a21 * a33) * idet;
+		dest2[3] = (a12 * a21 * a30 - a11 * a22 * a30 - a12 * a20 * a31 + a10 * a22 * a31 + a11 * a20 * a32 - a10 * a21 * a32) * idet;
+		dest2[4] = t01 * idet;
+		dest2[5] = (a02 * a23 * a30 - a03 * a22 * a30 + a03 * a20 * a32 - a00 * a23 * a32 - a02 * a20 * a33 + a00 * a22 * a33) * idet;
+		dest2[6] = (a03 * a21 * a30 - a01 * a23 * a30 - a03 * a20 * a31 + a00 * a23 * a31 + a01 * a20 * a33 - a00 * a21 * a33) * idet;
+		dest2[7] = (a01 * a22 * a30 - a02 * a21 * a30 + a02 * a20 * a31 - a00 * a22 * a31 - a01 * a20 * a32 + a00 * a21 * a32) * idet;
+		dest2[8] = t02 * idet;
+		dest2[9] = (a03 * a12 * a30 - a02 * a13 * a30 - a03 * a10 * a32 + a00 * a13 * a32 + a02 * a10 * a33 - a00 * a12 * a33) * idet;
+		dest2[10] = (a01 * a13 * a30 - a03 * a11 * a30 + a03 * a10 * a31 - a00 * a13 * a31 - a01 * a10 * a33 + a00 * a11 * a33) * idet;
+		dest2[11] = (a02 * a11 * a30 - a01 * a12 * a30 - a02 * a10 * a31 + a00 * a12 * a31 + a01 * a10 * a32 - a00 * a11 * a32) * idet;
+		dest2[12] = t03 * idet;
+		dest2[13] = (a02 * a13 * a20 - a03 * a12 * a20 + a03 * a10 * a22 - a00 * a13 * a22 - a02 * a10 * a23 + a00 * a12 * a23) * idet;
+		dest2[14] = (a03 * a11 * a20 - a01 * a13 * a20 - a03 * a10 * a21 + a00 * a13 * a21 + a01 * a10 * a23 - a00 * a11 * a23) * idet;
+		dest2[15] = (a01 * a12 * a20 - a02 * a11 * a20 + a02 * a10 * a21 - a00 * a12 * a21 - a01 * a10 * a22 + a00 * a11 * a22) * idet;
+		var a = this.projectionMatrix;
+		var b = this.viewMatrix;
+		var dest3 = this.viewProjectionMatrix;
+		var a001 = a[0];
+		var a011 = a[1];
+		var a021 = a[2];
+		var a031 = a[3];
+		var a101 = a[4];
+		var a111 = a[5];
+		var a121 = a[6];
+		var a131 = a[7];
+		var a201 = a[8];
+		var a211 = a[9];
+		var a221 = a[10];
+		var a231 = a[11];
+		var a301 = a[12];
+		var a311 = a[13];
+		var a321 = a[14];
+		var a331 = a[15];
+		var b00 = b[0];
+		var b01 = b[1];
+		var b02 = b[2];
+		var b03 = b[3];
+		var b10 = b[4];
+		var b11 = b[5];
+		var b12 = b[6];
+		var b13 = b[7];
+		var b20 = b[8];
+		var b21 = b[9];
+		var b22 = b[10];
+		var b23 = b[11];
+		var b30 = b[12];
+		var b31 = b[13];
+		var b32 = b[14];
+		var b33 = b[15];
+		dest3[0] = b00 * a001 + b01 * a101 + b02 * a201 + b03 * a301;
+		dest3[1] = b00 * a011 + b01 * a111 + b02 * a211 + b03 * a311;
+		dest3[2] = b00 * a021 + b01 * a121 + b02 * a221 + b03 * a321;
+		dest3[3] = b00 * a031 + b01 * a131 + b02 * a231 + b03 * a331;
+		dest3[4] = b10 * a001 + b11 * a101 + b12 * a201 + b13 * a301;
+		dest3[5] = b10 * a011 + b11 * a111 + b12 * a211 + b13 * a311;
+		dest3[6] = b10 * a021 + b11 * a121 + b12 * a221 + b13 * a321;
+		dest3[7] = b10 * a031 + b11 * a131 + b12 * a231 + b13 * a331;
+		dest3[8] = b20 * a001 + b21 * a101 + b22 * a201 + b23 * a301;
+		dest3[9] = b20 * a011 + b21 * a111 + b22 * a211 + b23 * a311;
+		dest3[10] = b20 * a021 + b21 * a121 + b22 * a221 + b23 * a321;
+		dest3[11] = b20 * a031 + b21 * a131 + b22 * a231 + b23 * a331;
+		dest3[12] = b30 * a001 + b31 * a101 + b32 * a201 + b33 * a301;
+		dest3[13] = b30 * a011 + b31 * a111 + b32 * a211 + b33 * a311;
+		dest3[14] = b30 * a021 + b31 * a121 + b32 * a221 + b33 * a321;
+		dest3[15] = b30 * a031 + b31 * a131 + b32 * a231 + b33 * a331;
+		mammoth_Mammoth.gl.context.viewport(0,0,1024,1024);
+		mammoth_Mammoth.gl.context.scissor(0,0,1024,1024);
+		mammoth_Mammoth.gl.context.clear(16640);
+		var caster = this.shadowCasters.iterator();
+		while(caster.hasNext()) {
+			var caster1 = caster.next();
+			var transform1 = caster1.data.transform;
+			var renderer = caster1.data.renderer;
+			var mesh = renderer.mesh;
+			var a1 = this.viewProjectionMatrix;
+			var b1 = transform1.m;
+			var dest4 = this.MVP;
+			var a002 = a1[0];
+			var a012 = a1[1];
+			var a022 = a1[2];
+			var a032 = a1[3];
+			var a102 = a1[4];
+			var a112 = a1[5];
+			var a122 = a1[6];
+			var a132 = a1[7];
+			var a202 = a1[8];
+			var a212 = a1[9];
+			var a222 = a1[10];
+			var a232 = a1[11];
+			var a302 = a1[12];
+			var a312 = a1[13];
+			var a322 = a1[14];
+			var a332 = a1[15];
+			var b001 = b1[0];
+			var b011 = b1[1];
+			var b021 = b1[2];
+			var b031 = b1[3];
+			var b101 = b1[4];
+			var b111 = b1[5];
+			var b121 = b1[6];
+			var b131 = b1[7];
+			var b201 = b1[8];
+			var b211 = b1[9];
+			var b221 = b1[10];
+			var b231 = b1[11];
+			var b301 = b1[12];
+			var b311 = b1[13];
+			var b321 = b1[14];
+			var b331 = b1[15];
+			dest4[0] = b001 * a002 + b011 * a102 + b021 * a202 + b031 * a302;
+			dest4[1] = b001 * a012 + b011 * a112 + b021 * a212 + b031 * a312;
+			dest4[2] = b001 * a022 + b011 * a122 + b021 * a222 + b031 * a322;
+			dest4[3] = b001 * a032 + b011 * a132 + b021 * a232 + b031 * a332;
+			dest4[4] = b101 * a002 + b111 * a102 + b121 * a202 + b131 * a302;
+			dest4[5] = b101 * a012 + b111 * a112 + b121 * a212 + b131 * a312;
+			dest4[6] = b101 * a022 + b111 * a122 + b121 * a222 + b131 * a322;
+			dest4[7] = b101 * a032 + b111 * a132 + b121 * a232 + b131 * a332;
+			dest4[8] = b201 * a002 + b211 * a102 + b221 * a202 + b231 * a302;
+			dest4[9] = b201 * a012 + b211 * a112 + b221 * a212 + b231 * a312;
+			dest4[10] = b201 * a022 + b211 * a122 + b221 * a222 + b231 * a322;
+			dest4[11] = b201 * a032 + b211 * a132 + b221 * a232 + b231 * a332;
+			dest4[12] = b301 * a002 + b311 * a102 + b321 * a202 + b331 * a302;
+			dest4[13] = b301 * a012 + b311 * a112 + b321 * a212 + b331 * a312;
+			dest4[14] = b301 * a022 + b311 * a122 + b321 * a222 + b331 * a322;
+			dest4[15] = b301 * a032 + b311 * a132 + b321 * a232 + b331 * a332;
+			this.shadowMaterial.setUniform("MVP",mammoth_render_TUniform.Mat4(this.MVP));
+			this.shadowMaterial.apply();
+			mammoth_Mammoth.gl.context.bindBuffer(34962,mesh.vertexBuffer);
+			var _g = 0;
+			var _g1 = mesh.attributeNames;
+			while(_g < _g1.length) {
+				var attributeName = _g1[_g];
+				++_g;
+				var _this = this.shadowMaterial.attributes;
+				if(!(__map_reserved[attributeName] != null ? _this.existsReserved(attributeName) : _this.h.hasOwnProperty(attributeName))) {
+					continue;
+				}
+				var _this1 = this.shadowMaterial.attributes;
+				var attribute = __map_reserved[attributeName] != null ? _this1.getReserved(attributeName) : _this1.h[attributeName];
+				mammoth_Mammoth.gl.context.enableVertexAttribArray(attribute.location);
+				var _this2 = mammoth_Mammoth.gl;
+				var indx = attribute.location;
+				var size;
+				var _g2 = attribute.type;
+				switch(_g2[1]) {
+				case 0:
+					size = 1;
+					break;
+				case 1:
+					size = 2;
+					break;
+				case 2:
+					size = 3;
+					break;
+				case 3:
+					size = 4;
+					break;
+				}
+				_this2.context.vertexAttribPointer(indx,size,5126,false,attribute.stride,attribute.offset);
+			}
+			mammoth_Mammoth.gl.context.bindBuffer(34963,mesh.indexBuffer);
+			mammoth_Mammoth.gl.context.drawElements(4,mesh.vertexCount,5123,0);
+			mammoth_Mammoth.stats.drawCalls++;
+			mammoth_Mammoth.stats.triangles += mesh.vertexCount / 3 | 0;
+		}
+		mammoth_Mammoth.gl.context.bindFramebuffer(36160,null);
+		return true;
+	}
+	,__class__: mammoth_systems_DirectionalShadowSystem
+};
+var mammoth_systems_DirectionalShadowSystem_$SystemProcess = function(system) {
+	this.system = system;
+	this.updateItems = new edge_View();
+	system.shadowCasters = new edge_View();
+};
+mammoth_systems_DirectionalShadowSystem_$SystemProcess.__name__ = ["mammoth","systems","DirectionalShadowSystem_SystemProcess"];
+mammoth_systems_DirectionalShadowSystem_$SystemProcess.__interfaces__ = [edge_core_ISystemProcess];
+mammoth_systems_DirectionalShadowSystem_$SystemProcess.prototype = {
+	removeEntity: function(entity) {
+		this.updateItems.tryRemove(entity);
+		this.system.shadowCasters.tryRemove(entity);
+	}
+	,addEntity: function(entity) {
+		this.shadowCastersMatchRequirements(entity);
+		this.updateMatchRequirements(entity);
+	}
+	,update: function(engine,delta) {
+		var result = true;
+		var data;
+		var item = this.updateItems.iterator();
+		while(item.hasNext()) {
+			var item1 = item.next();
+			data = item1.data;
+			result = this.system.update(data.transform,data.light);
+			if(!result) {
+				break;
+			}
+		}
+		return result;
+	}
+	,shadowCastersMatchRequirements: function(entity) {
+		var removed = this.system.shadowCasters.tryRemove(entity);
+		var count = 2;
+		var o = { transform : null, renderer : null};
+		var component = entity.map.iterator();
+		while(component.hasNext()) {
+			var component1 = component.next();
+			if(js_Boot.__instanceof(component1,mammoth_components_Transform)) {
+				o.transform = component1;
+				if(--count == 0) {
+					break;
+				} else {
+					continue;
+				}
+			}
+			if(js_Boot.__instanceof(component1,mammoth_components_MeshRenderer)) {
+				o.renderer = component1;
+				if(--count == 0) {
+					break;
+				} else {
+					continue;
+				}
+			}
+		}
+		var added = count == 0 && this.system.shadowCasters.tryAdd(entity,o);
+	}
+	,updateMatchRequirements: function(entity) {
+		var removed = this.updateItems.tryRemove(entity);
+		var count = 2;
+		var o = { transform : null, light : null};
+		var component = entity.map.iterator();
+		while(component.hasNext()) {
+			var component1 = component.next();
+			if(js_Boot.__instanceof(component1,mammoth_components_Transform)) {
+				o.transform = component1;
+				if(--count == 0) {
+					break;
+				} else {
+					continue;
+				}
+			}
+			if(js_Boot.__instanceof(component1,mammoth_components_DirectionalLight)) {
+				o.light = component1;
+				if(--count == 0) {
+					break;
+				} else {
+					continue;
+				}
+			}
+		}
+		var added = count == 0 && this.updateItems.tryAdd(entity,o);
+	}
+	,__class__: mammoth_systems_DirectionalShadowSystem_$SystemProcess
+};
 var mammoth_systems_ModelMatrixSystem = function() {
 	var this1 = new Float32Array(4);
 	this1[0] = 0;
@@ -3739,6 +4328,41 @@ mammoth_systems_PreTransformSystem_$SystemProcess.prototype = {
 	,__class__: mammoth_systems_PreTransformSystem_$SystemProcess
 };
 var mammoth_systems_RenderSystem = function() {
+	var this1 = new Float32Array(16);
+	this1[0] = 0;
+	this1[1] = 0;
+	this1[2] = 0;
+	this1[3] = 0;
+	this1[4] = 0;
+	this1[5] = 0;
+	this1[6] = 0;
+	this1[7] = 0;
+	this1[8] = 0;
+	this1[9] = 0;
+	this1[10] = 0;
+	this1[11] = 0;
+	this1[12] = 0;
+	this1[13] = 0;
+	this1[14] = 0;
+	this1[15] = 0;
+	var dest = this1;
+	dest[0] = 1;
+	dest[1] = 0;
+	dest[2] = 0;
+	dest[3] = 0;
+	dest[4] = 0;
+	dest[5] = 1;
+	dest[6] = 0;
+	dest[7] = 0;
+	dest[8] = 0;
+	dest[9] = 0;
+	dest[10] = 1;
+	dest[11] = 0;
+	dest[12] = 0;
+	dest[13] = 0;
+	dest[14] = 0;
+	dest[15] = 1;
+	this.MVP = dest;
 	this.__process__ = new mammoth_systems_RenderSystem_$SystemProcess(this);
 };
 mammoth_systems_RenderSystem.__name__ = ["mammoth","systems","RenderSystem"];
@@ -3763,7 +4387,7 @@ mammoth_systems_RenderSystem.prototype = {
 			var material = renderer.material;
 			var a = camera.vp;
 			var b = transform.m;
-			var dest = renderer.MVP;
+			var dest = this.MVP;
 			var a00 = a[0];
 			var a01 = a[1];
 			var a02 = a[2];
@@ -3812,10 +4436,9 @@ mammoth_systems_RenderSystem.prototype = {
 			dest[13] = b30 * a01 + b31 * a11 + b32 * a21 + b33 * a31;
 			dest[14] = b30 * a02 + b31 * a12 + b32 * a22 + b33 * a32;
 			dest[15] = b30 * a03 + b31 * a13 + b32 * a23 + b33 * a33;
-			renderer.MVP = dest;
 			var _this = material.uniforms;
 			if(__map_reserved["MVP"] != null ? _this.existsReserved("MVP") : _this.h.hasOwnProperty("MVP")) {
-				material.setUniform("MVP",mammoth_render_TUniform.Mat4(renderer.MVP));
+				material.setUniform("MVP",mammoth_render_TUniform.Mat4(this.MVP));
 			}
 			var _this1 = material.uniforms;
 			if(__map_reserved["M"] != null ? _this1.existsReserved("M") : _this1.h.hasOwnProperty("M")) {
@@ -3839,33 +4462,14 @@ mammoth_systems_RenderSystem.prototype = {
 				var dl = this.directionalLights.iterator();
 				while(dl.hasNext()) {
 					var dl1 = dl.next();
-					var m = dl1.data.transform.m;
+					var x = dl1.data.light.direction[0];
+					var y = dl1.data.light.direction[1];
+					var z = dl1.data.light.direction[2];
 					var this1 = new Float32Array(4);
-					this1[0] = 0;
-					this1[1] = 0;
-					this1[2] = 1;
-					this1[3] = 1;
-					var v = this1;
-					var this2 = new Float32Array(4);
-					this2[0] = 0;
-					this2[1] = 0;
-					this2[2] = 0;
-					this2[3] = 0;
-					var dest1 = this2;
-					var x = v[0];
-					var y = v[1];
-					var z = v[2];
-					var w = v[3];
-					dest1[0] = m[0] * x + m[4] * y + m[8] * z + m[12] * w;
-					dest1[1] = m[1] * x + m[5] * y + m[9] * z + m[13] * w;
-					dest1[2] = m[2] * x + m[6] * y + m[10] * z + m[14] * w;
-					dest1[3] = m[3] * x + m[7] * y + m[11] * z + m[15] * w;
-					var dir = dest1;
-					var this3 = new Float32Array(4);
-					this3[0] = dir[0];
-					this3[1] = dir[1];
-					this3[2] = dir[2];
-					material.setUniform("directionalLights[" + i + "].direction",mammoth_render_TUniform.Vec3(this3));
+					this1[0] = x;
+					this1[1] = y;
+					this1[2] = z;
+					material.setUniform("directionalLights[" + i + "].direction",mammoth_render_TUniform.Vec3(this1));
 					material.setUniform("directionalLights[" + i + "].colour",mammoth_render_TUniform.RGB(dl1.data.light.colour));
 					++i;
 				}
@@ -4832,12 +5436,22 @@ mammoth_Mammoth.gl = new mammoth_gl_js_Graphics();
 mammoth_Mammoth.assets = new mammoth_platform_js_Assets();
 mammoth_Mammoth.input = new mammoth_platform_js_Input();
 mammoth_Mammoth.stats = new mammoth_Stats();
-mammoth_defaults_StandardShader.vertexStandard = "#ifdef GL_ES\r\nprecision mediump float;\r\n#endif\r\n\r\n// attribute inputs\r\nattribute vec3 position;\r\nattribute vec3 normal;\r\n\r\n#ifdef ATTRIBUTE_UV\r\nattribute vec2 uv;\r\n#endif\r\n#ifdef ATTRIBUTE_COLOUR\r\nattribute vec3 colour;\r\n#endif\r\n\r\n// camera uniforms\r\nuniform mat4 MVP;\r\nuniform mat4 M;\r\n\r\n// material uniforms\r\nuniform vec3 albedoColour;\r\nuniform vec3 ambientColour;\r\n\r\n// outputs\r\nvarying vec3 v_position;\r\nvarying vec3 v_normal;\r\nvarying vec3 v_colour;\r\n#ifdef ATTRIBUTE_UV\r\nvarying vec2 v_uv;\r\n#endif\r\n\r\nvoid main() {\r\n    // transform position to world space\r\n    vec3 worldPosition = (M * vec4(position, 1.0)).xyz;\r\n    v_position = worldPosition;\r\n\r\n\t// transform normals into world space\r\n\tvec3 worldNormal = (M * vec4(normal, 0.0)).xyz;\r\n    v_normal = worldNormal;\r\n\t\r\n    vec3 colour = albedoColour * ambientColour;\r\n\r\n    v_colour = colour;\r\n    #ifdef ATTRIBUTE_UV\r\n\tv_uv = uv;\r\n    #endif\r\n\r\n    // set the camera-space position of the vertex\r\n\tgl_Position = MVP * vec4(position, 1.0);\r\n}";
-mammoth_defaults_StandardShader.fragmentStandard = "#ifdef GL_ES\r\nprecision mediump float;\r\n#endif\r\n\r\n// lights\r\n#ifdef UNIFORM_DIRECTIONAL_LIGHTS\r\nstruct SDirectionalLight {\r\n    vec3 direction;\r\n    vec3 colour;\r\n};\r\nuniform SDirectionalLight directionalLights[NUMBER_DIRECTIONAL_LIGHTS];\r\n#endif\r\n#ifdef UNIFORM_POINT_LIGHTS\r\nstruct SPointLight {\r\n    vec3 position;\r\n    vec3 colour;\r\n    float distance;\r\n};\r\nuniform SPointLight pointLights[NUMBER_POINT_LIGHTS];\r\n#endif\r\n\r\n// material uniforms\r\nuniform vec3 albedoColour;\r\nuniform vec3 ambientColour;\r\n\r\n// inputs\r\nvarying vec3 v_position;\r\nvarying vec3 v_normal;\r\nvarying vec3 v_colour;\r\n#ifdef ATTRIBUTE_UV\r\nvarying vec2 v_uv;\r\n#endif\r\n\r\n#ifdef UNIFORM_TEXTURE\r\nuniform sampler2D texture;\r\n#endif\r\n\r\nvoid main() {\r\n    // base colour from vertex shader\r\n    vec3 colour = v_colour;\r\n\r\n    #ifdef UNIFORM_DIRECTIONAL_LIGHTS\r\n\t// sun diffuse term\r\n\tfloat dLight0 = clamp(dot(v_normal, directionalLights[0].direction), 0.0, 1.0);\r\n    colour += directionalLights[0].colour * dLight0 * albedoColour;\r\n    #endif\r\n\r\n    #ifdef UNIFORM_POINT_LIGHTS\r\n    vec3 pLightDir0 = pointLights[0].position - v_position;\r\n    float pDist0 = length(pLightDir0);\r\n\tfloat pLight0 = clamp(dot(v_normal, pLightDir0), 0.0, 1.0) * pointLights[0].distance / (pDist0 * pDist0);\r\n    colour += pointLights[0].colour * pLight0 * albedoColour;\r\n    #endif\r\n\r\n    vec4 outColour = vec4(colour, 1.0);\r\n    #ifdef UNIFORM_TEXTURE\r\n    outColour *= texture2D(texture, v_uv);\r\n    #endif\r\n\r\n    // gamma\r\n    gl_FragColor = vec4(pow(outColour.rgb, vec3(1.0/2.2)), outColour.a);\r\n}";
+mammoth_defaults_StandardShader.vertexStandard = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\n// attribute inputs\nattribute vec3 position;\nattribute vec3 normal;\n\n#ifdef ATTRIBUTE_UV\nattribute vec2 uv;\n#endif\n#ifdef ATTRIBUTE_COLOUR\nattribute vec3 colour;\n#endif\n\n// camera uniforms\nuniform mat4 MVP;\nuniform mat4 M;\n\n// material uniforms\nuniform vec3 albedoColour;\nuniform vec3 ambientColour;\n\n// outputs\nvarying vec3 v_position;\nvarying vec3 v_normal;\nvarying vec3 v_colour;\n#ifdef ATTRIBUTE_UV\nvarying vec2 v_uv;\n#endif\n\nvoid main() {\n    // transform position to world space\n    vec3 worldPosition = (M * vec4(position, 1.0)).xyz;\n    v_position = worldPosition;\n\n\t// transform normals into world space\n\tvec3 worldNormal = (M * vec4(normal, 0.0)).xyz;\n    v_normal = worldNormal;\n\t\n    vec3 colour = albedoColour * ambientColour;\n\n    v_colour = colour;\n    #ifdef ATTRIBUTE_UV\n\tv_uv = uv;\n    #endif\n\n    // set the camera-space position of the vertex\n\tgl_Position = MVP * vec4(position, 1.0);\n}";
+mammoth_defaults_StandardShader.fragmentStandard = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\n// lights\n#ifdef UNIFORM_DIRECTIONAL_LIGHTS\nstruct SDirectionalLight {\n    vec3 direction;\n    vec3 colour;\n};\nuniform SDirectionalLight directionalLights[NUMBER_DIRECTIONAL_LIGHTS];\n#endif\n#ifdef UNIFORM_POINT_LIGHTS\nstruct SPointLight {\n    vec3 position;\n    vec3 colour;\n    float distance;\n};\nuniform SPointLight pointLights[NUMBER_POINT_LIGHTS];\n#endif\n\n// material uniforms\nuniform vec3 albedoColour;\nuniform vec3 ambientColour;\n\n// inputs\nvarying vec3 v_position;\nvarying vec3 v_normal;\nvarying vec3 v_colour;\n#ifdef ATTRIBUTE_UV\nvarying vec2 v_uv;\n#endif\n\n#ifdef UNIFORM_TEXTURE\nuniform sampler2D texture;\n#endif\n\nvoid main() {\n    // base colour from vertex shader\n    vec3 colour = v_colour;\n\n    #ifdef UNIFORM_DIRECTIONAL_LIGHTS\n\t// sun diffuse term\n\tfloat dLight0 = clamp(dot(v_normal, directionalLights[0].direction), 0.0, 1.0);\n    colour += directionalLights[0].colour * dLight0 * albedoColour;\n    #endif\n\n    #ifdef UNIFORM_POINT_LIGHTS\n    vec3 pLightDir0 = pointLights[0].position - v_position;\n    float pDist0 = length(pLightDir0);\n\tfloat pLight0 = clamp(dot(v_normal, pLightDir0), 0.0, 1.0) * pointLights[0].distance / (pDist0 * pDist0);\n    colour += pointLights[0].colour * pLight0 * albedoColour;\n    #endif\n\n    vec4 outColour = vec4(colour, 1.0);\n    #ifdef UNIFORM_TEXTURE\n    outColour *= texture2D(texture, v_uv);\n    #endif\n\n    // gamma\n    gl_FragColor = vec4(pow(outColour.rgb, vec3(1.0/2.2)), outColour.a);\n    //gl_FragColor = outColour;\n}";
 mammoth_loader_Loader.cameras = new haxe_ds_StringMap();
 mammoth_loader_Loader.lights = new haxe_ds_StringMap();
 mammoth_loader_Loader.shaders = new haxe_ds_StringMap();
 mammoth_loader_Loader.meshes = new haxe_ds_StringMap();
+mammoth_systems_DirectionalShadowSystem.zDir = (function($this) {
+	var $r;
+	var this1 = new Float32Array(4);
+	this1[0] = 0;
+	this1[1] = 0;
+	this1[2] = 1;
+	this1[3] = 1;
+	$r = this1;
+	return $r;
+}(this));
 mammoth_utilities_Colours.Black = (function($this) {
 	var $r;
 	var this1 = new Float32Array(4);
@@ -4860,10 +5474,10 @@ mammoth_utilities_Colours.White = (function($this) {
 }(this));
 promhx_base_AsyncBase.id_ctr = 0;
 promhx_base_EventLoop.queue = new List();
-tusk_Tusk.vertexShaderSrc = "precision mediump float;\r\n\r\nattribute vec2 position;\r\nattribute vec2 uv;\r\nattribute vec4 colour;\r\n\r\nuniform mat4 VP;\r\n\r\nvarying vec2 v_uv;\r\nvarying vec4 v_colour;\r\n\r\nvoid main() {\r\n    v_colour = colour;\r\n\tv_uv = uv;\r\n\tgl_Position = VP * vec4(position, 0, 1.0);\r\n}";
-tusk_Tusk.fragmentShaderSrc = "precision mediump float;\r\n\r\nvarying vec2 v_uv;\r\nvarying vec4 v_colour;\r\n\r\nuniform sampler2D texture;\r\n\r\nvoid main() {\r\n    gl_FragColor = texture2D(texture, v_uv) * v_colour;\r\n}";
+tusk_Tusk.vertexShaderSrc = "precision mediump float;\n\nattribute vec2 position;\nattribute vec2 uv;\nattribute vec4 colour;\n\nuniform mat4 VP;\n\nvarying vec2 v_uv;\nvarying vec4 v_colour;\n\nvoid main() {\n    v_colour = colour;\n\tv_uv = uv;\n\tgl_Position = VP * vec4(position, 0, 1.0);\n}";
+tusk_Tusk.fragmentShaderSrc = "precision mediump float;\n\nvarying vec2 v_uv;\nvarying vec4 v_colour;\n\nuniform sampler2D texture;\n\nvoid main() {\n    gl_FragColor = texture2D(texture, v_uv) * v_colour;\n}";
 tusk_Tusk.fontTextureSrc = "data:image/png;base64," + "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";
-tusk_Tusk.fontSrc = "{\r\n  \"pages\": [\r\n    \"coderscrux.png\"\r\n  ],\r\n  \"chars\": [\r\n    {\r\n      \"id\": 33,\r\n      \"x\": 2,\r\n      \"y\": 2,\r\n      \"width\": 1,\r\n      \"height\": 7,\r\n      \"xoffset\": 2,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 34,\r\n      \"x\": 5,\r\n      \"y\": 2,\r\n      \"width\": 3,\r\n      \"height\": 2,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 35,\r\n      \"x\": 10,\r\n      \"y\": 2,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 36,\r\n      \"x\": 17,\r\n      \"y\": 2,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 37,\r\n      \"x\": 24,\r\n      \"y\": 2,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 38,\r\n      \"x\": 31,\r\n      \"y\": 2,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 39,\r\n      \"x\": 38,\r\n      \"y\": 2,\r\n      \"width\": 1,\r\n      \"height\": 2,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 40,\r\n      \"x\": 41,\r\n      \"y\": 2,\r\n      \"width\": 3,\r\n      \"height\": 7,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 41,\r\n      \"x\": 46,\r\n      \"y\": 2,\r\n      \"width\": 3,\r\n      \"height\": 7,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 42,\r\n      \"x\": 51,\r\n      \"y\": 2,\r\n      \"width\": 5,\r\n      \"height\": 3,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 43,\r\n      \"x\": 58,\r\n      \"y\": 2,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 1,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 44,\r\n      \"x\": 65,\r\n      \"y\": 2,\r\n      \"width\": 1,\r\n      \"height\": 2,\r\n      \"xoffset\": 2,\r\n      \"yoffset\": 6,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 45,\r\n      \"x\": 68,\r\n      \"y\": 2,\r\n      \"width\": 5,\r\n      \"height\": 1,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 3,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 46,\r\n      \"x\": 75,\r\n      \"y\": 2,\r\n      \"width\": 1,\r\n      \"height\": 1,\r\n      \"xoffset\": 2,\r\n      \"yoffset\": 6,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 47,\r\n      \"x\": 78,\r\n      \"y\": 2,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 48,\r\n      \"x\": 85,\r\n      \"y\": 2,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 49,\r\n      \"x\": 92,\r\n      \"y\": 2,\r\n      \"width\": 3,\r\n      \"height\": 7,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 50,\r\n      \"x\": 97,\r\n      \"y\": 2,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 51,\r\n      \"x\": 104,\r\n      \"y\": 2,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 52,\r\n      \"x\": 111,\r\n      \"y\": 2,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 53,\r\n      \"x\": 118,\r\n      \"y\": 2,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 54,\r\n      \"x\": 68,\r\n      \"y\": 5,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 55,\r\n      \"x\": 51,\r\n      \"y\": 7,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 56,\r\n      \"x\": 58,\r\n      \"y\": 9,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 57,\r\n      \"x\": 2,\r\n      \"y\": 11,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 58,\r\n      \"x\": 125,\r\n      \"y\": 2,\r\n      \"width\": 1,\r\n      \"height\": 3,\r\n      \"xoffset\": 2,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 59,\r\n      \"x\": 9,\r\n      \"y\": 11,\r\n      \"width\": 2,\r\n      \"height\": 4,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 60,\r\n      \"x\": 13,\r\n      \"y\": 11,\r\n      \"width\": 4,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 61,\r\n      \"x\": 19,\r\n      \"y\": 11,\r\n      \"width\": 5,\r\n      \"height\": 3,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 62,\r\n      \"x\": 26,\r\n      \"y\": 11,\r\n      \"width\": 4,\r\n      \"height\": 7,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 63,\r\n      \"x\": 32,\r\n      \"y\": 11,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 64,\r\n      \"x\": 39,\r\n      \"y\": 11,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 65,\r\n      \"x\": 75,\r\n      \"y\": 11,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 66,\r\n      \"x\": 82,\r\n      \"y\": 11,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 67,\r\n      \"x\": 89,\r\n      \"y\": 11,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 68,\r\n      \"x\": 96,\r\n      \"y\": 11,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 69,\r\n      \"x\": 103,\r\n      \"y\": 11,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 70,\r\n      \"x\": 110,\r\n      \"y\": 11,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 71,\r\n      \"x\": 117,\r\n      \"y\": 11,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 72,\r\n      \"x\": 65,\r\n      \"y\": 14,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 73,\r\n      \"x\": 46,\r\n      \"y\": 11,\r\n      \"width\": 3,\r\n      \"height\": 7,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 74,\r\n      \"x\": 19,\r\n      \"y\": 16,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 75,\r\n      \"x\": 51,\r\n      \"y\": 16,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 76,\r\n      \"x\": 39,\r\n      \"y\": 18,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 77,\r\n      \"x\": 58,\r\n      \"y\": 18,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 78,\r\n      \"x\": 2,\r\n      \"y\": 20,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 79,\r\n      \"x\": 9,\r\n      \"y\": 20,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 80,\r\n      \"x\": 26,\r\n      \"y\": 20,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 81,\r\n      \"x\": 72,\r\n      \"y\": 20,\r\n      \"width\": 5,\r\n      \"height\": 9,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 82,\r\n      \"x\": 79,\r\n      \"y\": 20,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 83,\r\n      \"x\": 86,\r\n      \"y\": 20,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 84,\r\n      \"x\": 93,\r\n      \"y\": 20,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 85,\r\n      \"x\": 100,\r\n      \"y\": 20,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 86,\r\n      \"x\": 107,\r\n      \"y\": 20,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 87,\r\n      \"x\": 114,\r\n      \"y\": 20,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 88,\r\n      \"x\": 121,\r\n      \"y\": 20,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 89,\r\n      \"x\": 65,\r\n      \"y\": 23,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 90,\r\n      \"x\": 16,\r\n      \"y\": 25,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 91,\r\n      \"x\": 33,\r\n      \"y\": 20,\r\n      \"width\": 3,\r\n      \"height\": 7,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 92,\r\n      \"x\": 46,\r\n      \"y\": 25,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 93,\r\n      \"x\": 53,\r\n      \"y\": 25,\r\n      \"width\": 3,\r\n      \"height\": 7,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 94,\r\n      \"x\": 38,\r\n      \"y\": 27,\r\n      \"width\": 5,\r\n      \"height\": 3,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 95,\r\n      \"x\": 58,\r\n      \"y\": 27,\r\n      \"width\": 5,\r\n      \"height\": 1,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 6,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 96,\r\n      \"x\": 5,\r\n      \"y\": 6,\r\n      \"width\": 3,\r\n      \"height\": 3,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 97,\r\n      \"x\": 2,\r\n      \"y\": 29,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 98,\r\n      \"x\": 9,\r\n      \"y\": 29,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 99,\r\n      \"x\": 23,\r\n      \"y\": 29,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 100,\r\n      \"x\": 30,\r\n      \"y\": 29,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 101,\r\n      \"x\": 79,\r\n      \"y\": 29,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 102,\r\n      \"x\": 86,\r\n      \"y\": 29,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 103,\r\n      \"x\": 93,\r\n      \"y\": 29,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 104,\r\n      \"x\": 100,\r\n      \"y\": 29,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 105,\r\n      \"x\": 107,\r\n      \"y\": 29,\r\n      \"width\": 3,\r\n      \"height\": 7,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 106,\r\n      \"x\": 112,\r\n      \"y\": 29,\r\n      \"width\": 4,\r\n      \"height\": 9,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 107,\r\n      \"x\": 118,\r\n      \"y\": 29,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 108,\r\n      \"x\": 58,\r\n      \"y\": 30,\r\n      \"width\": 3,\r\n      \"height\": 7,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 109,\r\n      \"x\": 72,\r\n      \"y\": 31,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 110,\r\n      \"x\": 37,\r\n      \"y\": 32,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 111,\r\n      \"x\": 63,\r\n      \"y\": 32,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 112,\r\n      \"x\": 16,\r\n      \"y\": 34,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 113,\r\n      \"x\": 44,\r\n      \"y\": 34,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 114,\r\n      \"x\": 51,\r\n      \"y\": 34,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 115,\r\n      \"x\": 2,\r\n      \"y\": 36,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 116,\r\n      \"x\": 23,\r\n      \"y\": 36,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 117,\r\n      \"x\": 79,\r\n      \"y\": 36,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 118,\r\n      \"x\": 9,\r\n      \"y\": 38,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 119,\r\n      \"x\": 30,\r\n      \"y\": 38,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 120,\r\n      \"x\": 70,\r\n      \"y\": 38,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 121,\r\n      \"x\": 86,\r\n      \"y\": 38,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 122,\r\n      \"x\": 93,\r\n      \"y\": 38,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 123,\r\n      \"x\": 100,\r\n      \"y\": 38,\r\n      \"width\": 4,\r\n      \"height\": 7,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 124,\r\n      \"x\": 125,\r\n      \"y\": 7,\r\n      \"width\": 1,\r\n      \"height\": 7,\r\n      \"xoffset\": 2,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 125,\r\n      \"x\": 106,\r\n      \"y\": 38,\r\n      \"width\": 4,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 126,\r\n      \"x\": 118,\r\n      \"y\": 38,\r\n      \"width\": 5,\r\n      \"height\": 2,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 161,\r\n      \"x\": 125,\r\n      \"y\": 29,\r\n      \"width\": 1,\r\n      \"height\": 7,\r\n      \"xoffset\": 2,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 162,\r\n      \"x\": 37,\r\n      \"y\": 39,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 1,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 163,\r\n      \"x\": 58,\r\n      \"y\": 39,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 164,\r\n      \"x\": 51,\r\n      \"y\": 41,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 1,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 165,\r\n      \"x\": 112,\r\n      \"y\": 42,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 166,\r\n      \"x\": 125,\r\n      \"y\": 38,\r\n      \"width\": 1,\r\n      \"height\": 7,\r\n      \"xoffset\": 2,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 167,\r\n      \"x\": 2,\r\n      \"y\": 43,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 168,\r\n      \"x\": 46,\r\n      \"y\": 20,\r\n      \"width\": 3,\r\n      \"height\": 1,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 169,\r\n      \"x\": 16,\r\n      \"y\": 43,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 170,\r\n      \"x\": 65,\r\n      \"y\": 39,\r\n      \"width\": 3,\r\n      \"height\": 3,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 171,\r\n      \"x\": 44,\r\n      \"y\": 43,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 1,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 172,\r\n      \"x\": 77,\r\n      \"y\": 43,\r\n      \"width\": 5,\r\n      \"height\": 2,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 173,\r\n      \"x\": 119,\r\n      \"y\": 42,\r\n      \"width\": 3,\r\n      \"height\": 1,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 3,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 174,\r\n      \"x\": 9,\r\n      \"y\": 45,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 175,\r\n      \"x\": 23,\r\n      \"y\": 45,\r\n      \"width\": 5,\r\n      \"height\": 1,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 176,\r\n      \"x\": 65,\r\n      \"y\": 44,\r\n      \"width\": 3,\r\n      \"height\": 3,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 177,\r\n      \"x\": 30,\r\n      \"y\": 45,\r\n      \"width\": 5,\r\n      \"height\": 6,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 178,\r\n      \"x\": 70,\r\n      \"y\": 45,\r\n      \"width\": 5,\r\n      \"height\": 3,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 179,\r\n      \"x\": 93,\r\n      \"y\": 45,\r\n      \"width\": 5,\r\n      \"height\": 3,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 180,\r\n      \"x\": 124,\r\n      \"y\": 16,\r\n      \"width\": 2,\r\n      \"height\": 2,\r\n      \"xoffset\": 2,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 181,\r\n      \"x\": 77,\r\n      \"y\": 47,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 182,\r\n      \"x\": 84,\r\n      \"y\": 47,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 183,\r\n      \"x\": 75,\r\n      \"y\": 5,\r\n      \"width\": 1,\r\n      \"height\": 1,\r\n      \"xoffset\": 2,\r\n      \"yoffset\": 3,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 184,\r\n      \"x\": 119,\r\n      \"y\": 45,\r\n      \"width\": 3,\r\n      \"height\": 2,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 7,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 185,\r\n      \"x\": 100,\r\n      \"y\": 47,\r\n      \"width\": 3,\r\n      \"height\": 3,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 186,\r\n      \"x\": 105,\r\n      \"y\": 47,\r\n      \"width\": 3,\r\n      \"height\": 3,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 187,\r\n      \"x\": 23,\r\n      \"y\": 48,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 1,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 188,\r\n      \"x\": 37,\r\n      \"y\": 48,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 189,\r\n      \"x\": 51,\r\n      \"y\": 48,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 190,\r\n      \"x\": 58,\r\n      \"y\": 48,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 191,\r\n      \"x\": 119,\r\n      \"y\": 49,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 192,\r\n      \"x\": 16,\r\n      \"y\": 50,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 193,\r\n      \"x\": 44,\r\n      \"y\": 50,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 194,\r\n      \"x\": 65,\r\n      \"y\": 50,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 195,\r\n      \"x\": 91,\r\n      \"y\": 50,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 196,\r\n      \"x\": 110,\r\n      \"y\": 51,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 197,\r\n      \"x\": 2,\r\n      \"y\": 52,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 198,\r\n      \"x\": 9,\r\n      \"y\": 52,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 199,\r\n      \"x\": 98,\r\n      \"y\": 52,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 200,\r\n      \"x\": 30,\r\n      \"y\": 53,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 201,\r\n      \"x\": 23,\r\n      \"y\": 55,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 202,\r\n      \"x\": 72,\r\n      \"y\": 56,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 203,\r\n      \"x\": 79,\r\n      \"y\": 56,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 204,\r\n      \"x\": 105,\r\n      \"y\": 52,\r\n      \"width\": 3,\r\n      \"height\": 7,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 205,\r\n      \"x\": 86,\r\n      \"y\": 56,\r\n      \"width\": 3,\r\n      \"height\": 7,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 206,\r\n      \"x\": 37,\r\n      \"y\": 57,\r\n      \"width\": 3,\r\n      \"height\": 7,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 207,\r\n      \"x\": 51,\r\n      \"y\": 57,\r\n      \"width\": 3,\r\n      \"height\": 7,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 208,\r\n      \"x\": 56,\r\n      \"y\": 57,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 209,\r\n      \"x\": 117,\r\n      \"y\": 58,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 210,\r\n      \"x\": 16,\r\n      \"y\": 59,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 211,\r\n      \"x\": 42,\r\n      \"y\": 59,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 212,\r\n      \"x\": 63,\r\n      \"y\": 59,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 213,\r\n      \"x\": 91,\r\n      \"y\": 59,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 214,\r\n      \"x\": 110,\r\n      \"y\": 60,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 215,\r\n      \"x\": 2,\r\n      \"y\": 61,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 1,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 216,\r\n      \"x\": 9,\r\n      \"y\": 61,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 217,\r\n      \"x\": 98,\r\n      \"y\": 61,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 218,\r\n      \"x\": 30,\r\n      \"y\": 62,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 219,\r\n      \"x\": 23,\r\n      \"y\": 64,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 220,\r\n      \"x\": 70,\r\n      \"y\": 65,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 221,\r\n      \"x\": 77,\r\n      \"y\": 65,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 222,\r\n      \"x\": 84,\r\n      \"y\": 65,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 223,\r\n      \"x\": 49,\r\n      \"y\": 66,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 224,\r\n      \"x\": 56,\r\n      \"y\": 66,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 225,\r\n      \"x\": 117,\r\n      \"y\": 67,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 226,\r\n      \"x\": 2,\r\n      \"y\": 68,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 227,\r\n      \"x\": 16,\r\n      \"y\": 68,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 228,\r\n      \"x\": 37,\r\n      \"y\": 68,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 229,\r\n      \"x\": 63,\r\n      \"y\": 68,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 230,\r\n      \"x\": 91,\r\n      \"y\": 68,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 231,\r\n      \"x\": 105,\r\n      \"y\": 69,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 232,\r\n      \"x\": 9,\r\n      \"y\": 70,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 233,\r\n      \"x\": 98,\r\n      \"y\": 70,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 234,\r\n      \"x\": 30,\r\n      \"y\": 71,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 235,\r\n      \"x\": 23,\r\n      \"y\": 73,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 236,\r\n      \"x\": 44,\r\n      \"y\": 68,\r\n      \"width\": 3,\r\n      \"height\": 7,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 237,\r\n      \"x\": 112,\r\n      \"y\": 69,\r\n      \"width\": 3,\r\n      \"height\": 7,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 238,\r\n      \"x\": 56,\r\n      \"y\": 73,\r\n      \"width\": 3,\r\n      \"height\": 7,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 239,\r\n      \"x\": 70,\r\n      \"y\": 74,\r\n      \"width\": 3,\r\n      \"height\": 7,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 240,\r\n      \"x\": 75,\r\n      \"y\": 74,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 241,\r\n      \"x\": 82,\r\n      \"y\": 74,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 242,\r\n      \"x\": 117,\r\n      \"y\": 74,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 243,\r\n      \"x\": 2,\r\n      \"y\": 75,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 244,\r\n      \"x\": 16,\r\n      \"y\": 75,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 245,\r\n      \"x\": 37,\r\n      \"y\": 75,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 246,\r\n      \"x\": 49,\r\n      \"y\": 75,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 247,\r\n      \"x\": 61,\r\n      \"y\": 75,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 1,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 248,\r\n      \"x\": 89,\r\n      \"y\": 75,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 249,\r\n      \"x\": 105,\r\n      \"y\": 76,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 250,\r\n      \"x\": 9,\r\n      \"y\": 77,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 251,\r\n      \"x\": 96,\r\n      \"y\": 77,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 252,\r\n      \"x\": 30,\r\n      \"y\": 78,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 253,\r\n      \"x\": 23,\r\n      \"y\": 80,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 254,\r\n      \"x\": 82,\r\n      \"y\": 81,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 255,\r\n      \"x\": 112,\r\n      \"y\": 81,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 338,\r\n      \"x\": 119,\r\n      \"y\": 81,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 339,\r\n      \"x\": 2,\r\n      \"y\": 82,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 366,\r\n      \"x\": 16,\r\n      \"y\": 82,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 367,\r\n      \"x\": 37,\r\n      \"y\": 82,\r\n      \"width\": 5,\r\n      \"height\": 5,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 376,\r\n      \"x\": 44,\r\n      \"y\": 82,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 7838,\r\n      \"x\": 51,\r\n      \"y\": 82,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 8212,\r\n      \"x\": 58,\r\n      \"y\": 82,\r\n      \"width\": 5,\r\n      \"height\": 1,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 3,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 8216,\r\n      \"x\": 38,\r\n      \"y\": 6,\r\n      \"width\": 1,\r\n      \"height\": 2,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 8217,\r\n      \"x\": 65,\r\n      \"y\": 6,\r\n      \"width\": 1,\r\n      \"height\": 2,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 8218,\r\n      \"x\": 65,\r\n      \"y\": 10,\r\n      \"width\": 1,\r\n      \"height\": 2,\r\n      \"xoffset\": 2,\r\n      \"yoffset\": 6,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 8219,\r\n      \"x\": 72,\r\n      \"y\": 14,\r\n      \"width\": 1,\r\n      \"height\": 2,\r\n      \"xoffset\": 2,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 8220,\r\n      \"x\": 72,\r\n      \"y\": 50,\r\n      \"width\": 3,\r\n      \"height\": 2,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 8221,\r\n      \"x\": 105,\r\n      \"y\": 61,\r\n      \"width\": 3,\r\n      \"height\": 2,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 8222,\r\n      \"x\": 105,\r\n      \"y\": 65,\r\n      \"width\": 3,\r\n      \"height\": 2,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 6,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 8224,\r\n      \"x\": 89,\r\n      \"y\": 82,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 8226,\r\n      \"x\": 44,\r\n      \"y\": 77,\r\n      \"width\": 3,\r\n      \"height\": 3,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 2,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 8230,\r\n      \"x\": 65,\r\n      \"y\": 83,\r\n      \"width\": 5,\r\n      \"height\": 1,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 6,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 8249,\r\n      \"x\": 72,\r\n      \"y\": 83,\r\n      \"width\": 3,\r\n      \"height\": 5,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 1,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 8250,\r\n      \"x\": 77,\r\n      \"y\": 83,\r\n      \"width\": 3,\r\n      \"height\": 5,\r\n      \"xoffset\": 1,\r\n      \"yoffset\": 1,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 8364,\r\n      \"x\": 103,\r\n      \"y\": 83,\r\n      \"width\": 5,\r\n      \"height\": 7,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 8482,\r\n      \"x\": 9,\r\n      \"y\": 84,\r\n      \"width\": 5,\r\n      \"height\": 2,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    },\r\n    {\r\n      \"id\": 32,\r\n      \"x\": 0,\r\n      \"y\": 0,\r\n      \"width\": 0,\r\n      \"height\": 0,\r\n      \"xoffset\": 0,\r\n      \"yoffset\": 0,\r\n      \"xadvance\": 6,\r\n      \"page\": 0,\r\n      \"chnl\": 15\r\n    }\r\n  ],\r\n  \"kernings\": [],\r\n  \"info\": {\r\n    \"face\": null,\r\n    \"size\": 16,\r\n    \"bold\": 0,\r\n    \"italic\": 0,\r\n    \"charset\": null,\r\n    \"undefined\": 100,\r\n    \"smooth\": 1,\r\n    \"aa\": 1,\r\n    \"padding\": [\r\n      2,\r\n      2,\r\n      2,\r\n      2\r\n    ],\r\n    \"spacing\": [\r\n      0,\r\n      0\r\n    ],\r\n    \"outline\": 0\r\n  },\r\n  \"common\": {\r\n    \"lineHeight\": 9,\r\n    \"base\": 7,\r\n    \"scaleW\": 128,\r\n    \"scaleH\": 128,\r\n    \"pages\": 1,\r\n    \"packed\": 0\r\n  }\r\n}\r\n";
+tusk_Tusk.fontSrc = "{\n  \"pages\": [\n    \"coderscrux.png\"\n  ],\n  \"chars\": [\n    {\n      \"id\": 33,\n      \"x\": 2,\n      \"y\": 2,\n      \"width\": 1,\n      \"height\": 7,\n      \"xoffset\": 2,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 34,\n      \"x\": 5,\n      \"y\": 2,\n      \"width\": 3,\n      \"height\": 2,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 35,\n      \"x\": 10,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 36,\n      \"x\": 17,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 37,\n      \"x\": 24,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 38,\n      \"x\": 31,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 39,\n      \"x\": 38,\n      \"y\": 2,\n      \"width\": 1,\n      \"height\": 2,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 40,\n      \"x\": 41,\n      \"y\": 2,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 41,\n      \"x\": 46,\n      \"y\": 2,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 42,\n      \"x\": 51,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 3,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 43,\n      \"x\": 58,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 1,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 44,\n      \"x\": 65,\n      \"y\": 2,\n      \"width\": 1,\n      \"height\": 2,\n      \"xoffset\": 2,\n      \"yoffset\": 6,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 45,\n      \"x\": 68,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 1,\n      \"xoffset\": 0,\n      \"yoffset\": 3,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 46,\n      \"x\": 75,\n      \"y\": 2,\n      \"width\": 1,\n      \"height\": 1,\n      \"xoffset\": 2,\n      \"yoffset\": 6,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 47,\n      \"x\": 78,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 48,\n      \"x\": 85,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 49,\n      \"x\": 92,\n      \"y\": 2,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 50,\n      \"x\": 97,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 51,\n      \"x\": 104,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 52,\n      \"x\": 111,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 53,\n      \"x\": 118,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 54,\n      \"x\": 68,\n      \"y\": 5,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 55,\n      \"x\": 51,\n      \"y\": 7,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 56,\n      \"x\": 58,\n      \"y\": 9,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 57,\n      \"x\": 2,\n      \"y\": 11,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 58,\n      \"x\": 125,\n      \"y\": 2,\n      \"width\": 1,\n      \"height\": 3,\n      \"xoffset\": 2,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 59,\n      \"x\": 9,\n      \"y\": 11,\n      \"width\": 2,\n      \"height\": 4,\n      \"xoffset\": 1,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 60,\n      \"x\": 13,\n      \"y\": 11,\n      \"width\": 4,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 61,\n      \"x\": 19,\n      \"y\": 11,\n      \"width\": 5,\n      \"height\": 3,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 62,\n      \"x\": 26,\n      \"y\": 11,\n      \"width\": 4,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 63,\n      \"x\": 32,\n      \"y\": 11,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 64,\n      \"x\": 39,\n      \"y\": 11,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 65,\n      \"x\": 75,\n      \"y\": 11,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 66,\n      \"x\": 82,\n      \"y\": 11,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 67,\n      \"x\": 89,\n      \"y\": 11,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 68,\n      \"x\": 96,\n      \"y\": 11,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 69,\n      \"x\": 103,\n      \"y\": 11,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 70,\n      \"x\": 110,\n      \"y\": 11,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 71,\n      \"x\": 117,\n      \"y\": 11,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 72,\n      \"x\": 65,\n      \"y\": 14,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 73,\n      \"x\": 46,\n      \"y\": 11,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 74,\n      \"x\": 19,\n      \"y\": 16,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 75,\n      \"x\": 51,\n      \"y\": 16,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 76,\n      \"x\": 39,\n      \"y\": 18,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 77,\n      \"x\": 58,\n      \"y\": 18,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 78,\n      \"x\": 2,\n      \"y\": 20,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 79,\n      \"x\": 9,\n      \"y\": 20,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 80,\n      \"x\": 26,\n      \"y\": 20,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 81,\n      \"x\": 72,\n      \"y\": 20,\n      \"width\": 5,\n      \"height\": 9,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 82,\n      \"x\": 79,\n      \"y\": 20,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 83,\n      \"x\": 86,\n      \"y\": 20,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 84,\n      \"x\": 93,\n      \"y\": 20,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 85,\n      \"x\": 100,\n      \"y\": 20,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 86,\n      \"x\": 107,\n      \"y\": 20,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 87,\n      \"x\": 114,\n      \"y\": 20,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 88,\n      \"x\": 121,\n      \"y\": 20,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 89,\n      \"x\": 65,\n      \"y\": 23,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 90,\n      \"x\": 16,\n      \"y\": 25,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 91,\n      \"x\": 33,\n      \"y\": 20,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 92,\n      \"x\": 46,\n      \"y\": 25,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 93,\n      \"x\": 53,\n      \"y\": 25,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 94,\n      \"x\": 38,\n      \"y\": 27,\n      \"width\": 5,\n      \"height\": 3,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 95,\n      \"x\": 58,\n      \"y\": 27,\n      \"width\": 5,\n      \"height\": 1,\n      \"xoffset\": 0,\n      \"yoffset\": 6,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 96,\n      \"x\": 5,\n      \"y\": 6,\n      \"width\": 3,\n      \"height\": 3,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 97,\n      \"x\": 2,\n      \"y\": 29,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 98,\n      \"x\": 9,\n      \"y\": 29,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 99,\n      \"x\": 23,\n      \"y\": 29,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 100,\n      \"x\": 30,\n      \"y\": 29,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 101,\n      \"x\": 79,\n      \"y\": 29,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 102,\n      \"x\": 86,\n      \"y\": 29,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 103,\n      \"x\": 93,\n      \"y\": 29,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 104,\n      \"x\": 100,\n      \"y\": 29,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 105,\n      \"x\": 107,\n      \"y\": 29,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 106,\n      \"x\": 112,\n      \"y\": 29,\n      \"width\": 4,\n      \"height\": 9,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 107,\n      \"x\": 118,\n      \"y\": 29,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 108,\n      \"x\": 58,\n      \"y\": 30,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 109,\n      \"x\": 72,\n      \"y\": 31,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 110,\n      \"x\": 37,\n      \"y\": 32,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 111,\n      \"x\": 63,\n      \"y\": 32,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 112,\n      \"x\": 16,\n      \"y\": 34,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 113,\n      \"x\": 44,\n      \"y\": 34,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 114,\n      \"x\": 51,\n      \"y\": 34,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 115,\n      \"x\": 2,\n      \"y\": 36,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 116,\n      \"x\": 23,\n      \"y\": 36,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 117,\n      \"x\": 79,\n      \"y\": 36,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 118,\n      \"x\": 9,\n      \"y\": 38,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 119,\n      \"x\": 30,\n      \"y\": 38,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 120,\n      \"x\": 70,\n      \"y\": 38,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 121,\n      \"x\": 86,\n      \"y\": 38,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 122,\n      \"x\": 93,\n      \"y\": 38,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 123,\n      \"x\": 100,\n      \"y\": 38,\n      \"width\": 4,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 124,\n      \"x\": 125,\n      \"y\": 7,\n      \"width\": 1,\n      \"height\": 7,\n      \"xoffset\": 2,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 125,\n      \"x\": 106,\n      \"y\": 38,\n      \"width\": 4,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 126,\n      \"x\": 118,\n      \"y\": 38,\n      \"width\": 5,\n      \"height\": 2,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 161,\n      \"x\": 125,\n      \"y\": 29,\n      \"width\": 1,\n      \"height\": 7,\n      \"xoffset\": 2,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 162,\n      \"x\": 37,\n      \"y\": 39,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 1,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 163,\n      \"x\": 58,\n      \"y\": 39,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 164,\n      \"x\": 51,\n      \"y\": 41,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 1,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 165,\n      \"x\": 112,\n      \"y\": 42,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 166,\n      \"x\": 125,\n      \"y\": 38,\n      \"width\": 1,\n      \"height\": 7,\n      \"xoffset\": 2,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 167,\n      \"x\": 2,\n      \"y\": 43,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 168,\n      \"x\": 46,\n      \"y\": 20,\n      \"width\": 3,\n      \"height\": 1,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 169,\n      \"x\": 16,\n      \"y\": 43,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 170,\n      \"x\": 65,\n      \"y\": 39,\n      \"width\": 3,\n      \"height\": 3,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 171,\n      \"x\": 44,\n      \"y\": 43,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 1,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 172,\n      \"x\": 77,\n      \"y\": 43,\n      \"width\": 5,\n      \"height\": 2,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 173,\n      \"x\": 119,\n      \"y\": 42,\n      \"width\": 3,\n      \"height\": 1,\n      \"xoffset\": 1,\n      \"yoffset\": 3,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 174,\n      \"x\": 9,\n      \"y\": 45,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 175,\n      \"x\": 23,\n      \"y\": 45,\n      \"width\": 5,\n      \"height\": 1,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 176,\n      \"x\": 65,\n      \"y\": 44,\n      \"width\": 3,\n      \"height\": 3,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 177,\n      \"x\": 30,\n      \"y\": 45,\n      \"width\": 5,\n      \"height\": 6,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 178,\n      \"x\": 70,\n      \"y\": 45,\n      \"width\": 5,\n      \"height\": 3,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 179,\n      \"x\": 93,\n      \"y\": 45,\n      \"width\": 5,\n      \"height\": 3,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 180,\n      \"x\": 124,\n      \"y\": 16,\n      \"width\": 2,\n      \"height\": 2,\n      \"xoffset\": 2,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 181,\n      \"x\": 77,\n      \"y\": 47,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 182,\n      \"x\": 84,\n      \"y\": 47,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 183,\n      \"x\": 75,\n      \"y\": 5,\n      \"width\": 1,\n      \"height\": 1,\n      \"xoffset\": 2,\n      \"yoffset\": 3,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 184,\n      \"x\": 119,\n      \"y\": 45,\n      \"width\": 3,\n      \"height\": 2,\n      \"xoffset\": 1,\n      \"yoffset\": 7,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 185,\n      \"x\": 100,\n      \"y\": 47,\n      \"width\": 3,\n      \"height\": 3,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 186,\n      \"x\": 105,\n      \"y\": 47,\n      \"width\": 3,\n      \"height\": 3,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 187,\n      \"x\": 23,\n      \"y\": 48,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 1,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 188,\n      \"x\": 37,\n      \"y\": 48,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 189,\n      \"x\": 51,\n      \"y\": 48,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 190,\n      \"x\": 58,\n      \"y\": 48,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 191,\n      \"x\": 119,\n      \"y\": 49,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 192,\n      \"x\": 16,\n      \"y\": 50,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 193,\n      \"x\": 44,\n      \"y\": 50,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 194,\n      \"x\": 65,\n      \"y\": 50,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 195,\n      \"x\": 91,\n      \"y\": 50,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 196,\n      \"x\": 110,\n      \"y\": 51,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 197,\n      \"x\": 2,\n      \"y\": 52,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 198,\n      \"x\": 9,\n      \"y\": 52,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 199,\n      \"x\": 98,\n      \"y\": 52,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 200,\n      \"x\": 30,\n      \"y\": 53,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 201,\n      \"x\": 23,\n      \"y\": 55,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 202,\n      \"x\": 72,\n      \"y\": 56,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 203,\n      \"x\": 79,\n      \"y\": 56,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 204,\n      \"x\": 105,\n      \"y\": 52,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 205,\n      \"x\": 86,\n      \"y\": 56,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 206,\n      \"x\": 37,\n      \"y\": 57,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 207,\n      \"x\": 51,\n      \"y\": 57,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 208,\n      \"x\": 56,\n      \"y\": 57,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 209,\n      \"x\": 117,\n      \"y\": 58,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 210,\n      \"x\": 16,\n      \"y\": 59,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 211,\n      \"x\": 42,\n      \"y\": 59,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 212,\n      \"x\": 63,\n      \"y\": 59,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 213,\n      \"x\": 91,\n      \"y\": 59,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 214,\n      \"x\": 110,\n      \"y\": 60,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 215,\n      \"x\": 2,\n      \"y\": 61,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 1,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 216,\n      \"x\": 9,\n      \"y\": 61,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 217,\n      \"x\": 98,\n      \"y\": 61,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 218,\n      \"x\": 30,\n      \"y\": 62,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 219,\n      \"x\": 23,\n      \"y\": 64,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 220,\n      \"x\": 70,\n      \"y\": 65,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 221,\n      \"x\": 77,\n      \"y\": 65,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 222,\n      \"x\": 84,\n      \"y\": 65,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 223,\n      \"x\": 49,\n      \"y\": 66,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 224,\n      \"x\": 56,\n      \"y\": 66,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 225,\n      \"x\": 117,\n      \"y\": 67,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 226,\n      \"x\": 2,\n      \"y\": 68,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 227,\n      \"x\": 16,\n      \"y\": 68,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 228,\n      \"x\": 37,\n      \"y\": 68,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 229,\n      \"x\": 63,\n      \"y\": 68,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 230,\n      \"x\": 91,\n      \"y\": 68,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 231,\n      \"x\": 105,\n      \"y\": 69,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 232,\n      \"x\": 9,\n      \"y\": 70,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 233,\n      \"x\": 98,\n      \"y\": 70,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 234,\n      \"x\": 30,\n      \"y\": 71,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 235,\n      \"x\": 23,\n      \"y\": 73,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 236,\n      \"x\": 44,\n      \"y\": 68,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 237,\n      \"x\": 112,\n      \"y\": 69,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 238,\n      \"x\": 56,\n      \"y\": 73,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 239,\n      \"x\": 70,\n      \"y\": 74,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 240,\n      \"x\": 75,\n      \"y\": 74,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 241,\n      \"x\": 82,\n      \"y\": 74,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 242,\n      \"x\": 117,\n      \"y\": 74,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 243,\n      \"x\": 2,\n      \"y\": 75,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 244,\n      \"x\": 16,\n      \"y\": 75,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 245,\n      \"x\": 37,\n      \"y\": 75,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 246,\n      \"x\": 49,\n      \"y\": 75,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 247,\n      \"x\": 61,\n      \"y\": 75,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 1,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 248,\n      \"x\": 89,\n      \"y\": 75,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 249,\n      \"x\": 105,\n      \"y\": 76,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 250,\n      \"x\": 9,\n      \"y\": 77,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 251,\n      \"x\": 96,\n      \"y\": 77,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 252,\n      \"x\": 30,\n      \"y\": 78,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 253,\n      \"x\": 23,\n      \"y\": 80,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 254,\n      \"x\": 82,\n      \"y\": 81,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 255,\n      \"x\": 112,\n      \"y\": 81,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 338,\n      \"x\": 119,\n      \"y\": 81,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 339,\n      \"x\": 2,\n      \"y\": 82,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 366,\n      \"x\": 16,\n      \"y\": 82,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 367,\n      \"x\": 37,\n      \"y\": 82,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 376,\n      \"x\": 44,\n      \"y\": 82,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 7838,\n      \"x\": 51,\n      \"y\": 82,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8212,\n      \"x\": 58,\n      \"y\": 82,\n      \"width\": 5,\n      \"height\": 1,\n      \"xoffset\": 0,\n      \"yoffset\": 3,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8216,\n      \"x\": 38,\n      \"y\": 6,\n      \"width\": 1,\n      \"height\": 2,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8217,\n      \"x\": 65,\n      \"y\": 6,\n      \"width\": 1,\n      \"height\": 2,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8218,\n      \"x\": 65,\n      \"y\": 10,\n      \"width\": 1,\n      \"height\": 2,\n      \"xoffset\": 2,\n      \"yoffset\": 6,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8219,\n      \"x\": 72,\n      \"y\": 14,\n      \"width\": 1,\n      \"height\": 2,\n      \"xoffset\": 2,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8220,\n      \"x\": 72,\n      \"y\": 50,\n      \"width\": 3,\n      \"height\": 2,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8221,\n      \"x\": 105,\n      \"y\": 61,\n      \"width\": 3,\n      \"height\": 2,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8222,\n      \"x\": 105,\n      \"y\": 65,\n      \"width\": 3,\n      \"height\": 2,\n      \"xoffset\": 1,\n      \"yoffset\": 6,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8224,\n      \"x\": 89,\n      \"y\": 82,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8226,\n      \"x\": 44,\n      \"y\": 77,\n      \"width\": 3,\n      \"height\": 3,\n      \"xoffset\": 1,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8230,\n      \"x\": 65,\n      \"y\": 83,\n      \"width\": 5,\n      \"height\": 1,\n      \"xoffset\": 0,\n      \"yoffset\": 6,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8249,\n      \"x\": 72,\n      \"y\": 83,\n      \"width\": 3,\n      \"height\": 5,\n      \"xoffset\": 1,\n      \"yoffset\": 1,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8250,\n      \"x\": 77,\n      \"y\": 83,\n      \"width\": 3,\n      \"height\": 5,\n      \"xoffset\": 1,\n      \"yoffset\": 1,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8364,\n      \"x\": 103,\n      \"y\": 83,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8482,\n      \"x\": 9,\n      \"y\": 84,\n      \"width\": 5,\n      \"height\": 2,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 32,\n      \"x\": 0,\n      \"y\": 0,\n      \"width\": 0,\n      \"height\": 0,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    }\n  ],\n  \"kernings\": [],\n  \"info\": {\n    \"face\": null,\n    \"size\": 16,\n    \"bold\": 0,\n    \"italic\": 0,\n    \"charset\": null,\n    \"undefined\": 100,\n    \"smooth\": 1,\n    \"aa\": 1,\n    \"padding\": [\n      2,\n      2,\n      2,\n      2\n    ],\n    \"spacing\": [\n      0,\n      0\n    ],\n    \"outline\": 0\n  },\n  \"common\": {\n    \"lineHeight\": 9,\n    \"base\": 7,\n    \"scaleW\": 128,\n    \"scaleH\": 128,\n    \"pages\": 1,\n    \"packed\": 0\n  }\n}\n";
 tusk_Tusk.draw = new tusk_Draw();
 tusk_Tusk.controls = new haxe_ds_IntMap();
 tusk_Tusk.mousePos = (function($this) {

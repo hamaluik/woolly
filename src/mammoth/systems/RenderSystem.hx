@@ -21,7 +21,6 @@ import mammoth.components.Camera;
 import mammoth.components.DirectionalLight;
 import mammoth.components.PointLight;
 import mammoth.Mammoth;
-import mammoth.gl.Graphics;
 import mammoth.gl.GL;
 import mammoth.render.Attribute;
 import mammoth.render.Material;
@@ -31,6 +30,8 @@ class RenderSystem implements ISystem {
     var objects:View<{ transform:Transform, renderer:MeshRenderer }>;
     var directionalLights:View<{ transform:Transform, light:DirectionalLight }>;
     var pointLights:View<{ transform:Transform, light:PointLight }>;
+
+    private var MVP:Mat4 = Mat4.identity(new Mat4());
 
     public function update(camera:Camera) {
         // calculate the viewport
@@ -54,11 +55,11 @@ class RenderSystem implements ISystem {
             var material:Material = renderer.material;
 
             // calculate the MVP for this object
-            renderer.MVP = Mat4.multMat(camera.vp, transform.m, renderer.MVP);
+            Mat4.multMat(camera.vp, transform.m, MVP);
 
             // set the M, V, P uniforms
             if(material.uniforms.exists('MVP')) {
-                material.setUniform('MVP', TUniform.Mat4(renderer.MVP));
+                material.setUniform('MVP', TUniform.Mat4(MVP));
             }
             if(material.uniforms.exists('M')) {
                 material.setUniform('M', TUniform.Mat4(transform.m));
@@ -76,11 +77,7 @@ class RenderSystem implements ISystem {
             if(material.uniforms.exists('directionalLights[0].direction')) {
                 var i:Int = 0;
                 for(dl in directionalLights) {
-                    // calculate the direction
-                    // TODO: calculate this offline somewhere else for efficiency!
-                    var dir:Vec4 = dl.data.transform.m.multVec(new Vec4(0, 0, 1, 1), new Vec4());
-
-                    material.setUniform('directionalLights[${i}].direction', TUniform.Vec3(new Vec3(dir.x, dir.y, dir.z)));
+                    material.setUniform('directionalLights[${i}].direction', TUniform.Vec3(new Vec3(dl.data.light.direction.x, dl.data.light.direction.y, dl.data.light.direction.z)));
                     material.setUniform('directionalLights[${i}].colour', TUniform.RGB(dl.data.light.colour));
                     i++;
                 }

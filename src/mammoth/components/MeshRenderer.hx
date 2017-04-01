@@ -23,8 +23,6 @@ class MeshRenderer implements IComponent {
 	public var material:Material;
 	public var mesh:Mesh;
 
-	public var MVP:Mat4 = Mat4.identity(new Mat4());
-
 	public function new() {}
 
 	public function setMesh(mesh:Mesh):MeshRenderer {

@@ -16,9 +16,16 @@ package mammoth.components;
 import edge.IComponent;
 import mammoth.utilities.Colour;
 import mammoth.utilities.Colours;
+import mammoth.gl.Framebuffer;
+import mammoth.gl.Texture;
 
 class DirectionalLight implements IComponent {
 	public var colour:Colour = Colours.White;
+	public var direction:Vec4 = new Vec4();
+
+	public var shadowFramebuffer:Framebuffer = null;
+	public var colourmap:Texture = null;
+	public var shadowmap:Texture = null;
 
 	public function new() {}
 

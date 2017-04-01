@@ -13,13 +13,14 @@
 */
 package mammoth.gl.js;
 
+import haxe.ds.StringMap;
+
 import js.Browser;
 import js.html.CanvasElement;
 import js.html.webgl.RenderingContext;
 
 import mammoth.platform.ArrayBufferView;
 import mammoth.platform.Float32Array;
-import mammoth.platform.Int16Array;
 import mammoth.platform.Int32Array;
 import mammoth.utilities.Colour;
 
@@ -27,10 +28,10 @@ import mammoth.utilities.Colour;
 class Graphics {
     public var context:RenderingContext;
 
-    private var halfFloat:Dynamic;
+    /*private var halfFloat:Dynamic;
     private var depthTexture:Dynamic;
     private var anisotropicFilter:Dynamic;
-    private var drawBuffers:Dynamic;
+    private var drawBuffers:Dynamic;*/
 
     private var width(get, never):Float;
     private inline function get_width():Float return context.drawingBufferWidth;
@@ -41,6 +42,8 @@ class Graphics {
     private var aspectRatio(get, never):Float;
     private inline function get_aspectRatio():Float
         return (context.canvas.clientWidth / context.canvas.clientHeight);
+
+	private var extensions:StringMap<Dynamic> = new StringMap<Dynamic>();
 
     private function new() {}
 
@@ -59,17 +62,18 @@ class Graphics {
         // add the GL extensions
         if(context != null) {
             //context.pixelStorei(GL.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
-            context.getExtension("OES_texture_float");
-            context.getExtension("OES_texture_float_linear");
-            halfFloat = context.getExtension("OES_texture_half_float");
-            context.getExtension("OES_texture_half_float_linear");
-            depthTexture = context.getExtension("WEBGL_depth_texture");
-            context.getExtension("EXT_shader_texture_lod");
-            context.getExtension("OES_standard_derivatives");
-            anisotropicFilter = context.getExtension("EXT_texture_filter_anisotropic");
-            if(anisotropicFilter == null)
-                anisotropicFilter = context.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
-            drawBuffers = context.getExtension("WEBGL_draw_buffers");
+            extensions.set('texture_float', context.getExtension("OES_texture_float"));
+            extensions.set('texture_float_linear', context.getExtension("OES_texture_float_linear"));
+            extensions.set('texture_half_float', context.getExtension("OES_texture_half_float"));
+            extensions.set('texture_half_float_linear', context.getExtension("OES_texture_half_float_linear"));
+			extensions.set('frag_depth', context.getExtension("EXT_frag_depth"));
+            extensions.set('depth_texture', context.getExtension("WEBGL_depth_texture"));
+            extensions.set('shader_texture_lod', context.getExtension("EXT_shader_texture_lod"));
+            extensions.set('standard_derivatives', context.getExtension("OES_standard_derivatives"));
+            extensions.set('texture_filter_anisotropic', context.getExtension("EXT_texture_filter_anisotropic"));
+            if(extensions.get('texture_filter_anisotropic') == null)
+                extensions.set('texture_filter_anisotropic', context.getExtension("WEBKIT_EXT_texture_filter_anisotropic"));
+            extensions.set('draw_buffers', context.getExtension("WEBGL_draw_buffers"));
         }
 
         // add the canvas to the body
@@ -118,18 +122,18 @@ class Graphics {
 	// public inline function copyTexImage2D(target:Int, level:Int, internalformat:Int, x:Int, y:Int, width:Int, height:Int, border:Int):Void;
 	// public inline function copyTexSubImage2D(target:Int, level:Int, xoffset:Int, yoffset:Int, x:Int, y:Int, width:Int, height:Int):Void;
 	public inline function createBuffer():Buffer return context.createBuffer();
-	// public inline function createFramebuffer():Framebuffer;
+	public inline function createFramebuffer():Framebuffer return context.createFramebuffer();
 	public inline function createProgram():Program return context.createProgram();
-	// public inline function createRenderbuffer():Renderbuffer;
+	public inline function createRenderbuffer():Renderbuffer return context.createRenderbuffer();
 	public inline function createShader(type:Int):Shader return context.createShader(type);
 	public inline function createTexture():Texture return context.createTexture();
 	public inline function cullFace(mode:Int):Void context.cullFace(mode);
-	// public inline function deleteBuffer(buffer:Buffer):Void;
-	// public inline function deleteFramebuffer(framebuffer:Framebuffer):Void;
-	// public inline function deleteProgram(program:Program):Void;
-	// public inline function deleteRenderbuffer(renderbuffer:Renderbuffer):Void;
-	// public inline function deleteShader(shader:Shader):Void;
-	// public inline function deleteTexture(texture:Texture):Void;
+	public inline function deleteBuffer(buffer:Buffer):Void context.deleteBuffer(buffer);
+	public inline function deleteFramebuffer(framebuffer:Framebuffer):Void context.deleteFramebuffer(framebuffer);
+	public inline function deleteProgram(program:Program):Void context.deleteProgram(program);
+	public inline function deleteRenderbuffer(renderbuffer:Renderbuffer):Void context.deleteRenderbuffer(renderbuffer);
+	public inline function deleteShader(shader:Shader):Void context.deleteShader(shader);
+	public inline function deleteTexture(texture:Texture):Void context.deleteTexture(texture);
 	public inline function depthFunc(func:Int):Void context.depthFunc(func);
 	public inline function depthMask(flag:Bool):Void return context.depthMask(flag);
 	// public inline function depthRange(zNear:Float, zFar:Float):Void;
@@ -140,12 +144,14 @@ class Graphics {
 	public inline function drawElements(mode:Int, count:Int, type:Int, offset:Int):Void context.drawElements(mode, count, type, offset);
 	public inline function enable(cap:Int):Void context.enable(cap);
 	public inline function enableVertexAttribArray(index:Int):Void context.enableVertexAttribArray(index);
-	// public inline function finish():Void;
-	// public inline function flush():Void;
-	// public inline function framebufferRenderbuffer(target:Int, attachment:Int, renderbuffertarget:Int, renderbuffer:Renderbuffer):Void;
-	// public inline function framebufferTexture2D(target:Int, attachment:Int, textarget:Int, texture:Texture, level:Int):Void;
-	// public inline function frontFace(mode:Int):Void;
-	// public inline function generateMipmap(target:Int):Void;
+	public inline function finish():Void context.finish();
+	public inline function flush():Void context.flush();
+	public inline function framebufferRenderbuffer(target:Int, attachment:Int, renderbuffertarget:Int, renderbuffer:Renderbuffer):Void
+		context.framebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer);
+	public inline function framebufferTexture2D(target:Int, attachment:Int, textarget:Int, texture:Texture, level:Int):Void
+		context.framebufferTexture2D(target, attachment, textarget, texture, level);
+	public inline function frontFace(mode:Int):Void context.frontFace(mode);
+	public inline function generateMipmap(target:Int):Void context.generateMipmap(target);
 	// public inline function getActiveAttrib(program:Program, index:Int):ActiveInfo;
 	// public inline function getActiveUniform(program:Program, index:Int):ActiveInfo;
 	// public inline function getAttachedShaders(program:Program):Array<Shader>;

@@ -19,13 +19,9 @@ import mammoth.gl.Buffer;
 import mammoth.gl.GL;
 
 class Mesh {
-	@:allow(mammoth.systems.RenderSystem)
-	private var vertexBuffer:Buffer;
-	@:allow(mammoth.systems.RenderSystem)
-	private var indexBuffer:Buffer;
-
-	@:allow(mammoth.systems.RenderSystem)
-	private var vertexCount:Int;
+	public var vertexBuffer(default, null):Buffer;
+	public var indexBuffer(default, null):Buffer;
+	public var vertexCount(default, null):Int;
 
 	public var name(default, null):String;
 	public var attributeNames(default, null):Array<String>;

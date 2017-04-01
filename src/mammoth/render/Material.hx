@@ -181,6 +181,7 @@ class Material {
 	}
 
 	@:allow(mammoth.systems.RenderSystem)
+	@:allow(mammoth.systems.DirectionalShadowSystem)
 	private function apply() {
 		// apply our state variables
 		applyCullMode();

@@ -59,4 +59,5 @@ void main() {
 
     // gamma
     gl_FragColor = vec4(pow(outColour.rgb, vec3(1.0/2.2)), outColour.a);
+    //gl_FragColor = outColour;
 }
