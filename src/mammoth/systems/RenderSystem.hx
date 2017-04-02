@@ -115,11 +115,11 @@ class RenderSystem implements ISystem {
             // TODO: spotlights
 
             // apply material data
-            for(dataName in renderer.materialData.keys()) {
+            for(dataName in renderer.materialData.uniformValues.keys()) {
                 if(!material.hasUniform(dataName)) continue;
 
                 var location:UniformLocation = material.uniformLocation(dataName);
-                var data:TUniformData = renderer.materialData.get(dataName);
+                var data:TUniformData = renderer.materialData.uniformValues.get(dataName);
                 switch(data) {
                     case Bool(b): Mammoth.gl.uniform1i(location, b ? 1 : 0);
                     case Int(i): Mammoth.gl.uniform1i(location, i);
@@ -135,6 +135,8 @@ class RenderSystem implements ISystem {
                     case RGBA(c): Mammoth.gl.uniform4f(location, c.r, c.g, c.b, c.a);
                 }
             }
+
+            // TODO: apply textures
 
             // set up the attributes
             Mammoth.gl.bindBuffer(GL.ARRAY_BUFFER, mesh.vertexBuffer);

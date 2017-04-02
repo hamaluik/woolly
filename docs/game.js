@@ -2042,19 +2042,21 @@ mammoth_Mammoth.init = function(onReady,updateRate) {
 	}
 	mammoth_Mammoth.gl.init();
 	mammoth_Mammoth.input.init();
-	mammoth_Mammoth.debugView = new mammoth_debug_DebugView();
 	mammoth_Mammoth.timing.dt = 1 / updateRate;
 	mammoth_Mammoth.engine = new edge_Engine();
 	mammoth_Mammoth.preUpdatePhase = mammoth_Mammoth.engine.createPhase();
 	mammoth_Mammoth.updatePhase = mammoth_Mammoth.engine.createPhase();
 	mammoth_Mammoth.postUpdatePhase = mammoth_Mammoth.engine.createPhase();
 	mammoth_Mammoth.renderPhase = mammoth_Mammoth.engine.createPhase();
+	mammoth_Mammoth.debugDrawPhase = mammoth_Mammoth.engine.createPhase();
 	mammoth_Mammoth.preUpdatePhase.add(new mammoth_systems_PreTransformSystem());
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_ModelMatrixSystem());
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_CameraSystem());
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_DirectionalLightSystem());
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_DirectionalShadowSystem());
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_RenderSystem());
+	mammoth_Mammoth.engine.create([new mammoth_components_TuskContext()]);
+	mammoth_Mammoth.debugDrawPhase.add(new mammoth_systems_StatsDisplaySystem());
 	if(onReady != null) {
 		onReady();
 	}
@@ -2083,7 +2085,7 @@ mammoth_Mammoth.onRender = function(dt,alpha) {
 	mammoth_Mammoth.gl.checkWindowSize();
 	mammoth_Mammoth.renderPhase.update(dt);
 	mammoth_Mammoth.stats.endRenderTimer();
-	mammoth_Mammoth.debugView.draw();
+	mammoth_Mammoth.debugDrawPhase.update(dt);
 };
 var mammoth_components_ProjectionMode = { __ename__ : true, __constructs__ : ["Orthographic","Perspective"] };
 mammoth_components_ProjectionMode.Orthographic = function(size) { var $x = ["Orthographic",0,size]; $x.__enum__ = mammoth_components_ProjectionMode; $x.toString = $estr; return $x; };
@@ -2204,7 +2206,7 @@ mammoth_components_DirectionalLight.prototype = {
 	,__class__: mammoth_components_DirectionalLight
 };
 var mammoth_components_MeshRenderer = function() {
-	this.materialData = new haxe_ds_StringMap();
+	this.materialData = new mammoth_types_MaterialData();
 };
 mammoth_components_MeshRenderer.__name__ = ["mammoth","components","MeshRenderer"];
 mammoth_components_MeshRenderer.__interfaces__ = [edge_IComponent];
@@ -2309,93 +2311,35 @@ mammoth_components_Transform.__interfaces__ = [edge_IComponent];
 mammoth_components_Transform.prototype = {
 	__class__: mammoth_components_Transform
 };
-var mammoth_debug_DebugView = function() {
-	this.colourLoc = 0;
-	this.uvLoc = 0;
-	this.positionLoc = 0;
-	var _gthis = this;
-	var vert = mammoth_Mammoth.gl.context.createShader(35633);
-	mammoth_Mammoth.gl.context.shaderSource(vert,tusk_Tusk.vertexShaderSrc);
-	mammoth_Mammoth.gl.context.compileShader(vert);
-	if(!mammoth_Mammoth.gl.context.getShaderParameter(vert,35713)) {
-		var info = mammoth_Mammoth.gl.context.getShaderInfoLog(vert);
-		throw new js__$Boot_HaxeError(new mammoth_debug_Exception(info,true,"CompileVertShader",null,{ fileName : "DebugView.hx", lineNumber : 32, className : "mammoth.debug.DebugView", methodName : "new"}));
-	}
-	var frag = mammoth_Mammoth.gl.context.createShader(35632);
-	mammoth_Mammoth.gl.context.shaderSource(frag,tusk_Tusk.fragmentShaderSrc);
-	mammoth_Mammoth.gl.context.compileShader(frag);
-	if(!mammoth_Mammoth.gl.context.getShaderParameter(frag,35713)) {
-		var info1 = mammoth_Mammoth.gl.context.getShaderInfoLog(frag);
-		throw new js__$Boot_HaxeError(new mammoth_debug_Exception(info1,true,"CompileFragShader",null,{ fileName : "DebugView.hx", lineNumber : 41, className : "mammoth.debug.DebugView", methodName : "new"}));
-	}
-	this.program = mammoth_Mammoth.gl.context.createProgram();
-	mammoth_Mammoth.gl.context.attachShader(this.program,vert);
-	mammoth_Mammoth.gl.context.attachShader(this.program,frag);
-	mammoth_Mammoth.gl.context.linkProgram(this.program);
-	if(!mammoth_Mammoth.gl.context.getProgramParameter(this.program,35714)) {
-		var info2 = mammoth_Mammoth.gl.context.getProgramInfoLog(this.program);
-		throw new js__$Boot_HaxeError(new mammoth_debug_Exception(info2,true,"LinkProgram",null,{ fileName : "DebugView.hx", lineNumber : 51, className : "mammoth.debug.DebugView", methodName : "new"}));
-	}
-	mammoth_Mammoth.gl.context.useProgram(this.program);
-	this.positionLoc = mammoth_Mammoth.gl.context.getAttribLocation(this.program,"position");
-	this.uvLoc = mammoth_Mammoth.gl.context.getAttribLocation(this.program,"uv");
-	this.colourLoc = mammoth_Mammoth.gl.context.getAttribLocation(this.program,"colour");
-	this.vpLoc = mammoth_Mammoth.gl.context.getUniformLocation(this.program,"VP");
-	this.fontTexture = mammoth_Mammoth.gl.context.createTexture();
-	mammoth_Mammoth.gl.context.bindTexture(3553,this.fontTexture);
+var mammoth_components_TuskContext = function() {
+	this.data = null;
+	this.buffer = null;
+	this.material = null;
+	this.material = mammoth_defaults_Materials.tusk();
+	this.buffer = mammoth_Mammoth.gl.context.createBuffer();
+	this.data = new mammoth_types_MaterialData();
+	var fontTexture = mammoth_Mammoth.gl.context.createTexture();
+	mammoth_Mammoth.gl.context.bindTexture(3553,fontTexture);
 	var _this = mammoth_Mammoth.gl;
-	var pixels = new Uint8Array([255,0,255,255]);
+	var pixels = new Uint8Array([255,255,255,255]);
 	_this.context.texImage2D(3553,0,6408,1,1,0,6408,5121,pixels);
-	this.textureLoc = mammoth_Mammoth.gl.context.getUniformLocation(this.program,"texture");
-	this.fontImage = window.document.createElement("img");
-	this.fontImage.addEventListener("load",function() {
-		mammoth_Mammoth.gl.context.bindTexture(3553,_gthis.fontTexture);
+	this.data.textures.push(fontTexture);
+	mammoth_Mammoth.gl.context.bindTexture(3553,null);
+	var fontImage = window.document.createElement("img");
+	fontImage.addEventListener("load",function() {
+		mammoth_Mammoth.gl.context.bindTexture(3553,fontTexture);
 		mammoth_Mammoth.gl.context.texParameteri(3553,10242,33071);
 		mammoth_Mammoth.gl.context.texParameteri(3553,10243,33071);
 		mammoth_Mammoth.gl.context.texParameteri(3553,10241,9728);
 		mammoth_Mammoth.gl.context.texParameteri(3553,10240,9728);
-		mammoth_Mammoth.gl.context.texImage2D(3553,0,6408,6408,5121,_gthis.fontImage);
+		mammoth_Mammoth.gl.context.texImage2D(3553,0,6408,6408,5121,fontImage);
 	});
-	this.fontImage.src = tusk_Tusk.fontTextureSrc;
-	this.buffer = mammoth_Mammoth.gl.context.createBuffer();
-	mammoth_Mammoth.gl.context.useProgram(null);
+	fontImage.src = tusk_Tusk.fontTextureSrc;
 };
-mammoth_debug_DebugView.__name__ = ["mammoth","debug","DebugView"];
-mammoth_debug_DebugView.prototype = {
-	draw: function() {
-		mammoth_Mammoth.gl.context.viewport(0,0,mammoth_Mammoth.gl.context.drawingBufferWidth | 0,mammoth_Mammoth.gl.context.drawingBufferHeight | 0);
-		mammoth_Mammoth.gl.context.scissor(0,0,mammoth_Mammoth.gl.context.drawingBufferWidth | 0,mammoth_Mammoth.gl.context.drawingBufferHeight | 0);
-		tusk_Tusk.draw.set_screenWidth(mammoth_Mammoth.gl.context.drawingBufferWidth);
-		tusk_Tusk.draw.set_screenHeight(mammoth_Mammoth.gl.context.drawingBufferHeight);
-		if(tusk_Tusk.draw.numVertices == 0) {
-			return;
-		}
-		mammoth_Mammoth.gl.context.disable(2884);
-		mammoth_Mammoth.gl.context.disable(2929);
-		mammoth_Mammoth.gl.context.enable(3042);
-		mammoth_Mammoth.gl.context.blendFunc(770,771);
-		mammoth_Mammoth.gl.context.useProgram(this.program);
-		mammoth_Mammoth.gl.context.bindBuffer(34962,this.buffer);
-		mammoth_Mammoth.gl.context.bufferData(34962,tusk_Tusk.draw.buffer,35048);
-		var _this = mammoth_Mammoth.gl;
-		var location = this.vpLoc;
-		var v = tusk_Tusk.draw.get_vpMatrix();
-		_this.context.uniformMatrix4fv(location,false,v);
-		mammoth_Mammoth.gl.context.uniform1i(this.textureLoc,0);
-		mammoth_Mammoth.gl.context.activeTexture(33984);
-		mammoth_Mammoth.gl.context.bindTexture(3553,this.fontTexture);
-		mammoth_Mammoth.gl.context.enableVertexAttribArray(this.positionLoc);
-		mammoth_Mammoth.gl.context.vertexAttribPointer(this.positionLoc,2,5126,false,32,0);
-		mammoth_Mammoth.gl.context.enableVertexAttribArray(this.uvLoc);
-		mammoth_Mammoth.gl.context.vertexAttribPointer(this.uvLoc,2,5126,false,32,8);
-		mammoth_Mammoth.gl.context.enableVertexAttribArray(this.colourLoc);
-		mammoth_Mammoth.gl.context.vertexAttribPointer(this.colourLoc,4,5126,false,32,16);
-		mammoth_Mammoth.gl.context.drawArrays(4,0,tusk_Tusk.draw.numVertices);
-		mammoth_Mammoth.gl.context.disableVertexAttribArray(this.positionLoc);
-		mammoth_Mammoth.gl.context.disableVertexAttribArray(this.uvLoc);
-		mammoth_Mammoth.gl.context.disableVertexAttribArray(this.colourLoc);
-	}
-	,__class__: mammoth_debug_DebugView
+mammoth_components_TuskContext.__name__ = ["mammoth","components","TuskContext"];
+mammoth_components_TuskContext.__interfaces__ = [edge_IComponent];
+mammoth_components_TuskContext.prototype = {
+	__class__: mammoth_components_TuskContext
 };
 var mammoth_debug_Exception = function(message,fatal,type,showStackTrace,pos) {
 	if(showStackTrace == null) {
@@ -2460,6 +2404,24 @@ mammoth_defaults_Materials.shadow = function() {
 	material.compile();
 	material.registerAttribute("position",mammoth_gl_types_TVertexAttribute.Vec3);
 	material.registerUniform("MVP",mammoth_gl_types_TShaderUniform.Matrix4);
+	return material;
+};
+mammoth_defaults_Materials.tusk = function() {
+	var material = new mammoth_types_Material("tusk");
+	material.setShaderSource(tusk_Tusk.vertexShaderSrc,35633);
+	material.setShaderSource(tusk_Tusk.fragmentShaderSrc,35632);
+	material.compile();
+	material.registerAttribute("position",mammoth_gl_types_TVertexAttribute.Vec2);
+	material.registerAttribute("uv",mammoth_gl_types_TVertexAttribute.Vec2);
+	material.registerAttribute("colour",mammoth_gl_types_TVertexAttribute.Vec4);
+	material.registerUniform("VP",mammoth_gl_types_TShaderUniform.Matrix4);
+	material.registerUniform("texture",mammoth_gl_types_TShaderUniform.TextureSlot);
+	material.cullMode = 0;
+	material.depthTest = false;
+	material.depthWrite = false;
+	material.blend = true;
+	material.srcBlend = 770;
+	material.dstBlend = 771;
 	return material;
 };
 mammoth_defaults_Materials.standard = function(directionalLights,pointLights) {
@@ -2561,34 +2523,37 @@ mammoth_filetypes_MammothJSON.loadLight = function(light) {
 	}
 };
 mammoth_filetypes_MammothJSON.loadMaterialData = function(shader) {
-	var data = new haxe_ds_StringMap();
+	var data = new mammoth_types_MaterialData();
 	if(shader.unlit != null) {
+		var _this = data.uniformValues;
 		var value = mammoth_gl_types_TUniformData.RGB(shader.unlit.colour);
 		if(__map_reserved["albedoColour"] != null) {
-			data.setReserved("albedoColour",value);
+			_this.setReserved("albedoColour",value);
 		} else {
-			data.h["albedoColour"] = value;
+			_this.h["albedoColour"] = value;
 		}
 	} else if(shader.diffuse != null) {
+		var _this1 = data.uniformValues;
 		var value1 = mammoth_gl_types_TUniformData.RGB(shader.diffuse.colour);
 		if(__map_reserved["albedoColour"] != null) {
-			data.setReserved("albedoColour",value1);
+			_this1.setReserved("albedoColour",value1);
 		} else {
-			data.h["albedoColour"] = value1;
+			_this1.h["albedoColour"] = value1;
 		}
+		var _this2 = data.uniformValues;
 		var value2 = mammoth_gl_types_TUniformData.RGB(shader.diffuse.ambient);
 		if(__map_reserved["ambientColour"] != null) {
-			data.setReserved("ambientColour",value2);
+			_this2.setReserved("ambientColour",value2);
 		} else {
-			data.h["ambientColour"] = value2;
+			_this2.h["ambientColour"] = value2;
 		}
 	}
-	var _this = mammoth_filetypes_MammothJSON.materialDatas;
+	var _this3 = mammoth_filetypes_MammothJSON.materialDatas;
 	var key = shader.name;
 	if(__map_reserved[key] != null) {
-		_this.setReserved(key,data);
+		_this3.setReserved(key,data);
 	} else {
-		_this.h[key] = data;
+		_this3.h[key] = data;
 	}
 };
 mammoth_filetypes_MammothJSON.loadMesh = function(meshData) {
@@ -2694,7 +2659,7 @@ mammoth_filetypes_MammothJSON.loadObject = function(parentTransform,object) {
 	}
 };
 mammoth_filetypes_MammothJSON.load = function(file) {
-	mammoth_Log.log("Loading data from " + file.meta.file + "..",mammoth_LogFunctions.Info,{ fileName : "MammothJSON.hx", lineNumber : 249, className : "mammoth.filetypes.MammothJSON", methodName : "load"});
+	mammoth_Log.log("Loading data from " + file.meta.file + "..",mammoth_LogFunctions.Info,{ fileName : "MammothJSON.hx", lineNumber : 246, className : "mammoth.filetypes.MammothJSON", methodName : "load"});
 	mammoth_filetypes_MammothJSON.cameras = new haxe_ds_StringMap();
 	var _g = 0;
 	var _g1 = file.cameras;
@@ -2764,7 +2729,7 @@ mammoth_filetypes_MammothJSON.parseIntArrayURI = function(uri) {
 	}
 	return ret;
 };
-var mammoth_gl_types_TShaderUniform = { __ename__ : true, __constructs__ : ["Bool","Int","Float","Float2","Float3","Float4","Vector2","Vector3","Vector4","Matrix4","RGB","RGBA"] };
+var mammoth_gl_types_TShaderUniform = { __ename__ : true, __constructs__ : ["Bool","Int","Float","Float2","Float3","Float4","Vector2","Vector3","Vector4","Matrix4","RGB","RGBA","TextureSlot"] };
 mammoth_gl_types_TShaderUniform.Bool = ["Bool",0];
 mammoth_gl_types_TShaderUniform.Bool.toString = $estr;
 mammoth_gl_types_TShaderUniform.Bool.__enum__ = mammoth_gl_types_TShaderUniform;
@@ -2801,6 +2766,9 @@ mammoth_gl_types_TShaderUniform.RGB.__enum__ = mammoth_gl_types_TShaderUniform;
 mammoth_gl_types_TShaderUniform.RGBA = ["RGBA",11];
 mammoth_gl_types_TShaderUniform.RGBA.toString = $estr;
 mammoth_gl_types_TShaderUniform.RGBA.__enum__ = mammoth_gl_types_TShaderUniform;
+mammoth_gl_types_TShaderUniform.TextureSlot = ["TextureSlot",12];
+mammoth_gl_types_TShaderUniform.TextureSlot.toString = $estr;
+mammoth_gl_types_TShaderUniform.TextureSlot.__enum__ = mammoth_gl_types_TShaderUniform;
 var mammoth_gl_types_TUniformData = { __ename__ : true, __constructs__ : ["Bool","Int","Float","Float2","Float3","Float4","Vector2","Vector3","Vector4","Matrix4","RGB","RGBA"] };
 mammoth_gl_types_TUniformData.Bool = function(x) { var $x = ["Bool",0,x]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
 mammoth_gl_types_TUniformData.Int = function(x) { var $x = ["Int",1,x]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
@@ -4086,7 +4054,7 @@ mammoth_systems_RenderSystem.prototype = {
 					++i;
 				}
 			}
-			var dataName = renderer.materialData.keys();
+			var dataName = renderer.materialData.uniformValues.keys();
 			while(dataName.hasNext()) {
 				var dataName1 = dataName.next();
 				var _this20 = material.uniforms;
@@ -4095,7 +4063,7 @@ mammoth_systems_RenderSystem.prototype = {
 				}
 				var _this21 = material.uniforms;
 				var location7 = (__map_reserved[dataName1] != null ? _this21.getReserved(dataName1) : _this21.h[dataName1]).location;
-				var _this22 = renderer.materialData;
+				var _this22 = renderer.materialData.uniformValues;
 				var data = __map_reserved[dataName1] != null ? _this22.getReserved(dataName1) : _this22.h[dataName1];
 				switch(data[1]) {
 				case 0:
@@ -4160,7 +4128,7 @@ mammoth_systems_RenderSystem.prototype = {
 			while(materialAttribute.hasNext()) {
 				var materialAttribute1 = materialAttribute.next();
 				if(!mesh.hasAttribute(materialAttribute1.name)) {
-					throw new js__$Boot_HaxeError(new mammoth_debug_Exception("Can\t use material " + material.name + " with mesh " + mesh.name + " as mesh is missing attribute " + materialAttribute1.name + "!",true,null,null,{ fileName : "RenderSystem.hx", lineNumber : 143, className : "mammoth.systems.RenderSystem", methodName : "update"}));
+					throw new js__$Boot_HaxeError(new mammoth_debug_Exception("Can\t use material " + material.name + " with mesh " + mesh.name + " as mesh is missing attribute " + materialAttribute1.name + "!",true,null,null,{ fileName : "RenderSystem.hx", lineNumber : 145, className : "mammoth.systems.RenderSystem", methodName : "update"}));
 				}
 				var meshAttribute = mesh.getAttribute(materialAttribute1.name);
 				mammoth_Mammoth.gl.context.enableVertexAttribArray(materialAttribute1.location);
@@ -4333,7 +4301,109 @@ mammoth_systems_RenderSystem_$SystemProcess.prototype = {
 	}
 	,__class__: mammoth_systems_RenderSystem_$SystemProcess
 };
+var mammoth_systems_StatsDisplaySystem = function() {
+	this.__process__ = new mammoth_systems_StatsDisplaySystem_$SystemProcess(this);
+};
+mammoth_systems_StatsDisplaySystem.__name__ = ["mammoth","systems","StatsDisplaySystem"];
+mammoth_systems_StatsDisplaySystem.__interfaces__ = [edge_ISystem];
+mammoth_systems_StatsDisplaySystem.prototype = {
+	update: function(context) {
+		mammoth_Mammoth.gl.context.viewport(0,0,mammoth_Mammoth.gl.context.drawingBufferWidth | 0,mammoth_Mammoth.gl.context.drawingBufferHeight | 0);
+		mammoth_Mammoth.gl.context.scissor(0,0,mammoth_Mammoth.gl.context.drawingBufferWidth | 0,mammoth_Mammoth.gl.context.drawingBufferHeight | 0);
+		tusk_Tusk.draw.set_screenWidth(mammoth_Mammoth.gl.context.drawingBufferWidth);
+		tusk_Tusk.draw.set_screenHeight(mammoth_Mammoth.gl.context.drawingBufferHeight);
+		if(tusk_Tusk.draw.numVertices == 0) {
+			return true;
+		}
+		mammoth_Mammoth.gl.context.disable(2884);
+		mammoth_Mammoth.gl.context.disable(2929);
+		mammoth_Mammoth.gl.context.enable(3042);
+		mammoth_Mammoth.gl.context.blendFunc(770,771);
+		mammoth_Mammoth.gl.context.useProgram(context.material.program);
+		mammoth_Mammoth.gl.context.bindBuffer(34962,context.buffer);
+		mammoth_Mammoth.gl.context.bufferData(34962,tusk_Tusk.draw.buffer,35048);
+		var _this = mammoth_Mammoth.gl;
+		var _this1 = context.material.uniforms;
+		var location = (__map_reserved["VP"] != null ? _this1.getReserved("VP") : _this1.h["VP"]).location;
+		var v = tusk_Tusk.draw.get_vpMatrix();
+		_this.context.uniformMatrix4fv(location,false,v);
+		var _this2 = mammoth_Mammoth.gl;
+		var _this3 = context.material.uniforms;
+		var location1 = __map_reserved["texture"] != null ? _this3.getReserved("texture") : _this3.h["texture"];
+		_this2.context.uniform1i(location1.location,0);
+		mammoth_Mammoth.gl.context.activeTexture(33984);
+		mammoth_Mammoth.gl.context.bindTexture(3553,context.data.textures[0]);
+		var _this4 = context.material.attributes;
+		var positionLoc = (__map_reserved["position"] != null ? _this4.getReserved("position") : _this4.h["position"]).location;
+		var _this5 = context.material.attributes;
+		var uvLoc = (__map_reserved["uv"] != null ? _this5.getReserved("uv") : _this5.h["uv"]).location;
+		var _this6 = context.material.attributes;
+		var colourLoc = (__map_reserved["colour"] != null ? _this6.getReserved("colour") : _this6.h["colour"]).location;
+		mammoth_Mammoth.gl.context.enableVertexAttribArray(positionLoc);
+		mammoth_Mammoth.gl.context.vertexAttribPointer(positionLoc,2,5126,false,32,0);
+		mammoth_Mammoth.gl.context.enableVertexAttribArray(uvLoc);
+		mammoth_Mammoth.gl.context.vertexAttribPointer(uvLoc,2,5126,false,32,8);
+		mammoth_Mammoth.gl.context.enableVertexAttribArray(colourLoc);
+		mammoth_Mammoth.gl.context.vertexAttribPointer(colourLoc,4,5126,false,32,16);
+		mammoth_Mammoth.gl.context.drawArrays(4,0,tusk_Tusk.draw.numVertices);
+		mammoth_Mammoth.gl.context.disableVertexAttribArray(positionLoc);
+		mammoth_Mammoth.gl.context.disableVertexAttribArray(uvLoc);
+		mammoth_Mammoth.gl.context.disableVertexAttribArray(colourLoc);
+		return true;
+	}
+	,__class__: mammoth_systems_StatsDisplaySystem
+};
+var mammoth_systems_StatsDisplaySystem_$SystemProcess = function(system) {
+	this.system = system;
+	this.updateItems = new edge_View();
+};
+mammoth_systems_StatsDisplaySystem_$SystemProcess.__name__ = ["mammoth","systems","StatsDisplaySystem_SystemProcess"];
+mammoth_systems_StatsDisplaySystem_$SystemProcess.__interfaces__ = [edge_core_ISystemProcess];
+mammoth_systems_StatsDisplaySystem_$SystemProcess.prototype = {
+	removeEntity: function(entity) {
+		this.updateItems.tryRemove(entity);
+	}
+	,addEntity: function(entity) {
+		this.updateMatchRequirements(entity);
+	}
+	,update: function(engine,delta) {
+		var result = true;
+		var data;
+		var item = this.updateItems.iterator();
+		while(item.hasNext()) {
+			var item1 = item.next();
+			data = item1.data;
+			result = this.system.update(data.context);
+			if(!result) {
+				break;
+			}
+		}
+		return result;
+	}
+	,updateMatchRequirements: function(entity) {
+		var removed = this.updateItems.tryRemove(entity);
+		var count = 1;
+		var o = { context : null};
+		var component = entity.map.iterator();
+		while(component.hasNext()) {
+			var component1 = component.next();
+			if(js_Boot.__instanceof(component1,mammoth_components_TuskContext)) {
+				o.context = component1;
+				if(--count == 0) {
+					break;
+				} else {
+					continue;
+				}
+			}
+		}
+		var added = count == 0 && this.updateItems.tryAdd(entity,o);
+	}
+	,__class__: mammoth_systems_StatsDisplaySystem_$SystemProcess
+};
 var mammoth_types_Material = function(name) {
+	this.dstBlend = 771;
+	this.srcBlend = 770;
+	this.blend = false;
 	this.depthFunction = 515;
 	this.depthTest = true;
 	this.depthWrite = true;
@@ -4341,6 +4411,7 @@ var mammoth_types_Material = function(name) {
 	this.name = name;
 	this.attributes = new haxe_ds_StringMap();
 	this.uniforms = new haxe_ds_StringMap();
+	this.textureSlots = 0;
 };
 mammoth_types_Material.__name__ = ["mammoth","types","Material"];
 mammoth_types_Material.prototype = {
@@ -4362,13 +4433,13 @@ mammoth_types_Material.prototype = {
 		if(!mammoth_Mammoth.gl.context.getShaderParameter(shader,35713)) {
 			var info = mammoth_Mammoth.gl.context.getShaderInfoLog(shader);
 			var typeStr = type == 35633 ? "Vertex" : "Fragment";
-			throw new js__$Boot_HaxeError(new mammoth_debug_Exception(info,true,"Compile" + typeStr + "Shader",null,{ fileName : "Material.hx", lineNumber : 81, className : "mammoth.types.Material", methodName : "compileShader"}));
+			throw new js__$Boot_HaxeError(new mammoth_debug_Exception(info,true,"Compile" + typeStr + "Shader",null,{ fileName : "Material.hx", lineNumber : 88, className : "mammoth.types.Material", methodName : "compileShader"}));
 		}
 		return shader;
 	}
 	,compile: function() {
 		if(this.vertexShaderSource == null || this.fragmentShaderSource == null) {
-			throw new js__$Boot_HaxeError(new mammoth_debug_Exception("Can't compile material " + this.name + ", shaders are missing!",true,null,null,{ fileName : "Material.hx", lineNumber : 88, className : "mammoth.types.Material", methodName : "compile"}));
+			throw new js__$Boot_HaxeError(new mammoth_debug_Exception("Can't compile material " + this.name + ", shaders are missing!",true,null,null,{ fileName : "Material.hx", lineNumber : 95, className : "mammoth.types.Material", methodName : "compile"}));
 		}
 		this.vertexShader = this.compileShader(this.vertexShaderSource,35633);
 		this.fragmentShader = this.compileShader(this.fragmentShaderSource,35632);
@@ -4378,7 +4449,7 @@ mammoth_types_Material.prototype = {
 		mammoth_Mammoth.gl.context.linkProgram(this.program);
 		if(!mammoth_Mammoth.gl.context.getProgramParameter(this.program,35714)) {
 			var info = mammoth_Mammoth.gl.context.getProgramInfoLog(this.program);
-			throw new js__$Boot_HaxeError(new mammoth_debug_Exception(info,true,"LinkProgram",null,{ fileName : "Material.hx", lineNumber : 100, className : "mammoth.types.Material", methodName : "compile"}));
+			throw new js__$Boot_HaxeError(new mammoth_debug_Exception(info,true,"LinkProgram",null,{ fileName : "Material.hx", lineNumber : 107, className : "mammoth.types.Material", methodName : "compile"}));
 		}
 		return this;
 	}
@@ -4415,6 +4486,14 @@ var mammoth_types_MaterialAttribute = function(name,type) {
 mammoth_types_MaterialAttribute.__name__ = ["mammoth","types","MaterialAttribute"];
 mammoth_types_MaterialAttribute.prototype = {
 	__class__: mammoth_types_MaterialAttribute
+};
+var mammoth_types_MaterialData = function() {
+	this.uniformValues = new haxe_ds_StringMap();
+	this.textures = [];
+};
+mammoth_types_MaterialData.__name__ = ["mammoth","types","MaterialData"];
+mammoth_types_MaterialData.prototype = {
+	__class__: mammoth_types_MaterialData
 };
 var mammoth_types_Mesh = function(name) {
 	this.name = name;

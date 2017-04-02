@@ -22,6 +22,7 @@ import mammoth.gl.Shader;
 import mammoth.gl.Program;
 import mammoth.gl.types.TCullMode;
 import mammoth.gl.types.TDepthFunction;
+import mammoth.gl.types.TBlendFactor;
 import mammoth.gl.types.TShader;
 import mammoth.gl.types.TVertexAttribute;
 import mammoth.gl.types.TShaderUniform;
@@ -39,15 +40,21 @@ class Material {
     public var attributes(default, null):StringMap<MaterialAttribute>;
     public var uniforms(default, null):StringMap<ShaderUniform>;
 
+    public var textureSlots(default, null):Int;
+
     public var cullMode:TCullMode = TCullMode.Back;
     public var depthWrite:Bool = true;
     public var depthTest:Bool = true;
     public var depthFunction:TDepthFunction = TDepthFunction.LessOrEqual;
+    public var blend:Bool = false;
+    public var srcBlend:TBlendFactor = TBlendFactor.SrcAlpha;
+    public var dstBlend:TBlendFactor = TBlendFactor.OneMinusSrcAlpha;
 
     public function new(name:String) {
         this.name = name;
         attributes = new StringMap<MaterialAttribute>();
         uniforms = new StringMap<ShaderUniform>();
+        textureSlots = 0;
     }
 
     public function toString():String {

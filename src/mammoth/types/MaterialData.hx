@@ -15,5 +15,14 @@ package mammoth.types;
 
 import haxe.ds.StringMap;
 import mammoth.gl.types.TUniformData;
+import mammoth.gl.Texture;
 
-typedef MaterialData = StringMap<TUniformData>;
+class MaterialData {
+    public var uniformValues(default, null):StringMap<TUniformData>;
+    public var textures(default, null):Array<Texture>;
+
+    public function new() {
+        uniformValues = new StringMap<TUniformData>();
+        textures = new Array<Texture>();
+    }
+}
