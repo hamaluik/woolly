@@ -13,9 +13,9 @@
 */
 package components;
 
-import edge.IComponent;
+import mammoth.Component;
 
-class Spin implements IComponent {
+class Spin implements Component {
     public var angle:Float = 0.0;
     public var speed:Float = 0.0;
 

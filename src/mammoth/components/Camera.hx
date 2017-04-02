@@ -13,7 +13,7 @@
 */
 package mammoth.components;
 
-import edge.IComponent;
+import mammoth.Component;
 import glm.Mat4;
 import glm.Vec2;
 import mammoth.types.Colour;
@@ -24,7 +24,7 @@ enum ProjectionMode {
     Perspective(fieldOfView:Float);
 }
 
-class Camera implements IComponent {
+class Camera implements Component {
     public var pDirty:Bool = true;
 
     public var near:Float = 0.1;

@@ -15,7 +15,7 @@ package mammoth.filetypes;
 
 import mammoth.Log;
 import edge.Entity;
-import edge.IComponent;
+import mammoth.Component;
 import glm.Vec2;
 import glm.Mat4;
 
@@ -131,7 +131,7 @@ typedef MammothFile = {
 
 class MammothJSON {
     private static var cameras:StringMap<Camera> = new StringMap<Camera>();
-    private static var lights:StringMap<IComponent> = new StringMap<IComponent>();
+    private static var lights:StringMap<Component> = new StringMap<Component>();
     private static var materialDatas:StringMap<MaterialData> = new StringMap<MaterialData>();
     
     private function new(){}
@@ -255,7 +255,7 @@ class MammothJSON {
         }
 
         // load lights
-        lights = new StringMap<edge.IComponent>();
+        lights = new StringMap<Component>();
         for(light in file.lights) {
             loadLight(light);
         }

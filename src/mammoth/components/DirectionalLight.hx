@@ -13,13 +13,13 @@
 */
 package mammoth.components;
 
-import edge.IComponent;
+import mammoth.Component;
 import mammoth.types.Colour;
 import mammoth.defaults.Colours;
 import mammoth.gl.Framebuffer;
 import mammoth.gl.Texture;
 
-class DirectionalLight implements IComponent {
+class DirectionalLight implements Component {
 	public var colour:Colour = Colours.White;
 	public var direction:Vec4 = new Vec4();
 

@@ -13,12 +13,12 @@
 */
 package mammoth.components;
 
-import edge.IComponent;
+import mammoth.Component;
 import mammoth.types.Material;
 import mammoth.types.Mesh;
 import mammoth.types.MaterialData;
 
-class MeshRenderer implements IComponent {
+class MeshRenderer implements Component {
 	public var mesh:Mesh;
 	public var material:Material;
 	public var materialData:MaterialData = new MaterialData();

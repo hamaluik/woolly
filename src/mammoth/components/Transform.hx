@@ -13,7 +13,7 @@
 */
 package mammoth.components;
 
-import edge.IComponent;
+import mammoth.Component;
 import glm.Mat4;
 import glm.Vec3;
 import glm.Quat;
@@ -21,7 +21,7 @@ import glm.Quat;
 @:allow(mammoth.systems.ModelMatrixSystem)
 @:allow(mammoth.systems.PreTransformSystem)
 @:allow(mammoth.systems.PostTransformSystem)
-class Transform implements IComponent {
+class Transform implements Component {
     public var name:String = '';
 	public var parent(default, set):Transform = null;
 

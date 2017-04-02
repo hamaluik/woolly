@@ -13,9 +13,9 @@
 */
 package components;
 
-import edge.IComponent;
+import mammoth.Component;
 
-class Bounce implements IComponent {
+class Bounce implements Component {
     public var x:Float = 0;
     public var vx:Float = 1;
 

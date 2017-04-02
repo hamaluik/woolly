@@ -415,14 +415,14 @@ Type.getClassName = function(c) {
 	}
 	return a.join(".");
 };
-var edge_IComponent = function() { };
-edge_IComponent.__name__ = ["edge","IComponent"];
+var mammoth_Component = function() { };
+mammoth_Component.__name__ = ["mammoth","Component"];
 var components_Spin = function() {
 	this.speed = 0.0;
 	this.angle = 0.0;
 };
 components_Spin.__name__ = ["components","Spin"];
-components_Spin.__interfaces__ = [edge_IComponent];
+components_Spin.__interfaces__ = [mammoth_Component];
 components_Spin.prototype = {
 	__class__: components_Spin
 };
@@ -552,6 +552,8 @@ edge_Entity.prototype = {
 	}
 	,__class__: edge_Entity
 };
+var edge_IComponent = function() { };
+edge_IComponent.__name__ = ["edge","IComponent"];
 var edge_ISystem = function() { };
 edge_ISystem.__name__ = ["edge","ISystem"];
 edge_ISystem.prototype = {
@@ -2158,7 +2160,7 @@ var mammoth_components_Camera = function() {
 	this.pDirty = true;
 };
 mammoth_components_Camera.__name__ = ["mammoth","components","Camera"];
-mammoth_components_Camera.__interfaces__ = [edge_IComponent];
+mammoth_components_Camera.__interfaces__ = [mammoth_Component];
 mammoth_components_Camera.prototype = {
 	setNearFar: function(near,far) {
 		this.near = near;
@@ -2195,7 +2197,7 @@ var mammoth_components_DirectionalLight = function() {
 	this.colour = mammoth_defaults_Colours.White;
 };
 mammoth_components_DirectionalLight.__name__ = ["mammoth","components","DirectionalLight"];
-mammoth_components_DirectionalLight.__interfaces__ = [edge_IComponent];
+mammoth_components_DirectionalLight.__interfaces__ = [mammoth_Component];
 mammoth_components_DirectionalLight.prototype = {
 	setColour: function(colour) {
 		this.colour = colour;
@@ -2207,7 +2209,7 @@ var mammoth_components_MeshRenderer = function() {
 	this.materialData = new haxe_ds_StringMap();
 };
 mammoth_components_MeshRenderer.__name__ = ["mammoth","components","MeshRenderer"];
-mammoth_components_MeshRenderer.__interfaces__ = [edge_IComponent];
+mammoth_components_MeshRenderer.__interfaces__ = [mammoth_Component];
 mammoth_components_MeshRenderer.prototype = {
 	__class__: mammoth_components_MeshRenderer
 };
@@ -2216,7 +2218,7 @@ var mammoth_components_PointLight = function() {
 	this.colour = mammoth_defaults_Colours.White;
 };
 mammoth_components_PointLight.__name__ = ["mammoth","components","PointLight"];
-mammoth_components_PointLight.__interfaces__ = [edge_IComponent];
+mammoth_components_PointLight.__interfaces__ = [mammoth_Component];
 mammoth_components_PointLight.prototype = {
 	setColour: function(colour) {
 		this.colour = colour;
@@ -2305,7 +2307,7 @@ var mammoth_components_Transform = function() {
 	this.name = "";
 };
 mammoth_components_Transform.__name__ = ["mammoth","components","Transform"];
-mammoth_components_Transform.__interfaces__ = [edge_IComponent];
+mammoth_components_Transform.__interfaces__ = [mammoth_Component];
 mammoth_components_Transform.prototype = {
 	__class__: mammoth_components_Transform
 };
@@ -3462,6 +3464,9 @@ mammoth_systems_DirectionalShadowSystem.prototype = {
 			var transform1 = shadowCaster1.data.transform;
 			var renderer = shadowCaster1.data.renderer;
 			var mesh = renderer.mesh;
+			if(!mesh.hasAttribute("position")) {
+				continue;
+			}
 			var a1 = this.viewProjectionMatrix;
 			var b1 = transform1.m;
 			var dest3 = this.MVP;
@@ -3513,9 +3518,6 @@ mammoth_systems_DirectionalShadowSystem.prototype = {
 			dest3[13] = b301 * a012 + b311 * a112 + b321 * a212 + b331 * a312;
 			dest3[14] = b301 * a022 + b311 * a122 + b321 * a222 + b331 * a322;
 			dest3[15] = b301 * a032 + b311 * a132 + b321 * a232 + b331 * a332;
-			if(!mesh.hasAttribute("position")) {
-				continue;
-			}
 			var positionAttribute = mesh.getAttribute("position");
 			mammoth_Mammoth.gl.context.vertexAttribPointer(positionLocation,3,5126,false,positionAttribute.stride,positionAttribute.offset);
 			mammoth_Mammoth.gl.context.bindBuffer(34963,mesh.indexBuffer);

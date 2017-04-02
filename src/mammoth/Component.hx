@@ -1,0 +1,3 @@
+package mammoth;
+
+interface Component {}
