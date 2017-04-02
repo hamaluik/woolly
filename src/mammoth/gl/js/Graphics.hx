@@ -19,6 +19,7 @@ import js.Browser;
 import js.html.CanvasElement;
 import js.html.webgl.RenderingContext;
 
+import mammoth.gl.Texture;
 import mammoth.platform.ArrayBufferView;
 import mammoth.platform.Float32Array;
 import mammoth.platform.Int32Array;
@@ -84,6 +85,38 @@ class Graphics {
             context.canvas.height = displayHeight;
         }
     }
+
+	public function loadTexture(srcURI:String):Texture {
+		var texture = createTexture();
+        bindTexture(GL.TEXTURE_2D, texture);
+		// create an empty cyan texture to start to indicate loading
+        texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, 1, 1, 0, GL.RGBA, GL.UNSIGNED_BYTE,
+              new js.html.Uint8Array([0, 255, 255, 255]));
+        bindTexture(GL.TEXTURE_2D, null);
+
+        // load the image asynchronously
+        var img:js.html.ImageElement = js.Browser.window.document.createImageElement();
+        img.addEventListener('load', function() {
+            bindTexture(GL.TEXTURE_2D, texture);
+			// TODO: make configurable
+            texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_S, GL.CLAMP_TO_EDGE);
+            texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, GL.CLAMP_TO_EDGE);
+            texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.NEAREST);
+            texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, GL.NEAREST);
+            context.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, GL.RGBA, GL.UNSIGNED_BYTE, img);
+			bindTexture(GL.TEXTURE_2D, null);
+        });
+		img.addEventListener('error', function() {
+			// if the image wasn't found, make the texture magenta!
+			bindTexture(GL.TEXTURE_2D, texture);
+			texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, 1, 1, 0, GL.RGBA, GL.UNSIGNED_BYTE,
+				new js.html.Uint8Array([255, 0, 255, 255]));
+			bindTexture(GL.TEXTURE_2D, null);
+		});
+        img.src = srcURI;
+
+		return texture;
+	}
 
 	public inline function getExtension(name:String):Dynamic return context.getExtension(name);
 	public inline function activeTexture(texture:Int):Void context.activeTexture(texture);

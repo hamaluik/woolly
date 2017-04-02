@@ -1935,6 +1935,32 @@ mammoth_gl_js_Graphics.prototype = {
 			this.context.canvas.height = displayHeight;
 		}
 	}
+	,loadTexture: function(srcURI) {
+		var _gthis = this;
+		var texture = this.context.createTexture();
+		this.context.bindTexture(3553,texture);
+		var pixels = new Uint8Array([0,255,255,255]);
+		this.context.texImage2D(3553,0,6408,1,1,0,6408,5121,pixels);
+		this.context.bindTexture(3553,null);
+		var img = window.document.createElement("img");
+		img.addEventListener("load",function() {
+			_gthis.context.bindTexture(3553,texture);
+			_gthis.context.texParameteri(3553,10242,33071);
+			_gthis.context.texParameteri(3553,10243,33071);
+			_gthis.context.texParameteri(3553,10241,9728);
+			_gthis.context.texParameteri(3553,10240,9728);
+			_gthis.context.texImage2D(3553,0,6408,6408,5121,img);
+			_gthis.context.bindTexture(3553,null);
+		});
+		img.addEventListener("error",function() {
+			_gthis.context.bindTexture(3553,texture);
+			var pixels1 = new Uint8Array([255,0,255,255]);
+			_gthis.context.texImage2D(3553,0,6408,1,1,0,6408,5121,pixels1);
+			_gthis.context.bindTexture(3553,null);
+		});
+		img.src = srcURI;
+		return texture;
+	}
 	,__class__: mammoth_gl_js_Graphics
 };
 var mammoth_platform_js_Input = function() {
@@ -2318,23 +2344,7 @@ var mammoth_components_TuskContext = function() {
 	this.material = mammoth_defaults_Materials.tusk();
 	this.buffer = mammoth_Mammoth.gl.context.createBuffer();
 	this.data = new mammoth_types_MaterialData();
-	var fontTexture = mammoth_Mammoth.gl.context.createTexture();
-	mammoth_Mammoth.gl.context.bindTexture(3553,fontTexture);
-	var _this = mammoth_Mammoth.gl;
-	var pixels = new Uint8Array([255,255,255,255]);
-	_this.context.texImage2D(3553,0,6408,1,1,0,6408,5121,pixels);
-	this.data.textures.push(fontTexture);
-	mammoth_Mammoth.gl.context.bindTexture(3553,null);
-	var fontImage = window.document.createElement("img");
-	fontImage.addEventListener("load",function() {
-		mammoth_Mammoth.gl.context.bindTexture(3553,fontTexture);
-		mammoth_Mammoth.gl.context.texParameteri(3553,10242,33071);
-		mammoth_Mammoth.gl.context.texParameteri(3553,10243,33071);
-		mammoth_Mammoth.gl.context.texParameteri(3553,10241,9728);
-		mammoth_Mammoth.gl.context.texParameteri(3553,10240,9728);
-		mammoth_Mammoth.gl.context.texImage2D(3553,0,6408,6408,5121,fontImage);
-	});
-	fontImage.src = tusk_Tusk.fontTextureSrc;
+	this.data.textures.push(mammoth_Mammoth.gl.loadTexture(tusk_Tusk.fontTextureSrc));
 };
 mammoth_components_TuskContext.__name__ = ["mammoth","components","TuskContext"];
 mammoth_components_TuskContext.__interfaces__ = [edge_IComponent];
@@ -2769,7 +2779,7 @@ mammoth_gl_types_TShaderUniform.RGBA.__enum__ = mammoth_gl_types_TShaderUniform;
 mammoth_gl_types_TShaderUniform.TextureSlot = ["TextureSlot",12];
 mammoth_gl_types_TShaderUniform.TextureSlot.toString = $estr;
 mammoth_gl_types_TShaderUniform.TextureSlot.__enum__ = mammoth_gl_types_TShaderUniform;
-var mammoth_gl_types_TUniformData = { __ename__ : true, __constructs__ : ["Bool","Int","Float","Float2","Float3","Float4","Vector2","Vector3","Vector4","Matrix4","RGB","RGBA"] };
+var mammoth_gl_types_TUniformData = { __ename__ : true, __constructs__ : ["Bool","Int","Float","Float2","Float3","Float4","Vector2","Vector3","Vector4","Matrix4","RGB","RGBA","TextureSlot"] };
 mammoth_gl_types_TUniformData.Bool = function(x) { var $x = ["Bool",0,x]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
 mammoth_gl_types_TUniformData.Int = function(x) { var $x = ["Int",1,x]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
 mammoth_gl_types_TUniformData.Float = function(x) { var $x = ["Float",2,x]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
@@ -2782,6 +2792,7 @@ mammoth_gl_types_TUniformData.Vector4 = function(x) { var $x = ["Vector4",8,x]; 
 mammoth_gl_types_TUniformData.Matrix4 = function(v) { var $x = ["Matrix4",9,v]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
 mammoth_gl_types_TUniformData.RGB = function(c) { var $x = ["RGB",10,c]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
 mammoth_gl_types_TUniformData.RGBA = function(c) { var $x = ["RGBA",11,c]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_gl_types_TUniformData.TextureSlot = function(x) { var $x = ["TextureSlot",12,x]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
 var mammoth_gl_types_TVertexAttribute = { __ename__ : true, __constructs__ : ["Float","Vec2","Vec3","Vec4"] };
 mammoth_gl_types_TVertexAttribute.Float = ["Float",0];
 mammoth_gl_types_TVertexAttribute.Float.toString = $estr;
@@ -3877,6 +3888,7 @@ mammoth_systems_PreTransformSystem_$SystemProcess.prototype = {
 	,__class__: mammoth_systems_PreTransformSystem_$SystemProcess
 };
 var mammoth_systems_RenderSystem = function() {
+	this.defaultMissingTexture = null;
 	var this1 = new Float32Array(16);
 	this1[0] = 0;
 	this1[1] = 0;
@@ -3917,7 +3929,12 @@ var mammoth_systems_RenderSystem = function() {
 mammoth_systems_RenderSystem.__name__ = ["mammoth","systems","RenderSystem"];
 mammoth_systems_RenderSystem.__interfaces__ = [edge_ISystem];
 mammoth_systems_RenderSystem.prototype = {
-	update: function(camera) {
+	before: function() {
+		if(this.defaultMissingTexture == null) {
+			this.defaultMissingTexture = mammoth_Mammoth.gl.loadTexture(null);
+		}
+	}
+	,update: function(camera) {
 		var vpX = camera.viewportMin[0] * mammoth_Mammoth.gl.context.drawingBufferWidth | 0;
 		var vpY = camera.viewportMin[1] * mammoth_Mammoth.gl.context.drawingBufferHeight | 0;
 		var vpW = (camera.viewportMax[0] - camera.viewportMin[0]) * mammoth_Mammoth.gl.context.drawingBufferWidth | 0;
@@ -3998,6 +4015,12 @@ mammoth_systems_RenderSystem.prototype = {
 				mammoth_Mammoth.gl.context.disable(2929);
 			}
 			mammoth_Mammoth.gl.context.depthFunc(material.depthFunction);
+			if(material.blend) {
+				mammoth_Mammoth.gl.context.enable(3042);
+				mammoth_Mammoth.gl.context.blendFunc(material.srcBlend,material.dstBlend);
+			} else {
+				mammoth_Mammoth.gl.context.disable(3042);
+			}
 			mammoth_Mammoth.gl.context.useProgram(material.program);
 			var _this = material.uniforms;
 			if(__map_reserved["MVP"] != null ? _this.existsReserved("MVP") : _this.h.hasOwnProperty("MVP")) {
@@ -4054,89 +4077,128 @@ mammoth_systems_RenderSystem.prototype = {
 					++i;
 				}
 			}
+			var _this20 = material.uniforms;
+			if(__map_reserved["pointLights[0].position"] != null ? _this20.existsReserved("pointLights[0].position") : _this20.h.hasOwnProperty("pointLights[0].position")) {
+				var i1 = 0;
+				var pl = this.pointLights.iterator();
+				while(pl.hasNext()) {
+					var pl1 = pl.next();
+					var _this21 = mammoth_Mammoth.gl;
+					var name2 = "pointLights[" + i1 + "].position";
+					var _this22 = material.uniforms;
+					var location7 = __map_reserved[name2] != null ? _this22.getReserved(name2) : _this22.h[name2];
+					_this21.context.uniform3f(location7.location,pl1.data.transform.position[0],pl1.data.transform.position[1],pl1.data.transform.position[2]);
+					var _this23 = mammoth_Mammoth.gl;
+					var name3 = "pointLights[" + i1 + "].colour";
+					var _this24 = material.uniforms;
+					var location8 = __map_reserved[name3] != null ? _this24.getReserved(name3) : _this24.h[name3];
+					_this23.context.uniform3f(location8.location,pl1.data.light.colour[0],pl1.data.light.colour[1],pl1.data.light.colour[2]);
+					var _this25 = mammoth_Mammoth.gl;
+					var name4 = "pointLights[" + i1 + "].distance";
+					var _this26 = material.uniforms;
+					var location9 = __map_reserved[name4] != null ? _this26.getReserved(name4) : _this26.h[name4];
+					_this25.context.uniform1f(location9.location,pl1.data.light.distance);
+					++i1;
+				}
+			}
+			var _g1 = 0;
+			var _g = material.textureSlots;
+			while(_g1 < _g) {
+				var i2 = _g1++;
+				mammoth_Mammoth.gl.context.activeTexture(33984 + i2);
+				if(i2 >= renderer.materialData.textures.length) {
+					mammoth_Mammoth.gl.context.bindTexture(3553,this.defaultMissingTexture);
+				} else {
+					mammoth_Mammoth.gl.context.bindTexture(3553,renderer.materialData.textures[0]);
+				}
+			}
 			var dataName = renderer.materialData.uniformValues.keys();
 			while(dataName.hasNext()) {
 				var dataName1 = dataName.next();
-				var _this20 = material.uniforms;
-				if(!(__map_reserved[dataName1] != null ? _this20.existsReserved(dataName1) : _this20.h.hasOwnProperty(dataName1))) {
+				var _this27 = material.uniforms;
+				if(!(__map_reserved[dataName1] != null ? _this27.existsReserved(dataName1) : _this27.h.hasOwnProperty(dataName1))) {
 					continue;
 				}
-				var _this21 = material.uniforms;
-				var location7 = (__map_reserved[dataName1] != null ? _this21.getReserved(dataName1) : _this21.h[dataName1]).location;
-				var _this22 = renderer.materialData.uniformValues;
-				var data = __map_reserved[dataName1] != null ? _this22.getReserved(dataName1) : _this22.h[dataName1];
+				var _this28 = material.uniforms;
+				var location10 = (__map_reserved[dataName1] != null ? _this28.getReserved(dataName1) : _this28.h[dataName1]).location;
+				var _this29 = renderer.materialData.uniformValues;
+				var data = __map_reserved[dataName1] != null ? _this29.getReserved(dataName1) : _this29.h[dataName1];
 				switch(data[1]) {
 				case 0:
 					var b1 = data[2];
-					mammoth_Mammoth.gl.context.uniform1i(location7,b1 ? 1 : 0);
+					mammoth_Mammoth.gl.context.uniform1i(location10,b1 ? 1 : 0);
 					break;
 				case 1:
-					var i1 = data[2];
-					mammoth_Mammoth.gl.context.uniform1i(location7,i1);
+					var i3 = data[2];
+					mammoth_Mammoth.gl.context.uniform1i(location10,i3);
 					break;
 				case 2:
 					var x = data[2];
-					mammoth_Mammoth.gl.context.uniform1f(location7,x);
+					mammoth_Mammoth.gl.context.uniform1f(location10,x);
 					break;
 				case 3:
 					var y = data[3];
 					var x1 = data[2];
-					mammoth_Mammoth.gl.context.uniform2f(location7,x1,y);
+					mammoth_Mammoth.gl.context.uniform2f(location10,x1,y);
 					break;
 				case 4:
 					var z = data[4];
 					var y1 = data[3];
 					var x2 = data[2];
-					mammoth_Mammoth.gl.context.uniform3f(location7,x2,y1,z);
+					mammoth_Mammoth.gl.context.uniform3f(location10,x2,y1,z);
 					break;
 				case 5:
 					var w = data[5];
 					var z1 = data[4];
 					var y2 = data[3];
 					var x3 = data[2];
-					mammoth_Mammoth.gl.context.uniform4f(location7,x3,y2,z1,w);
+					mammoth_Mammoth.gl.context.uniform4f(location10,x3,y2,z1,w);
 					break;
 				case 6:
 					var v = data[2];
-					mammoth_Mammoth.gl.context.uniform2f(location7,v[0],v[1]);
+					mammoth_Mammoth.gl.context.uniform2f(location10,v[0],v[1]);
 					break;
 				case 7:
 					var v1 = data[2];
-					mammoth_Mammoth.gl.context.uniform3f(location7,v1[0],v1[1],v1[2]);
+					mammoth_Mammoth.gl.context.uniform3f(location10,v1[0],v1[1],v1[2]);
 					break;
 				case 8:
 					var v2 = data[2];
-					mammoth_Mammoth.gl.context.uniform4f(location7,v2[0],v2[1],v2[2],v2[3]);
+					mammoth_Mammoth.gl.context.uniform4f(location10,v2[0],v2[1],v2[2],v2[3]);
 					break;
 				case 9:
 					var m = data[2];
-					mammoth_Mammoth.gl.context.uniformMatrix4fv(location7,false,m);
+					mammoth_Mammoth.gl.context.uniformMatrix4fv(location10,false,m);
 					break;
 				case 10:
 					var c = data[2];
-					mammoth_Mammoth.gl.context.uniform3f(location7,c[0],c[1],c[2]);
+					mammoth_Mammoth.gl.context.uniform3f(location10,c[0],c[1],c[2]);
 					break;
 				case 11:
 					var c1 = data[2];
-					mammoth_Mammoth.gl.context.uniform4f(location7,c1[0],c1[1],c1[2],c1[3]);
+					mammoth_Mammoth.gl.context.uniform4f(location10,c1[0],c1[1],c1[2],c1[3]);
+					break;
+				case 12:
+					var x4 = data[2];
+					mammoth_Mammoth.gl.context.uniform1i(location10,x4);
 					break;
 				}
 			}
 			mammoth_Mammoth.gl.context.bindBuffer(34962,mesh.vertexBuffer);
-			var _this23 = material.attributes;
-			var materialAttribute = new haxe_ds__$StringMap_StringMapIterator(_this23,_this23.arrayKeys());
+			var _this30 = material.attributes;
+			var materialAttribute = new haxe_ds__$StringMap_StringMapIterator(_this30,_this30.arrayKeys());
 			while(materialAttribute.hasNext()) {
 				var materialAttribute1 = materialAttribute.next();
 				if(!mesh.hasAttribute(materialAttribute1.name)) {
-					throw new js__$Boot_HaxeError(new mammoth_debug_Exception("Can\t use material " + material.name + " with mesh " + mesh.name + " as mesh is missing attribute " + materialAttribute1.name + "!",true,null,null,{ fileName : "RenderSystem.hx", lineNumber : 145, className : "mammoth.systems.RenderSystem", methodName : "update"}));
+					throw new js__$Boot_HaxeError(new mammoth_debug_Exception("Can\t use material " + material.name + " with mesh " + mesh.name + " as mesh is missing attribute " + materialAttribute1.name + "!",true,null,null,{ fileName : "RenderSystem.hx", lineNumber : 173, className : "mammoth.systems.RenderSystem", methodName : "update"}));
 				}
 				var meshAttribute = mesh.getAttribute(materialAttribute1.name);
 				mammoth_Mammoth.gl.context.enableVertexAttribArray(materialAttribute1.location);
-				var _this24 = mammoth_Mammoth.gl;
+				var _this31 = mammoth_Mammoth.gl;
 				var indx = materialAttribute1.location;
 				var size;
-				var _g = meshAttribute.type;
-				switch(_g[1]) {
+				var _g2 = meshAttribute.type;
+				switch(_g2[1]) {
 				case 0:
 					size = 1;
 					break;
@@ -4150,14 +4212,14 @@ mammoth_systems_RenderSystem.prototype = {
 					size = 4;
 					break;
 				}
-				_this24.context.vertexAttribPointer(indx,size,5126,false,meshAttribute.stride,meshAttribute.offset);
+				_this31.context.vertexAttribPointer(indx,size,5126,false,meshAttribute.stride,meshAttribute.offset);
 			}
 			mammoth_Mammoth.gl.context.bindBuffer(34963,mesh.indexBuffer);
 			mammoth_Mammoth.gl.context.drawElements(4,mesh.indexCount,5123,0);
 			mammoth_Mammoth.stats.drawCalls++;
 			mammoth_Mammoth.stats.triangles += mesh.indexCount / 3 | 0;
-			var _this25 = material.attributes;
-			var materialAttribute2 = new haxe_ds__$StringMap_StringMapIterator(_this25,_this25.arrayKeys());
+			var _this32 = material.attributes;
+			var materialAttribute2 = new haxe_ds__$StringMap_StringMapIterator(_this32,_this32.arrayKeys());
 			while(materialAttribute2.hasNext()) {
 				var materialAttribute3 = materialAttribute2.next();
 				mammoth_Mammoth.gl.context.disableVertexAttribArray(materialAttribute3.location);
@@ -4191,6 +4253,9 @@ mammoth_systems_RenderSystem_$SystemProcess.prototype = {
 	}
 	,update: function(engine,delta) {
 		var result = true;
+		if(this.updateItems.count > 0) {
+			this.system.before();
+		}
 		var data;
 		var item = this.updateItems.iterator();
 		while(item.hasNext()) {

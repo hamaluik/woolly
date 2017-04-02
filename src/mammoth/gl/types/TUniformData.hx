@@ -28,4 +28,5 @@ enum TUniformData {
 	Matrix4(v:Mat4);
 	RGB(c:Colour);
 	RGBA(c:Colour);
+	TextureSlot(x:Int);
 }

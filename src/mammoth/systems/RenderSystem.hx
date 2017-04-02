@@ -28,6 +28,7 @@ import mammoth.types.MeshAttribute;
 import mammoth.gl.UniformLocation;
 import mammoth.gl.types.TCullMode;
 import mammoth.gl.types.TUniformData;
+import mammoth.gl.Texture;
 
 class RenderSystem implements ISystem {
     var objects:View<{ transform:Transform, renderer:MeshRenderer }>;
@@ -35,6 +36,14 @@ class RenderSystem implements ISystem {
     var pointLights:View<{ transform:Transform, light:PointLight }>;
 
     private var MVP:Mat4 = Mat4.identity(new Mat4());
+
+    private var defaultMissingTexture:Texture = null;
+
+    public function before():Void {
+        if(defaultMissingTexture == null) {
+            defaultMissingTexture = Mammoth.gl.loadTexture(null);
+        }
+    }
 
     public function update(camera:Camera) {
         // calculate the viewport
@@ -73,6 +82,13 @@ class RenderSystem implements ISystem {
             else
                 Mammoth.gl.disable(GL.DEPTH_TEST);
             Mammoth.gl.depthFunc(cast(material.depthFunction));
+            if(material.blend) {
+                Mammoth.gl.enable(GL.BLEND);
+                Mammoth.gl.blendFunc(cast(material.srcBlend), cast(material.dstBlend));
+            }
+            else {
+                Mammoth.gl.disable(GL.BLEND);
+            }
 
             // switch to our material's program
             Mammoth.gl.useProgram(material.program);
@@ -103,16 +119,29 @@ class RenderSystem implements ISystem {
                     i++;
                 }
             }
-            /*if(material.uniforms.exists('pointLights[0].position')) {
+            if(material.hasUniform('pointLights[0].position')) {
                 var i:Int = 0;
                 for(pl in pointLights) {
-                    material.setUniform('pointLights[${i}].position', TUniform.Vec3(pl.data.transform.position));
-                    material.setUniform('pointLights[${i}].colour', TUniform.RGB(pl.data.light.colour));
-                    material.setUniform('pointLights[${i}].distance', TUniform.Float(pl.data.light.distance));
+                    Mammoth.gl.uniform3f(material.uniformLocation('pointLights[${i}].position'),
+                        pl.data.transform.position.x, pl.data.transform.position.y, pl.data.transform.position.z);
+                    Mammoth.gl.uniform3f(material.uniformLocation('pointLights[${i}].colour'),
+                        pl.data.light.colour.r, pl.data.light.colour.g, pl.data.light.colour.b);
+                    Mammoth.gl.uniform1f(material.uniformLocation('pointLights[${i}].distance'), pl.data.light.distance);
                     i++;
                 }
-            }*/
+            }
             // TODO: spotlights
+
+            // apply textures
+            for(i in 0...material.textureSlots) {
+                Mammoth.gl.activeTexture(GL.TEXTURE0 + i);
+                if(i >= renderer.materialData.textures.length) {
+                    Mammoth.gl.bindTexture(GL.TEXTURE_2D, defaultMissingTexture);
+                }
+                else {
+                    Mammoth.gl.bindTexture(GL.TEXTURE_2D, renderer.materialData.textures[0]);
+                }
+            }
 
             // apply material data
             for(dataName in renderer.materialData.uniformValues.keys()) {
@@ -133,10 +162,9 @@ class RenderSystem implements ISystem {
                     case Matrix4(m): Mammoth.gl.uniformMatrix4fv(location, cast(m));
                     case RGB(c): Mammoth.gl.uniform3f(location, c.r, c.g, c.b);
                     case RGBA(c): Mammoth.gl.uniform4f(location, c.r, c.g, c.b, c.a);
+                    case TextureSlot(x): Mammoth.gl.uniform1i(location, x);
                 }
             }
-
-            // TODO: apply textures
 
             // set up the attributes
             Mammoth.gl.bindBuffer(GL.ARRAY_BUFFER, mesh.vertexBuffer);
