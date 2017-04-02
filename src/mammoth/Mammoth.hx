@@ -20,7 +20,6 @@ import mammoth.platform.Assets;
 import mammoth.Resources;
 import mammoth.platform.Input;
 import mammoth.platform.Timing;
-import mammoth.debug.DebugView;
 import tusk.Tusk;
 
 @:expose
@@ -31,6 +30,7 @@ class Mammoth {
     public static var updatePhase:Phase;
     public static var postUpdatePhase:Phase;
     public static var renderPhase:Phase;
+    public static var debugDrawPhase:Phase;
 
     public static var timing:Timing = new Timing();
     public static var gl:Graphics = new Graphics();
@@ -38,7 +38,6 @@ class Mammoth {
     public static var resources:Resources = new Resources();
     public static var input:Input = new Input();
     public static var stats:Stats = new Stats();
-    private static var debugView:DebugView;
 
     // public timing variables
     public static var time(get, never):Float;
@@ -61,7 +60,6 @@ class Mammoth {
         // initialize our subsystems
         gl.init();
         input.init();
-        debugView = new DebugView();
 
         // calculate the clock period
         timing.dt = 1 / updateRate;
@@ -72,6 +70,7 @@ class Mammoth {
         updatePhase = engine.createPhase();
         postUpdatePhase = engine.createPhase();
         renderPhase = engine.createPhase();
+        debugDrawPhase = engine.createPhase();
 
         // initialize our pre- and post- systems
         preUpdatePhase.add(new mammoth.systems.PreTransformSystem());
@@ -82,6 +81,10 @@ class Mammoth {
         renderPhase.add(new mammoth.systems.DirectionalLightSystem());
         renderPhase.add(new mammoth.systems.DirectionalShadowSystem());
         renderPhase.add(new mammoth.systems.RenderSystem());
+
+        // and debug rendering
+        engine.create([new mammoth.components.TuskContext()]);
+        debugDrawPhase.add(new mammoth.systems.StatsDisplaySystem());
 
         if(onReady != null)
             onReady();
@@ -106,10 +109,10 @@ class Mammoth {
         postUpdatePhase.update(dt);
 
         Tusk.window(tusk.Control.uuid(), Mammoth.width - 160, 10, 150, 75, 'Stats');
-        Tusk.label('Render t: ' + Math.fround(stats.renderTime * 1000 * 10) / 10 + 'ms');
-        Tusk.label('FPS: ' + Math.fround(stats.fps * 10) / 10);
-        Tusk.label('Draw calls: ' + stats.drawCalls);
-        Tusk.label('Triangles: ' + stats.triangles);
+        Tusk.label('Render t: \u001br' + Math.fround(stats.renderTime * 1000 * 10) / 10 + '\u001b_ ms');
+        Tusk.label('FPS: \u001bc' + Math.fround(stats.fps * 10) / 10);
+        Tusk.label('Draw calls: \u001bg' + stats.drawCalls);
+        Tusk.label('Triangles: \u001bm' + stats.triangles);
     }
 
     private static function onRender(dt:Float, alpha:Float):Void {
@@ -121,6 +124,6 @@ class Mammoth {
         renderPhase.update(dt);
         stats.endRenderTimer();
 
-        debugView.draw();
+        debugDrawPhase.update(dt);
     }
 }

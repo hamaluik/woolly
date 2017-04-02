@@ -26,4 +26,5 @@ enum TShaderUniform {
 	Matrix4;
 	RGB;
 	RGBA;
+	TextureSlot;
 }

@@ -69,6 +69,10 @@ class Font {
                     4 * spaceWidth;
                 }
 
+                case 0x1B: { // escape
+                    0;
+                }
+
                 case _: {
                     var g:Glyph = glyphs.get(idx);
                     if(g == null) g = unknownGlyph;
@@ -87,26 +91,50 @@ class Font {
         var _x:Float = x;
         var _y:Float = y;
 
-        for(i in 0...text.length) {
+        var i:Int = 0;
+        var colour:Vec4 = null;
+        while(i < text.length) {
             var idx:Int = text.charCodeAt(i);
-            if(idx == null) continue;
+            if(idx == null) {
+                i++;
+                continue;
+            }
 
             // deal with special characters
             if(idx == ' '.charCodeAt(0)) {
                 _x += spaceWidth;
+                i++;
                 continue;
             }
             else if(idx == '\n'.charCodeAt(0)) {
                 _x = x;
                 _y += lineHeight;
+                i++;
                 continue;
             }
             else if(idx == '\r'.charCodeAt(0)) {
                 _x = x;
+                i++;
                 continue;
             }
             else if(idx == '\t'.charCodeAt(0)) {
                 _x += (spaceWidth * 4);
+                i++;
+                continue;
+            }
+            else if(idx == 0x1B) {
+                if(i + 1 >= text.length) return;
+                colour = switch(text.charCodeAt(i + 1)) {
+                    case 0x72: tusk.TuskConfig.text_red;
+                    case 0x67: tusk.TuskConfig.text_green;
+                    case 0x62: tusk.TuskConfig.text_blue;
+                    case 0x63: tusk.TuskConfig.text_cyan;
+                    case 0x6d: tusk.TuskConfig.text_magenta;
+                    case 0x79: tusk.TuskConfig.text_yellow;
+                    case 0x6b: tusk.TuskConfig.text_black;
+                    case _: null;
+                };
+                i += 2;
                 continue;
             }
 
@@ -119,15 +147,16 @@ class Font {
             var y0:Float = _y + g.offset.y - base;
             var y1:Float = y0 + g.size.y;
 
-            addVertex(x0, y0, g.uvMin.x, g.uvMin.y);
-            addVertex(x1, y0, g.uvMax.x, g.uvMin.y);
-            addVertex(x0, y1, g.uvMin.x, g.uvMax.y);
+            addVertex(x0, y0, g.uvMin.x, g.uvMin.y, colour);
+            addVertex(x1, y0, g.uvMax.x, g.uvMin.y, colour);
+            addVertex(x0, y1, g.uvMin.x, g.uvMax.y, colour);
 
-            addVertex(x0, y1, g.uvMin.x, g.uvMax.y);
-            addVertex(x1, y0, g.uvMax.x, g.uvMin.y);
-            addVertex(x1, y1, g.uvMax.x, g.uvMax.y);
+            addVertex(x0, y1, g.uvMin.x, g.uvMax.y, colour);
+            addVertex(x1, y0, g.uvMax.x, g.uvMin.y, colour);
+            addVertex(x1, y1, g.uvMax.x, g.uvMax.y, colour);
 
             _x += g.xAdvance;
+            i++;
         }
     }
 }

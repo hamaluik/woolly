@@ -14,22 +14,45 @@
 package mammoth.defaults;
 
 import mammoth.types.Mesh;
+import mammoth.gl.types.TVertexAttribute;
 
 class Primitives {
 	public static function screenQuad():Mesh {
 		var m:Mesh = new Mesh("screen");
 
 		m.setVertexData([
-			-1.0, -1.0,
-			 1.0, -1.0,
-			 1.0,  1.0,
-			-1.0,  1.0,
+			-1.0, -1.0,  0, 0,
+			 1.0, -1.0,  1, 0,
+			 1.0,  1.0,  1, 1,
+			-1.0,  1.0,  0, 1
 			]);
 		m.setIndexData([
 			0, 1, 2,
 			0, 2, 3]);
 
-		m.registerAttribute('position', mammoth.types.TVertexAttribute.Vec2);
+		m.registerAttribute('position', TVertexAttribute.Vec2);
+		m.registerAttribute('uv', TVertexAttribute.Vec2);
+
+		m.compile();
+
+		return m;
+	}
+
+	public static function debugScreenQuad():Mesh  {
+		var m:Mesh = new Mesh('debugScreen');
+
+		m.setVertexData([
+			 0.5, -1.0,  0, 0,
+			 1.0, -1.0,  1, 0,
+			 1.0, -0.5,  1, 1,
+			 0.5, -0.5,  0, 1
+			]);
+		m.setIndexData([
+			0, 1, 2,
+			0, 2, 3]);
+
+		m.registerAttribute('position', TVertexAttribute.Vec2);
+		m.registerAttribute('uv', TVertexAttribute.Vec2);
 
 		m.compile();
 

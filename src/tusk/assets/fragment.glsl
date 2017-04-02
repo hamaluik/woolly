@@ -1,5 +1,7 @@
 precision mediump float;
 
+#define SHADER_NAME Tusk UI
+
 varying vec2 v_uv;
 varying vec4 v_colour;
 

@@ -1937,6 +1937,32 @@ mammoth_gl_js_Graphics.prototype = {
 			this.context.canvas.height = displayHeight;
 		}
 	}
+	,loadTexture: function(srcURI) {
+		var _gthis = this;
+		var texture = this.context.createTexture();
+		this.context.bindTexture(3553,texture);
+		var pixels = new Uint8Array([0,255,255,255]);
+		this.context.texImage2D(3553,0,6408,1,1,0,6408,5121,pixels);
+		this.context.bindTexture(3553,null);
+		var img = window.document.createElement("img");
+		img.addEventListener("load",function() {
+			_gthis.context.bindTexture(3553,texture);
+			_gthis.context.texParameteri(3553,10242,33071);
+			_gthis.context.texParameteri(3553,10243,33071);
+			_gthis.context.texParameteri(3553,10241,9728);
+			_gthis.context.texParameteri(3553,10240,9728);
+			_gthis.context.texImage2D(3553,0,6408,6408,5121,img);
+			_gthis.context.bindTexture(3553,null);
+		});
+		img.addEventListener("error",function() {
+			_gthis.context.bindTexture(3553,texture);
+			var pixels1 = new Uint8Array([255,0,255,255]);
+			_gthis.context.texImage2D(3553,0,6408,1,1,0,6408,5121,pixels1);
+			_gthis.context.bindTexture(3553,null);
+		});
+		img.src = srcURI;
+		return texture;
+	}
 	,__class__: mammoth_gl_js_Graphics
 };
 var mammoth_platform_js_Input = function() {
@@ -2044,19 +2070,21 @@ mammoth_Mammoth.init = function(onReady,updateRate) {
 	}
 	mammoth_Mammoth.gl.init();
 	mammoth_Mammoth.input.init();
-	mammoth_Mammoth.debugView = new mammoth_debug_DebugView();
 	mammoth_Mammoth.timing.dt = 1 / updateRate;
 	mammoth_Mammoth.engine = new edge_Engine();
 	mammoth_Mammoth.preUpdatePhase = mammoth_Mammoth.engine.createPhase();
 	mammoth_Mammoth.updatePhase = mammoth_Mammoth.engine.createPhase();
 	mammoth_Mammoth.postUpdatePhase = mammoth_Mammoth.engine.createPhase();
 	mammoth_Mammoth.renderPhase = mammoth_Mammoth.engine.createPhase();
+	mammoth_Mammoth.debugDrawPhase = mammoth_Mammoth.engine.createPhase();
 	mammoth_Mammoth.preUpdatePhase.add(new mammoth_systems_PreTransformSystem());
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_ModelMatrixSystem());
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_CameraSystem());
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_DirectionalLightSystem());
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_DirectionalShadowSystem());
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_RenderSystem());
+	mammoth_Mammoth.engine.create([new mammoth_components_TuskContext()]);
+	mammoth_Mammoth.debugDrawPhase.add(new mammoth_systems_StatsDisplaySystem());
 	if(onReady != null) {
 		onReady();
 	}
@@ -2073,10 +2101,10 @@ mammoth_Mammoth.onUpdate = function(dt) {
 	mammoth_Mammoth.updatePhase.update(dt);
 	mammoth_Mammoth.postUpdatePhase.update(dt);
 	tusk_Tusk.window(0,mammoth_Mammoth.gl.context.drawingBufferWidth - 160,10,150,75,"Stats");
-	tusk_Tusk.label("Render t: " + Math.round(mammoth_Mammoth.stats.renderTime * 1000 * 10) / 10 + "ms");
-	tusk_Tusk.label("FPS: " + Math.round(mammoth_Mammoth.stats.get_fps() * 10) / 10);
-	tusk_Tusk.label("Draw calls: " + mammoth_Mammoth.stats.drawCalls);
-	tusk_Tusk.label("Triangles: " + mammoth_Mammoth.stats.triangles);
+	tusk_Tusk.label("Render t: \x1Br" + Math.round(mammoth_Mammoth.stats.renderTime * 1000 * 10) / 10 + "\x1B_ ms");
+	tusk_Tusk.label("FPS: \x1Bc" + Math.round(mammoth_Mammoth.stats.get_fps() * 10) / 10);
+	tusk_Tusk.label("Draw calls: \x1Bg" + mammoth_Mammoth.stats.drawCalls);
+	tusk_Tusk.label("Triangles: \x1Bm" + mammoth_Mammoth.stats.triangles);
 };
 mammoth_Mammoth.onRender = function(dt,alpha) {
 	mammoth_Mammoth.stats.drawCalls = 0;
@@ -2085,7 +2113,7 @@ mammoth_Mammoth.onRender = function(dt,alpha) {
 	mammoth_Mammoth.gl.checkWindowSize();
 	mammoth_Mammoth.renderPhase.update(dt);
 	mammoth_Mammoth.stats.endRenderTimer();
-	mammoth_Mammoth.debugView.draw();
+	mammoth_Mammoth.debugDrawPhase.update(dt);
 };
 var mammoth_components_ProjectionMode = { __ename__ : true, __constructs__ : ["Orthographic","Perspective"] };
 mammoth_components_ProjectionMode.Orthographic = function(size) { var $x = ["Orthographic",0,size]; $x.__enum__ = mammoth_components_ProjectionMode; $x.toString = $estr; return $x; };
@@ -2206,7 +2234,7 @@ mammoth_components_DirectionalLight.prototype = {
 	,__class__: mammoth_components_DirectionalLight
 };
 var mammoth_components_MeshRenderer = function() {
-	this.materialData = new haxe_ds_StringMap();
+	this.materialData = new mammoth_types_MaterialData();
 };
 mammoth_components_MeshRenderer.__name__ = ["mammoth","components","MeshRenderer"];
 mammoth_components_MeshRenderer.__interfaces__ = [mammoth_Component];
@@ -2311,90 +2339,19 @@ mammoth_components_Transform.__interfaces__ = [mammoth_Component];
 mammoth_components_Transform.prototype = {
 	__class__: mammoth_components_Transform
 };
-var mammoth_debug_DebugView = function() {
-	this.colourLoc = 0;
-	this.uvLoc = 0;
-	this.positionLoc = 0;
-	var _gthis = this;
-	var vert = mammoth_Mammoth.gl.context.createShader(35633);
-	mammoth_Mammoth.gl.context.shaderSource(vert,tusk_Tusk.vertexShaderSrc);
-	mammoth_Mammoth.gl.context.compileShader(vert);
-	if(!mammoth_Mammoth.gl.context.getShaderParameter(vert,35713)) {
-		var info = mammoth_Mammoth.gl.context.getShaderInfoLog(vert);
-		throw new js__$Boot_HaxeError(new mammoth_debug_Exception(info,true,"CompileVertShader",null,{ fileName : "DebugView.hx", lineNumber : 32, className : "mammoth.debug.DebugView", methodName : "new"}));
-	}
-	var frag = mammoth_Mammoth.gl.context.createShader(35632);
-	mammoth_Mammoth.gl.context.shaderSource(frag,tusk_Tusk.fragmentShaderSrc);
-	mammoth_Mammoth.gl.context.compileShader(frag);
-	if(!mammoth_Mammoth.gl.context.getShaderParameter(frag,35713)) {
-		var info1 = mammoth_Mammoth.gl.context.getShaderInfoLog(frag);
-		throw new js__$Boot_HaxeError(new mammoth_debug_Exception(info1,true,"CompileFragShader",null,{ fileName : "DebugView.hx", lineNumber : 41, className : "mammoth.debug.DebugView", methodName : "new"}));
-	}
-	this.program = mammoth_Mammoth.gl.context.createProgram();
-	mammoth_Mammoth.gl.context.attachShader(this.program,vert);
-	mammoth_Mammoth.gl.context.attachShader(this.program,frag);
-	mammoth_Mammoth.gl.context.linkProgram(this.program);
-	if(!mammoth_Mammoth.gl.context.getProgramParameter(this.program,35714)) {
-		var info2 = mammoth_Mammoth.gl.context.getProgramInfoLog(this.program);
-		throw new js__$Boot_HaxeError(new mammoth_debug_Exception(info2,true,"LinkProgram",null,{ fileName : "DebugView.hx", lineNumber : 51, className : "mammoth.debug.DebugView", methodName : "new"}));
-	}
-	mammoth_Mammoth.gl.context.useProgram(this.program);
-	this.positionLoc = mammoth_Mammoth.gl.context.getAttribLocation(this.program,"position");
-	this.uvLoc = mammoth_Mammoth.gl.context.getAttribLocation(this.program,"uv");
-	this.colourLoc = mammoth_Mammoth.gl.context.getAttribLocation(this.program,"colour");
-	this.vpLoc = mammoth_Mammoth.gl.context.getUniformLocation(this.program,"VP");
-	this.fontTexture = mammoth_Mammoth.gl.context.createTexture();
-	mammoth_Mammoth.gl.context.bindTexture(3553,this.fontTexture);
-	var _this = mammoth_Mammoth.gl;
-	var pixels = new Uint8Array([255,0,255,255]);
-	_this.context.texImage2D(3553,0,6408,1,1,0,6408,5121,pixels);
-	this.textureLoc = mammoth_Mammoth.gl.context.getUniformLocation(this.program,"texture");
-	this.fontImage = window.document.createElement("img");
-	this.fontImage.addEventListener("load",function() {
-		mammoth_Mammoth.gl.context.bindTexture(3553,_gthis.fontTexture);
-		mammoth_Mammoth.gl.context.texParameteri(3553,10242,33071);
-		mammoth_Mammoth.gl.context.texParameteri(3553,10243,33071);
-		mammoth_Mammoth.gl.context.texParameteri(3553,10241,9728);
-		mammoth_Mammoth.gl.context.texParameteri(3553,10240,9728);
-		mammoth_Mammoth.gl.context.texImage2D(3553,0,6408,6408,5121,_gthis.fontImage);
-	});
-	this.fontImage.src = tusk_Tusk.fontTextureSrc;
+var mammoth_components_TuskContext = function() {
+	this.data = null;
+	this.buffer = null;
+	this.material = null;
+	this.material = mammoth_defaults_Materials.tusk();
 	this.buffer = mammoth_Mammoth.gl.context.createBuffer();
-	mammoth_Mammoth.gl.context.useProgram(null);
+	this.data = new mammoth_types_MaterialData();
+	this.data.textures.push(mammoth_Mammoth.gl.loadTexture(tusk_Tusk.fontTextureSrc));
 };
-mammoth_debug_DebugView.__name__ = ["mammoth","debug","DebugView"];
-mammoth_debug_DebugView.prototype = {
-	draw: function() {
-		mammoth_Mammoth.gl.context.viewport(0,0,mammoth_Mammoth.gl.context.drawingBufferWidth | 0,mammoth_Mammoth.gl.context.drawingBufferHeight | 0);
-		mammoth_Mammoth.gl.context.scissor(0,0,mammoth_Mammoth.gl.context.drawingBufferWidth | 0,mammoth_Mammoth.gl.context.drawingBufferHeight | 0);
-		tusk_Tusk.draw.set_screenWidth(mammoth_Mammoth.gl.context.drawingBufferWidth);
-		tusk_Tusk.draw.set_screenHeight(mammoth_Mammoth.gl.context.drawingBufferHeight);
-		if(tusk_Tusk.draw.numVertices == 0) {
-			return;
-		}
-		mammoth_Mammoth.gl.context.disable(2884);
-		mammoth_Mammoth.gl.context.disable(2929);
-		mammoth_Mammoth.gl.context.enable(3042);
-		mammoth_Mammoth.gl.context.blendFunc(770,771);
-		mammoth_Mammoth.gl.context.useProgram(this.program);
-		mammoth_Mammoth.gl.context.bindBuffer(34962,this.buffer);
-		mammoth_Mammoth.gl.context.bufferData(34962,tusk_Tusk.draw.buffer,35048);
-		var _this = mammoth_Mammoth.gl;
-		var location = this.vpLoc;
-		var v = tusk_Tusk.draw.get_vpMatrix();
-		_this.context.uniformMatrix4fv(location,false,v);
-		mammoth_Mammoth.gl.context.uniform1i(this.textureLoc,0);
-		mammoth_Mammoth.gl.context.activeTexture(33984);
-		mammoth_Mammoth.gl.context.bindTexture(3553,this.fontTexture);
-		mammoth_Mammoth.gl.context.enableVertexAttribArray(this.positionLoc);
-		mammoth_Mammoth.gl.context.vertexAttribPointer(this.positionLoc,2,5126,false,32,0);
-		mammoth_Mammoth.gl.context.enableVertexAttribArray(this.uvLoc);
-		mammoth_Mammoth.gl.context.vertexAttribPointer(this.uvLoc,2,5126,false,32,8);
-		mammoth_Mammoth.gl.context.enableVertexAttribArray(this.colourLoc);
-		mammoth_Mammoth.gl.context.vertexAttribPointer(this.colourLoc,4,5126,false,32,16);
-		mammoth_Mammoth.gl.context.drawArrays(4,0,tusk_Tusk.draw.numVertices);
-	}
-	,__class__: mammoth_debug_DebugView
+mammoth_components_TuskContext.__name__ = ["mammoth","components","TuskContext"];
+mammoth_components_TuskContext.__interfaces__ = [edge_IComponent];
+mammoth_components_TuskContext.prototype = {
+	__class__: mammoth_components_TuskContext
 };
 var mammoth_debug_Exception = function(message,fatal,type,showStackTrace,pos) {
 	if(showStackTrace == null) {
@@ -2452,8 +2409,8 @@ var mammoth_defaults_Materials = function() { };
 mammoth_defaults_Materials.__name__ = ["mammoth","defaults","Materials"];
 mammoth_defaults_Materials.shadow = function() {
 	var material = new mammoth_types_Material("shadow");
-	var vertexSrc = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\n// attribute inputs\nattribute vec3 position;\n\n// camera uniforms\nuniform mat4 MVP;\n\nvoid main() {\n    // set the camera-space position of the vertex\n\tgl_Position = MVP * vec4(position, 1.0);\n}";
-	var fragSrc = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\nvoid main() {\n    gl_FragColor = vec4(gl_FragCoord.z, 1.0, 0.0, 1.0);\n}";
+	var vertexSrc = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\n#define SHADER_NAME Shadow\n\n// attribute inputs\nattribute vec3 position;\n\n// camera uniforms\nuniform mat4 MVP;\n\nvoid main() {\n    // set the camera-space position of the vertex\n\tgl_Position = MVP * vec4(position, 1.0);\n}";
+	var fragSrc = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\n#define SHADER_NAME Shadow\n\nvoid main() {\n    gl_FragColor = vec4(gl_FragCoord.z, 1.0, 0.0, 1.0);\n}";
 	material.setShaderSource(vertexSrc,35633);
 	material.setShaderSource(fragSrc,35632);
 	material.compile();
@@ -2461,10 +2418,28 @@ mammoth_defaults_Materials.shadow = function() {
 	material.registerUniform("MVP",mammoth_gl_types_TShaderUniform.Matrix4);
 	return material;
 };
+mammoth_defaults_Materials.tusk = function() {
+	var material = new mammoth_types_Material("tusk");
+	material.setShaderSource(tusk_Tusk.vertexShaderSrc,35633);
+	material.setShaderSource(tusk_Tusk.fragmentShaderSrc,35632);
+	material.compile();
+	material.registerAttribute("position",mammoth_gl_types_TVertexAttribute.Vec2);
+	material.registerAttribute("uv",mammoth_gl_types_TVertexAttribute.Vec2);
+	material.registerAttribute("colour",mammoth_gl_types_TVertexAttribute.Vec4);
+	material.registerUniform("VP",mammoth_gl_types_TShaderUniform.Matrix4);
+	material.registerUniform("texture",mammoth_gl_types_TShaderUniform.TextureSlot);
+	material.cullMode = 0;
+	material.depthTest = false;
+	material.depthWrite = false;
+	material.blend = true;
+	material.srcBlend = 770;
+	material.dstBlend = 771;
+	return material;
+};
 mammoth_defaults_Materials.standard = function(directionalLights,pointLights) {
 	var material = new mammoth_types_Material("standard_" + directionalLights + "_" + pointLights);
-	var vertexSrc = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\n// attribute inputs\nattribute vec3 position;\nattribute vec3 normal;\n\n#ifdef ATTRIBUTE_UV\nattribute vec2 uv;\n#endif\n#ifdef ATTRIBUTE_COLOUR\nattribute vec3 colour;\n#endif\n\n// camera uniforms\nuniform mat4 MVP;\nuniform mat4 M;\n\n// material uniforms\nuniform vec3 albedoColour;\nuniform vec3 ambientColour;\n\n// outputs\nvarying vec3 v_position;\nvarying vec3 v_normal;\nvarying vec3 v_colour;\n#ifdef ATTRIBUTE_UV\nvarying vec2 v_uv;\n#endif\n\nvoid main() {\n    // transform position to world space\n    vec3 worldPosition = (M * vec4(position, 1.0)).xyz;\n    v_position = worldPosition;\n\n\t// transform normals into world space\n\tvec3 worldNormal = (M * vec4(normal, 0.0)).xyz;\n    v_normal = worldNormal;\n\t\n    vec3 colour = albedoColour * ambientColour;\n\n    v_colour = colour;\n    #ifdef ATTRIBUTE_UV\n\tv_uv = uv;\n    #endif\n\n    // set the camera-space position of the vertex\n\tgl_Position = MVP * vec4(position, 1.0);\n}";
-	var fragSrc = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\n// lights\n#ifdef UNIFORM_DIRECTIONAL_LIGHTS\nstruct SDirectionalLight {\n    vec3 direction;\n    vec3 colour;\n};\nuniform SDirectionalLight directionalLights[NUMBER_DIRECTIONAL_LIGHTS];\n#endif\n#ifdef UNIFORM_POINT_LIGHTS\nstruct SPointLight {\n    vec3 position;\n    vec3 colour;\n    float distance;\n};\nuniform SPointLight pointLights[NUMBER_POINT_LIGHTS];\n#endif\n\n// material uniforms\nuniform vec3 albedoColour;\nuniform vec3 ambientColour;\n\n// inputs\nvarying vec3 v_position;\nvarying vec3 v_normal;\nvarying vec3 v_colour;\n#ifdef ATTRIBUTE_UV\nvarying vec2 v_uv;\n#endif\n\n#ifdef UNIFORM_TEXTURE\nuniform sampler2D texture;\n#endif\n\nvoid main() {\n    // base colour from vertex shader\n    vec3 colour = v_colour;\n\n    #ifdef UNIFORM_DIRECTIONAL_LIGHTS\n\t// sun diffuse term\n\tfloat dLight0 = clamp(dot(v_normal, directionalLights[0].direction), 0.0, 1.0);\n    colour += directionalLights[0].colour * dLight0 * albedoColour;\n    #endif\n\n    #ifdef UNIFORM_POINT_LIGHTS\n    vec3 pLightDir0 = pointLights[0].position - v_position;\n    float pDist0 = length(pLightDir0);\n\tfloat pLight0 = clamp(dot(v_normal, pLightDir0), 0.0, 1.0) * pointLights[0].distance / (pDist0 * pDist0);\n    colour += pointLights[0].colour * pLight0 * albedoColour;\n    #endif\n\n    vec4 outColour = vec4(colour, 1.0);\n    #ifdef UNIFORM_TEXTURE\n    outColour *= texture2D(texture, v_uv);\n    #endif\n\n    // gamma\n    gl_FragColor = vec4(pow(outColour.rgb, vec3(1.0/2.2)), outColour.a);\n    //gl_FragColor = outColour;\n}";
+	var vertexSrc = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\n#define SHADER_NAME Standard\n\n// attribute inputs\nattribute vec3 position;\nattribute vec3 normal;\n\n#ifdef ATTRIBUTE_UV\nattribute vec2 uv;\n#endif\n#ifdef ATTRIBUTE_COLOUR\nattribute vec3 colour;\n#endif\n\n// camera uniforms\nuniform mat4 MVP;\nuniform mat4 M;\n\n// material uniforms\nuniform vec3 albedoColour;\nuniform vec3 ambientColour;\n\n// outputs\nvarying vec3 v_position;\nvarying vec3 v_normal;\nvarying vec3 v_colour;\n#ifdef ATTRIBUTE_UV\nvarying vec2 v_uv;\n#endif\n\nvoid main() {\n    // transform position to world space\n    vec3 worldPosition = (M * vec4(position, 1.0)).xyz;\n    v_position = worldPosition;\n\n\t// transform normals into world space\n\tvec3 worldNormal = (M * vec4(normal, 0.0)).xyz;\n    v_normal = worldNormal;\n\t\n    vec3 colour = albedoColour * ambientColour;\n\n    v_colour = colour;\n    #ifdef ATTRIBUTE_UV\n\tv_uv = uv;\n    #endif\n\n    // set the camera-space position of the vertex\n\tgl_Position = MVP * vec4(position, 1.0);\n}";
+	var fragSrc = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\n#define SHADER_NAME Standard\n\n// lights\n#ifdef UNIFORM_DIRECTIONAL_LIGHTS\nstruct SDirectionalLight {\n    vec3 direction;\n    vec3 colour;\n};\nuniform SDirectionalLight directionalLights[NUMBER_DIRECTIONAL_LIGHTS];\n#endif\n#ifdef UNIFORM_POINT_LIGHTS\nstruct SPointLight {\n    vec3 position;\n    vec3 colour;\n    float distance;\n};\nuniform SPointLight pointLights[NUMBER_POINT_LIGHTS];\n#endif\n\n// material uniforms\nuniform vec3 albedoColour;\nuniform vec3 ambientColour;\n\n// inputs\nvarying vec3 v_position;\nvarying vec3 v_normal;\nvarying vec3 v_colour;\n#ifdef ATTRIBUTE_UV\nvarying vec2 v_uv;\n#endif\n\n#ifdef UNIFORM_TEXTURE\nuniform sampler2D texture;\n#endif\n\nvoid main() {\n    // base colour from vertex shader\n    vec3 colour = v_colour;\n\n    #ifdef UNIFORM_DIRECTIONAL_LIGHTS\n\t// sun diffuse term\n\tfloat dLight0 = clamp(dot(v_normal, directionalLights[0].direction), 0.0, 1.0);\n    colour += directionalLights[0].colour * dLight0 * albedoColour;\n    #endif\n\n    #ifdef UNIFORM_POINT_LIGHTS\n    vec3 pLightDir0 = pointLights[0].position - v_position;\n    float pDist0 = length(pLightDir0);\n\tfloat pLight0 = clamp(dot(v_normal, pLightDir0), 0.0, 1.0) * pointLights[0].distance / (pDist0 * pDist0);\n    colour += pointLights[0].colour * pLight0 * albedoColour;\n    #endif\n\n    vec4 outColour = vec4(colour, 1.0);\n    #ifdef UNIFORM_TEXTURE\n    outColour *= texture2D(texture, v_uv);\n    #endif\n\n    // gamma\n    gl_FragColor = vec4(pow(outColour.rgb, vec3(1.0/2.2)), outColour.a);\n    //gl_FragColor = outColour;\n}";
 	var vertexPre = [];
 	var fragmentPre = [];
 	if(directionalLights > 0) {
@@ -2560,34 +2535,37 @@ mammoth_filetypes_MammothJSON.loadLight = function(light) {
 	}
 };
 mammoth_filetypes_MammothJSON.loadMaterialData = function(shader) {
-	var data = new haxe_ds_StringMap();
+	var data = new mammoth_types_MaterialData();
 	if(shader.unlit != null) {
+		var _this = data.uniformValues;
 		var value = mammoth_gl_types_TUniformData.RGB(shader.unlit.colour);
 		if(__map_reserved["albedoColour"] != null) {
-			data.setReserved("albedoColour",value);
+			_this.setReserved("albedoColour",value);
 		} else {
-			data.h["albedoColour"] = value;
+			_this.h["albedoColour"] = value;
 		}
 	} else if(shader.diffuse != null) {
+		var _this1 = data.uniformValues;
 		var value1 = mammoth_gl_types_TUniformData.RGB(shader.diffuse.colour);
 		if(__map_reserved["albedoColour"] != null) {
-			data.setReserved("albedoColour",value1);
+			_this1.setReserved("albedoColour",value1);
 		} else {
-			data.h["albedoColour"] = value1;
+			_this1.h["albedoColour"] = value1;
 		}
+		var _this2 = data.uniformValues;
 		var value2 = mammoth_gl_types_TUniformData.RGB(shader.diffuse.ambient);
 		if(__map_reserved["ambientColour"] != null) {
-			data.setReserved("ambientColour",value2);
+			_this2.setReserved("ambientColour",value2);
 		} else {
-			data.h["ambientColour"] = value2;
+			_this2.h["ambientColour"] = value2;
 		}
 	}
-	var _this = mammoth_filetypes_MammothJSON.materialDatas;
+	var _this3 = mammoth_filetypes_MammothJSON.materialDatas;
 	var key = shader.name;
 	if(__map_reserved[key] != null) {
-		_this.setReserved(key,data);
+		_this3.setReserved(key,data);
 	} else {
-		_this.h[key] = data;
+		_this3.h[key] = data;
 	}
 };
 mammoth_filetypes_MammothJSON.loadMesh = function(meshData) {
@@ -2693,7 +2671,7 @@ mammoth_filetypes_MammothJSON.loadObject = function(parentTransform,object) {
 	}
 };
 mammoth_filetypes_MammothJSON.load = function(file) {
-	mammoth_Log.log("Loading data from " + file.meta.file + "..",mammoth_LogFunctions.Info,{ fileName : "MammothJSON.hx", lineNumber : 249, className : "mammoth.filetypes.MammothJSON", methodName : "load"});
+	mammoth_Log.log("Loading data from " + file.meta.file + "..",mammoth_LogFunctions.Info,{ fileName : "MammothJSON.hx", lineNumber : 245, className : "mammoth.filetypes.MammothJSON", methodName : "load"});
 	mammoth_filetypes_MammothJSON.cameras = new haxe_ds_StringMap();
 	var _g = 0;
 	var _g1 = file.cameras;
@@ -2763,7 +2741,7 @@ mammoth_filetypes_MammothJSON.parseIntArrayURI = function(uri) {
 	}
 	return ret;
 };
-var mammoth_gl_types_TShaderUniform = { __ename__ : true, __constructs__ : ["Bool","Int","Float","Float2","Float3","Float4","Vector2","Vector3","Vector4","Matrix4","RGB","RGBA"] };
+var mammoth_gl_types_TShaderUniform = { __ename__ : true, __constructs__ : ["Bool","Int","Float","Float2","Float3","Float4","Vector2","Vector3","Vector4","Matrix4","RGB","RGBA","TextureSlot"] };
 mammoth_gl_types_TShaderUniform.Bool = ["Bool",0];
 mammoth_gl_types_TShaderUniform.Bool.toString = $estr;
 mammoth_gl_types_TShaderUniform.Bool.__enum__ = mammoth_gl_types_TShaderUniform;
@@ -2800,7 +2778,10 @@ mammoth_gl_types_TShaderUniform.RGB.__enum__ = mammoth_gl_types_TShaderUniform;
 mammoth_gl_types_TShaderUniform.RGBA = ["RGBA",11];
 mammoth_gl_types_TShaderUniform.RGBA.toString = $estr;
 mammoth_gl_types_TShaderUniform.RGBA.__enum__ = mammoth_gl_types_TShaderUniform;
-var mammoth_gl_types_TUniformData = { __ename__ : true, __constructs__ : ["Bool","Int","Float","Float2","Float3","Float4","Vector2","Vector3","Vector4","Matrix4","RGB","RGBA"] };
+mammoth_gl_types_TShaderUniform.TextureSlot = ["TextureSlot",12];
+mammoth_gl_types_TShaderUniform.TextureSlot.toString = $estr;
+mammoth_gl_types_TShaderUniform.TextureSlot.__enum__ = mammoth_gl_types_TShaderUniform;
+var mammoth_gl_types_TUniformData = { __ename__ : true, __constructs__ : ["Bool","Int","Float","Float2","Float3","Float4","Vector2","Vector3","Vector4","Matrix4","RGB","RGBA","TextureSlot"] };
 mammoth_gl_types_TUniformData.Bool = function(x) { var $x = ["Bool",0,x]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
 mammoth_gl_types_TUniformData.Int = function(x) { var $x = ["Int",1,x]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
 mammoth_gl_types_TUniformData.Float = function(x) { var $x = ["Float",2,x]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
@@ -2813,6 +2794,7 @@ mammoth_gl_types_TUniformData.Vector4 = function(x) { var $x = ["Vector4",8,x]; 
 mammoth_gl_types_TUniformData.Matrix4 = function(v) { var $x = ["Matrix4",9,v]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
 mammoth_gl_types_TUniformData.RGB = function(c) { var $x = ["RGB",10,c]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
 mammoth_gl_types_TUniformData.RGBA = function(c) { var $x = ["RGBA",11,c]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_gl_types_TUniformData.TextureSlot = function(x) { var $x = ["TextureSlot",12,x]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
 var mammoth_gl_types_TVertexAttribute = { __ename__ : true, __constructs__ : ["Float","Vec2","Vec3","Vec4"] };
 mammoth_gl_types_TVertexAttribute.Float = ["Float",0];
 mammoth_gl_types_TVertexAttribute.Float.toString = $estr;
@@ -3908,6 +3890,7 @@ mammoth_systems_PreTransformSystem_$SystemProcess.prototype = {
 	,__class__: mammoth_systems_PreTransformSystem_$SystemProcess
 };
 var mammoth_systems_RenderSystem = function() {
+	this.defaultMissingTexture = null;
 	var this1 = new Float32Array(16);
 	this1[0] = 0;
 	this1[1] = 0;
@@ -3948,7 +3931,12 @@ var mammoth_systems_RenderSystem = function() {
 mammoth_systems_RenderSystem.__name__ = ["mammoth","systems","RenderSystem"];
 mammoth_systems_RenderSystem.__interfaces__ = [edge_ISystem];
 mammoth_systems_RenderSystem.prototype = {
-	update: function(camera) {
+	before: function() {
+		if(this.defaultMissingTexture == null) {
+			this.defaultMissingTexture = mammoth_Mammoth.gl.loadTexture(null);
+		}
+	}
+	,update: function(camera) {
 		var vpX = camera.viewportMin[0] * mammoth_Mammoth.gl.context.drawingBufferWidth | 0;
 		var vpY = camera.viewportMin[1] * mammoth_Mammoth.gl.context.drawingBufferHeight | 0;
 		var vpW = (camera.viewportMax[0] - camera.viewportMin[0]) * mammoth_Mammoth.gl.context.drawingBufferWidth | 0;
@@ -4029,6 +4017,12 @@ mammoth_systems_RenderSystem.prototype = {
 				mammoth_Mammoth.gl.context.disable(2929);
 			}
 			mammoth_Mammoth.gl.context.depthFunc(material.depthFunction);
+			if(material.blend) {
+				mammoth_Mammoth.gl.context.enable(3042);
+				mammoth_Mammoth.gl.context.blendFunc(material.srcBlend,material.dstBlend);
+			} else {
+				mammoth_Mammoth.gl.context.disable(3042);
+			}
 			mammoth_Mammoth.gl.context.useProgram(material.program);
 			var _this = material.uniforms;
 			if(__map_reserved["MVP"] != null ? _this.existsReserved("MVP") : _this.h.hasOwnProperty("MVP")) {
@@ -4085,89 +4079,128 @@ mammoth_systems_RenderSystem.prototype = {
 					++i;
 				}
 			}
-			var dataName = renderer.materialData.keys();
+			var _this20 = material.uniforms;
+			if(__map_reserved["pointLights[0].position"] != null ? _this20.existsReserved("pointLights[0].position") : _this20.h.hasOwnProperty("pointLights[0].position")) {
+				var i1 = 0;
+				var pl = this.pointLights.iterator();
+				while(pl.hasNext()) {
+					var pl1 = pl.next();
+					var _this21 = mammoth_Mammoth.gl;
+					var name2 = "pointLights[" + i1 + "].position";
+					var _this22 = material.uniforms;
+					var location7 = __map_reserved[name2] != null ? _this22.getReserved(name2) : _this22.h[name2];
+					_this21.context.uniform3f(location7.location,pl1.data.transform.position[0],pl1.data.transform.position[1],pl1.data.transform.position[2]);
+					var _this23 = mammoth_Mammoth.gl;
+					var name3 = "pointLights[" + i1 + "].colour";
+					var _this24 = material.uniforms;
+					var location8 = __map_reserved[name3] != null ? _this24.getReserved(name3) : _this24.h[name3];
+					_this23.context.uniform3f(location8.location,pl1.data.light.colour[0],pl1.data.light.colour[1],pl1.data.light.colour[2]);
+					var _this25 = mammoth_Mammoth.gl;
+					var name4 = "pointLights[" + i1 + "].distance";
+					var _this26 = material.uniforms;
+					var location9 = __map_reserved[name4] != null ? _this26.getReserved(name4) : _this26.h[name4];
+					_this25.context.uniform1f(location9.location,pl1.data.light.distance);
+					++i1;
+				}
+			}
+			var _g1 = 0;
+			var _g = material.textureSlots;
+			while(_g1 < _g) {
+				var i2 = _g1++;
+				mammoth_Mammoth.gl.context.activeTexture(33984 + i2);
+				if(i2 >= renderer.materialData.textures.length) {
+					mammoth_Mammoth.gl.context.bindTexture(3553,this.defaultMissingTexture);
+				} else {
+					mammoth_Mammoth.gl.context.bindTexture(3553,renderer.materialData.textures[0]);
+				}
+			}
+			var dataName = renderer.materialData.uniformValues.keys();
 			while(dataName.hasNext()) {
 				var dataName1 = dataName.next();
-				var _this20 = material.uniforms;
-				if(!(__map_reserved[dataName1] != null ? _this20.existsReserved(dataName1) : _this20.h.hasOwnProperty(dataName1))) {
+				var _this27 = material.uniforms;
+				if(!(__map_reserved[dataName1] != null ? _this27.existsReserved(dataName1) : _this27.h.hasOwnProperty(dataName1))) {
 					continue;
 				}
-				var _this21 = material.uniforms;
-				var location7 = (__map_reserved[dataName1] != null ? _this21.getReserved(dataName1) : _this21.h[dataName1]).location;
-				var _this22 = renderer.materialData;
-				var data = __map_reserved[dataName1] != null ? _this22.getReserved(dataName1) : _this22.h[dataName1];
+				var _this28 = material.uniforms;
+				var location10 = (__map_reserved[dataName1] != null ? _this28.getReserved(dataName1) : _this28.h[dataName1]).location;
+				var _this29 = renderer.materialData.uniformValues;
+				var data = __map_reserved[dataName1] != null ? _this29.getReserved(dataName1) : _this29.h[dataName1];
 				switch(data[1]) {
 				case 0:
 					var b1 = data[2];
-					mammoth_Mammoth.gl.context.uniform1i(location7,b1 ? 1 : 0);
+					mammoth_Mammoth.gl.context.uniform1i(location10,b1 ? 1 : 0);
 					break;
 				case 1:
-					var i1 = data[2];
-					mammoth_Mammoth.gl.context.uniform1i(location7,i1);
+					var i3 = data[2];
+					mammoth_Mammoth.gl.context.uniform1i(location10,i3);
 					break;
 				case 2:
 					var x = data[2];
-					mammoth_Mammoth.gl.context.uniform1f(location7,x);
+					mammoth_Mammoth.gl.context.uniform1f(location10,x);
 					break;
 				case 3:
 					var y = data[3];
 					var x1 = data[2];
-					mammoth_Mammoth.gl.context.uniform2f(location7,x1,y);
+					mammoth_Mammoth.gl.context.uniform2f(location10,x1,y);
 					break;
 				case 4:
 					var z = data[4];
 					var y1 = data[3];
 					var x2 = data[2];
-					mammoth_Mammoth.gl.context.uniform3f(location7,x2,y1,z);
+					mammoth_Mammoth.gl.context.uniform3f(location10,x2,y1,z);
 					break;
 				case 5:
 					var w = data[5];
 					var z1 = data[4];
 					var y2 = data[3];
 					var x3 = data[2];
-					mammoth_Mammoth.gl.context.uniform4f(location7,x3,y2,z1,w);
+					mammoth_Mammoth.gl.context.uniform4f(location10,x3,y2,z1,w);
 					break;
 				case 6:
 					var v = data[2];
-					mammoth_Mammoth.gl.context.uniform2f(location7,v[0],v[1]);
+					mammoth_Mammoth.gl.context.uniform2f(location10,v[0],v[1]);
 					break;
 				case 7:
 					var v1 = data[2];
-					mammoth_Mammoth.gl.context.uniform3f(location7,v1[0],v1[1],v1[2]);
+					mammoth_Mammoth.gl.context.uniform3f(location10,v1[0],v1[1],v1[2]);
 					break;
 				case 8:
 					var v2 = data[2];
-					mammoth_Mammoth.gl.context.uniform4f(location7,v2[0],v2[1],v2[2],v2[3]);
+					mammoth_Mammoth.gl.context.uniform4f(location10,v2[0],v2[1],v2[2],v2[3]);
 					break;
 				case 9:
 					var m = data[2];
-					mammoth_Mammoth.gl.context.uniformMatrix4fv(location7,false,m);
+					mammoth_Mammoth.gl.context.uniformMatrix4fv(location10,false,m);
 					break;
 				case 10:
 					var c = data[2];
-					mammoth_Mammoth.gl.context.uniform3f(location7,c[0],c[1],c[2]);
+					mammoth_Mammoth.gl.context.uniform3f(location10,c[0],c[1],c[2]);
 					break;
 				case 11:
 					var c1 = data[2];
-					mammoth_Mammoth.gl.context.uniform4f(location7,c1[0],c1[1],c1[2],c1[3]);
+					mammoth_Mammoth.gl.context.uniform4f(location10,c1[0],c1[1],c1[2],c1[3]);
+					break;
+				case 12:
+					var x4 = data[2];
+					mammoth_Mammoth.gl.context.uniform1i(location10,x4);
 					break;
 				}
 			}
 			mammoth_Mammoth.gl.context.bindBuffer(34962,mesh.vertexBuffer);
-			var _this23 = material.attributes;
-			var materialAttribute = new haxe_ds__$StringMap_StringMapIterator(_this23,_this23.arrayKeys());
+			var _this30 = material.attributes;
+			var materialAttribute = new haxe_ds__$StringMap_StringMapIterator(_this30,_this30.arrayKeys());
 			while(materialAttribute.hasNext()) {
 				var materialAttribute1 = materialAttribute.next();
 				if(!mesh.hasAttribute(materialAttribute1.name)) {
-					throw new js__$Boot_HaxeError(new mammoth_debug_Exception("Can\t use material " + material.name + " with mesh " + mesh.name + " as mesh is missing attribute " + materialAttribute1.name + "!",true,null,null,{ fileName : "RenderSystem.hx", lineNumber : 143, className : "mammoth.systems.RenderSystem", methodName : "update"}));
+					throw new js__$Boot_HaxeError(new mammoth_debug_Exception("Can\t use material " + material.name + " with mesh " + mesh.name + " as mesh is missing attribute " + materialAttribute1.name + "!",true,null,null,{ fileName : "RenderSystem.hx", lineNumber : 173, className : "mammoth.systems.RenderSystem", methodName : "update"}));
 				}
 				var meshAttribute = mesh.getAttribute(materialAttribute1.name);
 				mammoth_Mammoth.gl.context.enableVertexAttribArray(materialAttribute1.location);
-				var _this24 = mammoth_Mammoth.gl;
+				var _this31 = mammoth_Mammoth.gl;
 				var indx = materialAttribute1.location;
 				var size;
-				var _g = meshAttribute.type;
-				switch(_g[1]) {
+				var _g2 = meshAttribute.type;
+				switch(_g2[1]) {
 				case 0:
 					size = 1;
 					break;
@@ -4181,14 +4214,14 @@ mammoth_systems_RenderSystem.prototype = {
 					size = 4;
 					break;
 				}
-				_this24.context.vertexAttribPointer(indx,size,5126,false,meshAttribute.stride,meshAttribute.offset);
+				_this31.context.vertexAttribPointer(indx,size,5126,false,meshAttribute.stride,meshAttribute.offset);
 			}
 			mammoth_Mammoth.gl.context.bindBuffer(34963,mesh.indexBuffer);
 			mammoth_Mammoth.gl.context.drawElements(4,mesh.indexCount,5123,0);
 			mammoth_Mammoth.stats.drawCalls++;
 			mammoth_Mammoth.stats.triangles += mesh.indexCount / 3 | 0;
-			var _this25 = material.attributes;
-			var materialAttribute2 = new haxe_ds__$StringMap_StringMapIterator(_this25,_this25.arrayKeys());
+			var _this32 = material.attributes;
+			var materialAttribute2 = new haxe_ds__$StringMap_StringMapIterator(_this32,_this32.arrayKeys());
 			while(materialAttribute2.hasNext()) {
 				var materialAttribute3 = materialAttribute2.next();
 				mammoth_Mammoth.gl.context.disableVertexAttribArray(materialAttribute3.location);
@@ -4222,6 +4255,9 @@ mammoth_systems_RenderSystem_$SystemProcess.prototype = {
 	}
 	,update: function(engine,delta) {
 		var result = true;
+		if(this.updateItems.count > 0) {
+			this.system.before();
+		}
 		var data;
 		var item = this.updateItems.iterator();
 		while(item.hasNext()) {
@@ -4332,7 +4368,109 @@ mammoth_systems_RenderSystem_$SystemProcess.prototype = {
 	}
 	,__class__: mammoth_systems_RenderSystem_$SystemProcess
 };
+var mammoth_systems_StatsDisplaySystem = function() {
+	this.__process__ = new mammoth_systems_StatsDisplaySystem_$SystemProcess(this);
+};
+mammoth_systems_StatsDisplaySystem.__name__ = ["mammoth","systems","StatsDisplaySystem"];
+mammoth_systems_StatsDisplaySystem.__interfaces__ = [edge_ISystem];
+mammoth_systems_StatsDisplaySystem.prototype = {
+	update: function(context) {
+		mammoth_Mammoth.gl.context.viewport(0,0,mammoth_Mammoth.gl.context.drawingBufferWidth | 0,mammoth_Mammoth.gl.context.drawingBufferHeight | 0);
+		mammoth_Mammoth.gl.context.scissor(0,0,mammoth_Mammoth.gl.context.drawingBufferWidth | 0,mammoth_Mammoth.gl.context.drawingBufferHeight | 0);
+		tusk_Tusk.draw.set_screenWidth(mammoth_Mammoth.gl.context.drawingBufferWidth);
+		tusk_Tusk.draw.set_screenHeight(mammoth_Mammoth.gl.context.drawingBufferHeight);
+		if(tusk_Tusk.draw.numVertices == 0) {
+			return true;
+		}
+		mammoth_Mammoth.gl.context.disable(2884);
+		mammoth_Mammoth.gl.context.disable(2929);
+		mammoth_Mammoth.gl.context.enable(3042);
+		mammoth_Mammoth.gl.context.blendFunc(770,771);
+		mammoth_Mammoth.gl.context.useProgram(context.material.program);
+		mammoth_Mammoth.gl.context.bindBuffer(34962,context.buffer);
+		mammoth_Mammoth.gl.context.bufferData(34962,tusk_Tusk.draw.buffer,35048);
+		var _this = mammoth_Mammoth.gl;
+		var _this1 = context.material.uniforms;
+		var location = (__map_reserved["VP"] != null ? _this1.getReserved("VP") : _this1.h["VP"]).location;
+		var v = tusk_Tusk.draw.get_vpMatrix();
+		_this.context.uniformMatrix4fv(location,false,v);
+		var _this2 = mammoth_Mammoth.gl;
+		var _this3 = context.material.uniforms;
+		var location1 = __map_reserved["texture"] != null ? _this3.getReserved("texture") : _this3.h["texture"];
+		_this2.context.uniform1i(location1.location,0);
+		mammoth_Mammoth.gl.context.activeTexture(33984);
+		mammoth_Mammoth.gl.context.bindTexture(3553,context.data.textures[0]);
+		var _this4 = context.material.attributes;
+		var positionLoc = (__map_reserved["position"] != null ? _this4.getReserved("position") : _this4.h["position"]).location;
+		var _this5 = context.material.attributes;
+		var uvLoc = (__map_reserved["uv"] != null ? _this5.getReserved("uv") : _this5.h["uv"]).location;
+		var _this6 = context.material.attributes;
+		var colourLoc = (__map_reserved["colour"] != null ? _this6.getReserved("colour") : _this6.h["colour"]).location;
+		mammoth_Mammoth.gl.context.enableVertexAttribArray(positionLoc);
+		mammoth_Mammoth.gl.context.vertexAttribPointer(positionLoc,2,5126,false,32,0);
+		mammoth_Mammoth.gl.context.enableVertexAttribArray(uvLoc);
+		mammoth_Mammoth.gl.context.vertexAttribPointer(uvLoc,2,5126,false,32,8);
+		mammoth_Mammoth.gl.context.enableVertexAttribArray(colourLoc);
+		mammoth_Mammoth.gl.context.vertexAttribPointer(colourLoc,4,5126,false,32,16);
+		mammoth_Mammoth.gl.context.drawArrays(4,0,tusk_Tusk.draw.numVertices);
+		mammoth_Mammoth.gl.context.disableVertexAttribArray(positionLoc);
+		mammoth_Mammoth.gl.context.disableVertexAttribArray(uvLoc);
+		mammoth_Mammoth.gl.context.disableVertexAttribArray(colourLoc);
+		return true;
+	}
+	,__class__: mammoth_systems_StatsDisplaySystem
+};
+var mammoth_systems_StatsDisplaySystem_$SystemProcess = function(system) {
+	this.system = system;
+	this.updateItems = new edge_View();
+};
+mammoth_systems_StatsDisplaySystem_$SystemProcess.__name__ = ["mammoth","systems","StatsDisplaySystem_SystemProcess"];
+mammoth_systems_StatsDisplaySystem_$SystemProcess.__interfaces__ = [edge_core_ISystemProcess];
+mammoth_systems_StatsDisplaySystem_$SystemProcess.prototype = {
+	removeEntity: function(entity) {
+		this.updateItems.tryRemove(entity);
+	}
+	,addEntity: function(entity) {
+		this.updateMatchRequirements(entity);
+	}
+	,update: function(engine,delta) {
+		var result = true;
+		var data;
+		var item = this.updateItems.iterator();
+		while(item.hasNext()) {
+			var item1 = item.next();
+			data = item1.data;
+			result = this.system.update(data.context);
+			if(!result) {
+				break;
+			}
+		}
+		return result;
+	}
+	,updateMatchRequirements: function(entity) {
+		var removed = this.updateItems.tryRemove(entity);
+		var count = 1;
+		var o = { context : null};
+		var component = entity.map.iterator();
+		while(component.hasNext()) {
+			var component1 = component.next();
+			if(js_Boot.__instanceof(component1,mammoth_components_TuskContext)) {
+				o.context = component1;
+				if(--count == 0) {
+					break;
+				} else {
+					continue;
+				}
+			}
+		}
+		var added = count == 0 && this.updateItems.tryAdd(entity,o);
+	}
+	,__class__: mammoth_systems_StatsDisplaySystem_$SystemProcess
+};
 var mammoth_types_Material = function(name) {
+	this.dstBlend = 771;
+	this.srcBlend = 770;
+	this.blend = false;
 	this.depthFunction = 515;
 	this.depthTest = true;
 	this.depthWrite = true;
@@ -4340,6 +4478,7 @@ var mammoth_types_Material = function(name) {
 	this.name = name;
 	this.attributes = new haxe_ds_StringMap();
 	this.uniforms = new haxe_ds_StringMap();
+	this.textureSlots = 0;
 };
 mammoth_types_Material.__name__ = ["mammoth","types","Material"];
 mammoth_types_Material.prototype = {
@@ -4361,13 +4500,13 @@ mammoth_types_Material.prototype = {
 		if(!mammoth_Mammoth.gl.context.getShaderParameter(shader,35713)) {
 			var info = mammoth_Mammoth.gl.context.getShaderInfoLog(shader);
 			var typeStr = type == 35633 ? "Vertex" : "Fragment";
-			throw new js__$Boot_HaxeError(new mammoth_debug_Exception(info,true,"Compile" + typeStr + "Shader",null,{ fileName : "Material.hx", lineNumber : 81, className : "mammoth.types.Material", methodName : "compileShader"}));
+			throw new js__$Boot_HaxeError(new mammoth_debug_Exception(info,true,"Compile" + typeStr + "Shader",null,{ fileName : "Material.hx", lineNumber : 88, className : "mammoth.types.Material", methodName : "compileShader"}));
 		}
 		return shader;
 	}
 	,compile: function() {
 		if(this.vertexShaderSource == null || this.fragmentShaderSource == null) {
-			throw new js__$Boot_HaxeError(new mammoth_debug_Exception("Can't compile material " + this.name + ", shaders are missing!",true,null,null,{ fileName : "Material.hx", lineNumber : 88, className : "mammoth.types.Material", methodName : "compile"}));
+			throw new js__$Boot_HaxeError(new mammoth_debug_Exception("Can't compile material " + this.name + ", shaders are missing!",true,null,null,{ fileName : "Material.hx", lineNumber : 95, className : "mammoth.types.Material", methodName : "compile"}));
 		}
 		this.vertexShader = this.compileShader(this.vertexShaderSource,35633);
 		this.fragmentShader = this.compileShader(this.fragmentShaderSource,35632);
@@ -4377,7 +4516,7 @@ mammoth_types_Material.prototype = {
 		mammoth_Mammoth.gl.context.linkProgram(this.program);
 		if(!mammoth_Mammoth.gl.context.getProgramParameter(this.program,35714)) {
 			var info = mammoth_Mammoth.gl.context.getProgramInfoLog(this.program);
-			throw new js__$Boot_HaxeError(new mammoth_debug_Exception(info,true,"LinkProgram",null,{ fileName : "Material.hx", lineNumber : 100, className : "mammoth.types.Material", methodName : "compile"}));
+			throw new js__$Boot_HaxeError(new mammoth_debug_Exception(info,true,"LinkProgram",null,{ fileName : "Material.hx", lineNumber : 107, className : "mammoth.types.Material", methodName : "compile"}));
 		}
 		return this;
 	}
@@ -4414,6 +4553,14 @@ var mammoth_types_MaterialAttribute = function(name,type) {
 mammoth_types_MaterialAttribute.__name__ = ["mammoth","types","MaterialAttribute"];
 mammoth_types_MaterialAttribute.prototype = {
 	__class__: mammoth_types_MaterialAttribute
+};
+var mammoth_types_MaterialData = function() {
+	this.uniformValues = new haxe_ds_StringMap();
+	this.textures = [];
+};
+mammoth_types_MaterialData.__name__ = ["mammoth","types","MaterialData"];
+mammoth_types_MaterialData.prototype = {
+	__class__: mammoth_types_MaterialData
 };
 var mammoth_types_Mesh = function(name) {
 	this.name = name;
@@ -5051,10 +5198,10 @@ tusk_Draw.prototype = {
 	,text: function(x,y,text,colour) {
 		var _gthis = this;
 		if(colour == null) {
-			colour = tusk_TuskConfig.text_Colour;
+			colour = tusk_TuskConfig.text_normal;
 		}
-		this.font.print(x,y + this.font.ascent,text,function(_x,_y,_u,_v) {
-			_gthis.addVertex(_x,_y,_u,_v,colour);
+		this.font.print(x,y + this.font.ascent,text,function(_x,_y,_u,_v,charColour) {
+			_gthis.addVertex(_x,_y,_u,_v,charColour == null ? colour : charColour);
 		});
 	}
 	,window: function(x,y,w,h,title) {
@@ -5138,6 +5285,9 @@ tusk_text_Font.prototype = {
 				}
 				width1 = -1 * width;
 				break;
+			case 27:
+				width1 = 0;
+				break;
 			case 32:
 				width1 = this.spaceWidth;
 				break;
@@ -5158,26 +5308,66 @@ tusk_text_Font.prototype = {
 	,print: function(x,y,text,addVertex) {
 		var _x = x;
 		var _y = y;
-		var _g1 = 0;
-		var _g = text.length;
-		while(_g1 < _g) {
-			var i = _g1++;
+		var i = 0;
+		var colour = null;
+		while(i < text.length) {
 			var idx = HxOverrides.cca(text,i);
 			if(idx == null) {
+				++i;
 				continue;
 			}
 			if(idx == HxOverrides.cca(" ",0)) {
 				_x += this.spaceWidth;
+				++i;
 				continue;
 			} else if(idx == HxOverrides.cca("\n",0)) {
 				_x = x;
 				_y += this.lineHeight;
+				++i;
 				continue;
 			} else if(idx == HxOverrides.cca("\r",0)) {
 				_x = x;
+				++i;
 				continue;
 			} else if(idx == HxOverrides.cca("\t",0)) {
 				_x += this.spaceWidth * 4;
+				++i;
+				continue;
+			} else if(idx == 27) {
+				if(i + 1 >= text.length) {
+					return;
+				}
+				var _g = HxOverrides.cca(text,i + 1);
+				if(_g == null) {
+					colour = null;
+				} else {
+					switch(_g) {
+					case 98:
+						colour = tusk_TuskConfig.text_blue;
+						break;
+					case 99:
+						colour = tusk_TuskConfig.text_cyan;
+						break;
+					case 103:
+						colour = tusk_TuskConfig.text_green;
+						break;
+					case 107:
+						colour = tusk_TuskConfig.text_black;
+						break;
+					case 109:
+						colour = tusk_TuskConfig.text_magenta;
+						break;
+					case 114:
+						colour = tusk_TuskConfig.text_red;
+						break;
+					case 121:
+						colour = tusk_TuskConfig.text_yellow;
+						break;
+					default:
+						colour = null;
+					}
+				}
+				i += 2;
 				continue;
 			}
 			var g = this.glyphs.h[idx];
@@ -5188,13 +5378,14 @@ tusk_text_Font.prototype = {
 			var x1 = x0 + g.size[0];
 			var y0 = _y + g.offset[1] - this.base;
 			var y1 = y0 + g.size[1];
-			addVertex(x0,y0,g.uvMin[0],g.uvMin[1]);
-			addVertex(x1,y0,g.uvMax[0],g.uvMin[1]);
-			addVertex(x0,y1,g.uvMin[0],g.uvMax[1]);
-			addVertex(x0,y1,g.uvMin[0],g.uvMax[1]);
-			addVertex(x1,y0,g.uvMax[0],g.uvMin[1]);
-			addVertex(x1,y1,g.uvMax[0],g.uvMax[1]);
+			addVertex(x0,y0,g.uvMin[0],g.uvMin[1],colour);
+			addVertex(x1,y0,g.uvMax[0],g.uvMin[1],colour);
+			addVertex(x0,y1,g.uvMin[0],g.uvMax[1],colour);
+			addVertex(x0,y1,g.uvMin[0],g.uvMax[1],colour);
+			addVertex(x1,y0,g.uvMax[0],g.uvMin[1],colour);
+			addVertex(x1,y1,g.uvMax[0],g.uvMax[1],colour);
 			_x += g.xAdvance;
+			++i;
 		}
 	}
 	,__class__: tusk_text_Font
@@ -5344,8 +5535,8 @@ mammoth_systems_DirectionalLightSystem.zDir = (function($this) {
 }(this));
 promhx_base_AsyncBase.id_ctr = 0;
 promhx_base_EventLoop.queue = new List();
-tusk_Tusk.vertexShaderSrc = "precision mediump float;\n\nattribute vec2 position;\nattribute vec2 uv;\nattribute vec4 colour;\n\nuniform mat4 VP;\n\nvarying vec2 v_uv;\nvarying vec4 v_colour;\n\nvoid main() {\n    v_colour = colour;\n\tv_uv = uv;\n\tgl_Position = VP * vec4(position, 0, 1.0);\n}";
-tusk_Tusk.fragmentShaderSrc = "precision mediump float;\n\nvarying vec2 v_uv;\nvarying vec4 v_colour;\n\nuniform sampler2D texture;\n\nvoid main() {\n    gl_FragColor = texture2D(texture, v_uv) * v_colour;\n}";
+tusk_Tusk.vertexShaderSrc = "precision mediump float;\n\n#define SHADER_NAME Tusk UI\n\nattribute vec2 position;\nattribute vec2 uv;\nattribute vec4 colour;\n\nuniform mat4 VP;\n\nvarying vec2 v_uv;\nvarying vec4 v_colour;\n\nvoid main() {\n    v_colour = colour;\n\tv_uv = uv;\n\tgl_Position = VP * vec4(position, 0, 1.0);\n}";
+tusk_Tusk.fragmentShaderSrc = "precision mediump float;\n\n#define SHADER_NAME Tusk UI\n\nvarying vec2 v_uv;\nvarying vec4 v_colour;\n\nuniform sampler2D texture;\n\nvoid main() {\n    gl_FragColor = texture2D(texture, v_uv) * v_colour;\n}";
 tusk_Tusk.fontTextureSrc = "data:image/png;base64," + "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";
 tusk_Tusk.fontSrc = "{\n  \"pages\": [\n    \"coderscrux.png\"\n  ],\n  \"chars\": [\n    {\n      \"id\": 33,\n      \"x\": 2,\n      \"y\": 2,\n      \"width\": 1,\n      \"height\": 7,\n      \"xoffset\": 2,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 34,\n      \"x\": 5,\n      \"y\": 2,\n      \"width\": 3,\n      \"height\": 2,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 35,\n      \"x\": 10,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 36,\n      \"x\": 17,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 37,\n      \"x\": 24,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 38,\n      \"x\": 31,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 39,\n      \"x\": 38,\n      \"y\": 2,\n      \"width\": 1,\n      \"height\": 2,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 40,\n      \"x\": 41,\n      \"y\": 2,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 41,\n      \"x\": 46,\n      \"y\": 2,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 42,\n      \"x\": 51,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 3,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 43,\n      \"x\": 58,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 1,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 44,\n      \"x\": 65,\n      \"y\": 2,\n      \"width\": 1,\n      \"height\": 2,\n      \"xoffset\": 2,\n      \"yoffset\": 6,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 45,\n      \"x\": 68,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 1,\n      \"xoffset\": 0,\n      \"yoffset\": 3,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 46,\n      \"x\": 75,\n      \"y\": 2,\n      \"width\": 1,\n      \"height\": 1,\n      \"xoffset\": 2,\n      \"yoffset\": 6,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 47,\n      \"x\": 78,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 48,\n      \"x\": 85,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 49,\n      \"x\": 92,\n      \"y\": 2,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 50,\n      \"x\": 97,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 51,\n      \"x\": 104,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 52,\n      \"x\": 111,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 53,\n      \"x\": 118,\n      \"y\": 2,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 54,\n      \"x\": 68,\n      \"y\": 5,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 55,\n      \"x\": 51,\n      \"y\": 7,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 56,\n      \"x\": 58,\n      \"y\": 9,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 57,\n      \"x\": 2,\n      \"y\": 11,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 58,\n      \"x\": 125,\n      \"y\": 2,\n      \"width\": 1,\n      \"height\": 3,\n      \"xoffset\": 2,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 59,\n      \"x\": 9,\n      \"y\": 11,\n      \"width\": 2,\n      \"height\": 4,\n      \"xoffset\": 1,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 60,\n      \"x\": 13,\n      \"y\": 11,\n      \"width\": 4,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 61,\n      \"x\": 19,\n      \"y\": 11,\n      \"width\": 5,\n      \"height\": 3,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 62,\n      \"x\": 26,\n      \"y\": 11,\n      \"width\": 4,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 63,\n      \"x\": 32,\n      \"y\": 11,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 64,\n      \"x\": 39,\n      \"y\": 11,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 65,\n      \"x\": 75,\n      \"y\": 11,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 66,\n      \"x\": 82,\n      \"y\": 11,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 67,\n      \"x\": 89,\n      \"y\": 11,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 68,\n      \"x\": 96,\n      \"y\": 11,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 69,\n      \"x\": 103,\n      \"y\": 11,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 70,\n      \"x\": 110,\n      \"y\": 11,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 71,\n      \"x\": 117,\n      \"y\": 11,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 72,\n      \"x\": 65,\n      \"y\": 14,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 73,\n      \"x\": 46,\n      \"y\": 11,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 74,\n      \"x\": 19,\n      \"y\": 16,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 75,\n      \"x\": 51,\n      \"y\": 16,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 76,\n      \"x\": 39,\n      \"y\": 18,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 77,\n      \"x\": 58,\n      \"y\": 18,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 78,\n      \"x\": 2,\n      \"y\": 20,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 79,\n      \"x\": 9,\n      \"y\": 20,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 80,\n      \"x\": 26,\n      \"y\": 20,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 81,\n      \"x\": 72,\n      \"y\": 20,\n      \"width\": 5,\n      \"height\": 9,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 82,\n      \"x\": 79,\n      \"y\": 20,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 83,\n      \"x\": 86,\n      \"y\": 20,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 84,\n      \"x\": 93,\n      \"y\": 20,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 85,\n      \"x\": 100,\n      \"y\": 20,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 86,\n      \"x\": 107,\n      \"y\": 20,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 87,\n      \"x\": 114,\n      \"y\": 20,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 88,\n      \"x\": 121,\n      \"y\": 20,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 89,\n      \"x\": 65,\n      \"y\": 23,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 90,\n      \"x\": 16,\n      \"y\": 25,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 91,\n      \"x\": 33,\n      \"y\": 20,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 92,\n      \"x\": 46,\n      \"y\": 25,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 93,\n      \"x\": 53,\n      \"y\": 25,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 94,\n      \"x\": 38,\n      \"y\": 27,\n      \"width\": 5,\n      \"height\": 3,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 95,\n      \"x\": 58,\n      \"y\": 27,\n      \"width\": 5,\n      \"height\": 1,\n      \"xoffset\": 0,\n      \"yoffset\": 6,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 96,\n      \"x\": 5,\n      \"y\": 6,\n      \"width\": 3,\n      \"height\": 3,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 97,\n      \"x\": 2,\n      \"y\": 29,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 98,\n      \"x\": 9,\n      \"y\": 29,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 99,\n      \"x\": 23,\n      \"y\": 29,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 100,\n      \"x\": 30,\n      \"y\": 29,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 101,\n      \"x\": 79,\n      \"y\": 29,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 102,\n      \"x\": 86,\n      \"y\": 29,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 103,\n      \"x\": 93,\n      \"y\": 29,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 104,\n      \"x\": 100,\n      \"y\": 29,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 105,\n      \"x\": 107,\n      \"y\": 29,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 106,\n      \"x\": 112,\n      \"y\": 29,\n      \"width\": 4,\n      \"height\": 9,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 107,\n      \"x\": 118,\n      \"y\": 29,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 108,\n      \"x\": 58,\n      \"y\": 30,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 109,\n      \"x\": 72,\n      \"y\": 31,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 110,\n      \"x\": 37,\n      \"y\": 32,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 111,\n      \"x\": 63,\n      \"y\": 32,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 112,\n      \"x\": 16,\n      \"y\": 34,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 113,\n      \"x\": 44,\n      \"y\": 34,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 114,\n      \"x\": 51,\n      \"y\": 34,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 115,\n      \"x\": 2,\n      \"y\": 36,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 116,\n      \"x\": 23,\n      \"y\": 36,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 117,\n      \"x\": 79,\n      \"y\": 36,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 118,\n      \"x\": 9,\n      \"y\": 38,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 119,\n      \"x\": 30,\n      \"y\": 38,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 120,\n      \"x\": 70,\n      \"y\": 38,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 121,\n      \"x\": 86,\n      \"y\": 38,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 122,\n      \"x\": 93,\n      \"y\": 38,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 123,\n      \"x\": 100,\n      \"y\": 38,\n      \"width\": 4,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 124,\n      \"x\": 125,\n      \"y\": 7,\n      \"width\": 1,\n      \"height\": 7,\n      \"xoffset\": 2,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 125,\n      \"x\": 106,\n      \"y\": 38,\n      \"width\": 4,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 126,\n      \"x\": 118,\n      \"y\": 38,\n      \"width\": 5,\n      \"height\": 2,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 161,\n      \"x\": 125,\n      \"y\": 29,\n      \"width\": 1,\n      \"height\": 7,\n      \"xoffset\": 2,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 162,\n      \"x\": 37,\n      \"y\": 39,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 1,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 163,\n      \"x\": 58,\n      \"y\": 39,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 164,\n      \"x\": 51,\n      \"y\": 41,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 1,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 165,\n      \"x\": 112,\n      \"y\": 42,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 166,\n      \"x\": 125,\n      \"y\": 38,\n      \"width\": 1,\n      \"height\": 7,\n      \"xoffset\": 2,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 167,\n      \"x\": 2,\n      \"y\": 43,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 168,\n      \"x\": 46,\n      \"y\": 20,\n      \"width\": 3,\n      \"height\": 1,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 169,\n      \"x\": 16,\n      \"y\": 43,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 170,\n      \"x\": 65,\n      \"y\": 39,\n      \"width\": 3,\n      \"height\": 3,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 171,\n      \"x\": 44,\n      \"y\": 43,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 1,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 172,\n      \"x\": 77,\n      \"y\": 43,\n      \"width\": 5,\n      \"height\": 2,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 173,\n      \"x\": 119,\n      \"y\": 42,\n      \"width\": 3,\n      \"height\": 1,\n      \"xoffset\": 1,\n      \"yoffset\": 3,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 174,\n      \"x\": 9,\n      \"y\": 45,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 175,\n      \"x\": 23,\n      \"y\": 45,\n      \"width\": 5,\n      \"height\": 1,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 176,\n      \"x\": 65,\n      \"y\": 44,\n      \"width\": 3,\n      \"height\": 3,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 177,\n      \"x\": 30,\n      \"y\": 45,\n      \"width\": 5,\n      \"height\": 6,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 178,\n      \"x\": 70,\n      \"y\": 45,\n      \"width\": 5,\n      \"height\": 3,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 179,\n      \"x\": 93,\n      \"y\": 45,\n      \"width\": 5,\n      \"height\": 3,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 180,\n      \"x\": 124,\n      \"y\": 16,\n      \"width\": 2,\n      \"height\": 2,\n      \"xoffset\": 2,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 181,\n      \"x\": 77,\n      \"y\": 47,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 182,\n      \"x\": 84,\n      \"y\": 47,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 183,\n      \"x\": 75,\n      \"y\": 5,\n      \"width\": 1,\n      \"height\": 1,\n      \"xoffset\": 2,\n      \"yoffset\": 3,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 184,\n      \"x\": 119,\n      \"y\": 45,\n      \"width\": 3,\n      \"height\": 2,\n      \"xoffset\": 1,\n      \"yoffset\": 7,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 185,\n      \"x\": 100,\n      \"y\": 47,\n      \"width\": 3,\n      \"height\": 3,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 186,\n      \"x\": 105,\n      \"y\": 47,\n      \"width\": 3,\n      \"height\": 3,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 187,\n      \"x\": 23,\n      \"y\": 48,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 1,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 188,\n      \"x\": 37,\n      \"y\": 48,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 189,\n      \"x\": 51,\n      \"y\": 48,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 190,\n      \"x\": 58,\n      \"y\": 48,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 191,\n      \"x\": 119,\n      \"y\": 49,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 192,\n      \"x\": 16,\n      \"y\": 50,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 193,\n      \"x\": 44,\n      \"y\": 50,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 194,\n      \"x\": 65,\n      \"y\": 50,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 195,\n      \"x\": 91,\n      \"y\": 50,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 196,\n      \"x\": 110,\n      \"y\": 51,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 197,\n      \"x\": 2,\n      \"y\": 52,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 198,\n      \"x\": 9,\n      \"y\": 52,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 199,\n      \"x\": 98,\n      \"y\": 52,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 200,\n      \"x\": 30,\n      \"y\": 53,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 201,\n      \"x\": 23,\n      \"y\": 55,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 202,\n      \"x\": 72,\n      \"y\": 56,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 203,\n      \"x\": 79,\n      \"y\": 56,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 204,\n      \"x\": 105,\n      \"y\": 52,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 205,\n      \"x\": 86,\n      \"y\": 56,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 206,\n      \"x\": 37,\n      \"y\": 57,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 207,\n      \"x\": 51,\n      \"y\": 57,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 208,\n      \"x\": 56,\n      \"y\": 57,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 209,\n      \"x\": 117,\n      \"y\": 58,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 210,\n      \"x\": 16,\n      \"y\": 59,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 211,\n      \"x\": 42,\n      \"y\": 59,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 212,\n      \"x\": 63,\n      \"y\": 59,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 213,\n      \"x\": 91,\n      \"y\": 59,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 214,\n      \"x\": 110,\n      \"y\": 60,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 215,\n      \"x\": 2,\n      \"y\": 61,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 1,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 216,\n      \"x\": 9,\n      \"y\": 61,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 217,\n      \"x\": 98,\n      \"y\": 61,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 218,\n      \"x\": 30,\n      \"y\": 62,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 219,\n      \"x\": 23,\n      \"y\": 64,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 220,\n      \"x\": 70,\n      \"y\": 65,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 221,\n      \"x\": 77,\n      \"y\": 65,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 222,\n      \"x\": 84,\n      \"y\": 65,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 223,\n      \"x\": 49,\n      \"y\": 66,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 224,\n      \"x\": 56,\n      \"y\": 66,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 225,\n      \"x\": 117,\n      \"y\": 67,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 226,\n      \"x\": 2,\n      \"y\": 68,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 227,\n      \"x\": 16,\n      \"y\": 68,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 228,\n      \"x\": 37,\n      \"y\": 68,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 229,\n      \"x\": 63,\n      \"y\": 68,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 230,\n      \"x\": 91,\n      \"y\": 68,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 231,\n      \"x\": 105,\n      \"y\": 69,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 232,\n      \"x\": 9,\n      \"y\": 70,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 233,\n      \"x\": 98,\n      \"y\": 70,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 234,\n      \"x\": 30,\n      \"y\": 71,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 235,\n      \"x\": 23,\n      \"y\": 73,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 236,\n      \"x\": 44,\n      \"y\": 68,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 237,\n      \"x\": 112,\n      \"y\": 69,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 238,\n      \"x\": 56,\n      \"y\": 73,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 239,\n      \"x\": 70,\n      \"y\": 74,\n      \"width\": 3,\n      \"height\": 7,\n      \"xoffset\": 1,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 240,\n      \"x\": 75,\n      \"y\": 74,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 241,\n      \"x\": 82,\n      \"y\": 74,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 242,\n      \"x\": 117,\n      \"y\": 74,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 243,\n      \"x\": 2,\n      \"y\": 75,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 244,\n      \"x\": 16,\n      \"y\": 75,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 245,\n      \"x\": 37,\n      \"y\": 75,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 246,\n      \"x\": 49,\n      \"y\": 75,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 247,\n      \"x\": 61,\n      \"y\": 75,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 1,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 248,\n      \"x\": 89,\n      \"y\": 75,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 249,\n      \"x\": 105,\n      \"y\": 76,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 250,\n      \"x\": 9,\n      \"y\": 77,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 251,\n      \"x\": 96,\n      \"y\": 77,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 252,\n      \"x\": 30,\n      \"y\": 78,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 253,\n      \"x\": 23,\n      \"y\": 80,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 254,\n      \"x\": 82,\n      \"y\": 81,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 255,\n      \"x\": 112,\n      \"y\": 81,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 338,\n      \"x\": 119,\n      \"y\": 81,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 339,\n      \"x\": 2,\n      \"y\": 82,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 366,\n      \"x\": 16,\n      \"y\": 82,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 367,\n      \"x\": 37,\n      \"y\": 82,\n      \"width\": 5,\n      \"height\": 5,\n      \"xoffset\": 0,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 376,\n      \"x\": 44,\n      \"y\": 82,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 7838,\n      \"x\": 51,\n      \"y\": 82,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8212,\n      \"x\": 58,\n      \"y\": 82,\n      \"width\": 5,\n      \"height\": 1,\n      \"xoffset\": 0,\n      \"yoffset\": 3,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8216,\n      \"x\": 38,\n      \"y\": 6,\n      \"width\": 1,\n      \"height\": 2,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8217,\n      \"x\": 65,\n      \"y\": 6,\n      \"width\": 1,\n      \"height\": 2,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8218,\n      \"x\": 65,\n      \"y\": 10,\n      \"width\": 1,\n      \"height\": 2,\n      \"xoffset\": 2,\n      \"yoffset\": 6,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8219,\n      \"x\": 72,\n      \"y\": 14,\n      \"width\": 1,\n      \"height\": 2,\n      \"xoffset\": 2,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8220,\n      \"x\": 72,\n      \"y\": 50,\n      \"width\": 3,\n      \"height\": 2,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8221,\n      \"x\": 105,\n      \"y\": 61,\n      \"width\": 3,\n      \"height\": 2,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8222,\n      \"x\": 105,\n      \"y\": 65,\n      \"width\": 3,\n      \"height\": 2,\n      \"xoffset\": 1,\n      \"yoffset\": 6,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8224,\n      \"x\": 89,\n      \"y\": 82,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8226,\n      \"x\": 44,\n      \"y\": 77,\n      \"width\": 3,\n      \"height\": 3,\n      \"xoffset\": 1,\n      \"yoffset\": 2,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8230,\n      \"x\": 65,\n      \"y\": 83,\n      \"width\": 5,\n      \"height\": 1,\n      \"xoffset\": 0,\n      \"yoffset\": 6,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8249,\n      \"x\": 72,\n      \"y\": 83,\n      \"width\": 3,\n      \"height\": 5,\n      \"xoffset\": 1,\n      \"yoffset\": 1,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8250,\n      \"x\": 77,\n      \"y\": 83,\n      \"width\": 3,\n      \"height\": 5,\n      \"xoffset\": 1,\n      \"yoffset\": 1,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8364,\n      \"x\": 103,\n      \"y\": 83,\n      \"width\": 5,\n      \"height\": 7,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 8482,\n      \"x\": 9,\n      \"y\": 84,\n      \"width\": 5,\n      \"height\": 2,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    },\n    {\n      \"id\": 32,\n      \"x\": 0,\n      \"y\": 0,\n      \"width\": 0,\n      \"height\": 0,\n      \"xoffset\": 0,\n      \"yoffset\": 0,\n      \"xadvance\": 6,\n      \"page\": 0,\n      \"chnl\": 15\n    }\n  ],\n  \"kernings\": [],\n  \"info\": {\n    \"face\": null,\n    \"size\": 16,\n    \"bold\": 0,\n    \"italic\": 0,\n    \"charset\": null,\n    \"undefined\": 100,\n    \"smooth\": 1,\n    \"aa\": 1,\n    \"padding\": [\n      2,\n      2,\n      2,\n      2\n    ],\n    \"spacing\": [\n      0,\n      0\n    ],\n    \"outline\": 0\n  },\n  \"common\": {\n    \"lineHeight\": 9,\n    \"base\": 7,\n    \"scaleW\": 128,\n    \"scaleH\": 128,\n    \"pages\": 1,\n    \"packed\": 0\n  }\n}\n";
 tusk_Tusk.draw = new tusk_Draw();
@@ -5370,12 +5561,82 @@ tusk_Tusk.nextPos = (function($this) {
 	return $r;
 }(this));
 tusk_Tusk.currentWidth = 0;
-tusk_TuskConfig.text_Colour = (function($this) {
+tusk_TuskConfig.text_normal = (function($this) {
 	var $r;
 	var this1 = new Float32Array(4);
 	this1[0] = 1;
 	this1[1] = 1;
 	this1[2] = 1;
+	this1[3] = 1;
+	$r = this1;
+	return $r;
+}(this));
+tusk_TuskConfig.text_red = (function($this) {
+	var $r;
+	var this1 = new Float32Array(4);
+	this1[0] = 0.671;
+	this1[1] = 0.275;
+	this1[2] = 0.259;
+	this1[3] = 1;
+	$r = this1;
+	return $r;
+}(this));
+tusk_TuskConfig.text_green = (function($this) {
+	var $r;
+	var this1 = new Float32Array(4);
+	this1[0] = 0.631;
+	this1[1] = 0.71;
+	this1[2] = 0.424;
+	this1[3] = 1;
+	$r = this1;
+	return $r;
+}(this));
+tusk_TuskConfig.text_blue = (function($this) {
+	var $r;
+	var this1 = new Float32Array(4);
+	this1[0] = 0.486;
+	this1[1] = 0.686;
+	this1[2] = 0.761;
+	this1[3] = 1;
+	$r = this1;
+	return $r;
+}(this));
+tusk_TuskConfig.text_cyan = (function($this) {
+	var $r;
+	var this1 = new Float32Array(4);
+	this1[0] = 0.525;
+	this1[1] = 0.757;
+	this1[2] = 0.725;
+	this1[3] = 1;
+	$r = this1;
+	return $r;
+}(this));
+tusk_TuskConfig.text_magenta = (function($this) {
+	var $r;
+	var this1 = new Float32Array(4);
+	this1[0] = 0.729;
+	this1[1] = 0.545;
+	this1[2] = 0.686;
+	this1[3] = 1;
+	$r = this1;
+	return $r;
+}(this));
+tusk_TuskConfig.text_yellow = (function($this) {
+	var $r;
+	var this1 = new Float32Array(4);
+	this1[0] = 0.969;
+	this1[1] = 0.792;
+	this1[2] = 0.533;
+	this1[3] = 1;
+	$r = this1;
+	return $r;
+}(this));
+tusk_TuskConfig.text_black = (function($this) {
+	var $r;
+	var this1 = new Float32Array(4);
+	this1[0] = 0.094;
+	this1[1] = 0.094;
+	this1[2] = 0.094;
 	this1[3] = 1;
 	$r = this1;
 	return $r;

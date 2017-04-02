@@ -60,9 +60,9 @@ class Draw {
     }
 
     public function text(x:Float, y:Float, text:String, ?colour:Vec4):Void {
-        if(colour == null) colour = TuskConfig.text_Colour;
-        font.print(x, y + font.ascent, text, function(_x:Float, _y:Float, _u:Float, _v:Float):Void {
-            addVertex(_x, _y, _u, _v, colour);
+        if(colour == null) colour = TuskConfig.text_normal;
+        font.print(x, y + font.ascent, text, function(_x:Float, _y:Float, _u:Float, _v:Float, ?charColour:Vec4):Void {
+            addVertex(_x, _y, _u, _v, charColour == null ? colour : charColour);
         });
     }
 

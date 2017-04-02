@@ -11,18 +11,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.types;
+package mammoth.components;
 
-import haxe.ds.StringMap;
-import mammoth.gl.types.TUniformData;
-import mammoth.gl.Texture;
+import edge.IComponent;
+import mammoth.types.Material;
+import mammoth.defaults.Materials;
+import mammoth.gl.Buffer;
+import mammoth.types.MaterialData;
 
-class MaterialData {
-    public var uniformValues(default, null):StringMap<TUniformData>;
-    public var textures(default, null):Array<Texture>;
+class TuskContext implements IComponent {
+    public var material:Material = null;
+    public var buffer:Buffer = null;
+    public var data:MaterialData = null;
 
     public function new() {
-        uniformValues = new StringMap<TUniformData>();
-        textures = new Array<Texture>();
+        // TODO: somewhere else?
+        material = Materials.tusk();
+        buffer = Mammoth.gl.createBuffer();
+        data = new MaterialData();
+        data.textures.push(Mammoth.gl.loadTexture(tusk.Tusk.fontTextureSrc));
     }
 }

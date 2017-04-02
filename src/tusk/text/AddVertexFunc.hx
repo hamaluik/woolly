@@ -1,3 +1,3 @@
 package tusk.text;
 
-typedef AddVertexFunc = Float->Float->Float->Float->Void;
+typedef AddVertexFunc = Float->Float->Float->Float->Null<Vec4>->Void;

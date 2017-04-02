@@ -16,8 +16,6 @@ package mammoth.filetypes;
 import mammoth.Log;
 import edge.Entity;
 import mammoth.Component;
-import glm.Vec2;
-import glm.Mat4;
 
 import mammoth.Mammoth;
 import mammoth.components.Camera;
@@ -29,8 +27,6 @@ import mammoth.defaults.Materials;
 import mammoth.types.Colour;
 import mammoth.types.MaterialData;
 import mammoth.types.Mesh;
-import mammoth.types.Material;
-import mammoth.gl.types.TUniformData;
 import mammoth.gl.types.TVertexAttribute;
 
 import haxe.io.Bytes;
@@ -170,11 +166,11 @@ class MammothJSON {
         var data:MaterialData = new MaterialData();
 
         if(shader.unlit != null) {
-            data.set('albedoColour', TUniformData.RGB(shader.unlit.colour));
+            data.uniformValues.set('albedoColour', TUniformData.RGB(shader.unlit.colour));
         }
         else if(shader.diffuse != null) {
-            data.set('albedoColour', TUniformData.RGB(shader.diffuse.colour));
-            data.set('ambientColour', TUniformData.RGB(shader.diffuse.ambient));
+            data.uniformValues.set('albedoColour', TUniformData.RGB(shader.diffuse.colour));
+            data.uniformValues.set('ambientColour', TUniformData.RGB(shader.diffuse.ambient));
         }
 
         // TODO: textures

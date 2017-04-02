@@ -2,6 +2,8 @@
 precision mediump float;
 #endif
 
+#define SHADER_NAME Standard
+
 // attribute inputs
 attribute vec3 position;
 attribute vec3 normal;

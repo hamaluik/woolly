@@ -4,6 +4,9 @@ import mammoth.types.Material;
 import mammoth.gl.types.TShader;
 import mammoth.gl.types.TVertexAttribute;
 import mammoth.gl.types.TShaderUniform;
+import mammoth.gl.types.TCullMode;
+import mammoth.gl.types.TBlendFactor;
+import tusk.Tusk;
 
 class Materials {
     public static function shadow():Material {
@@ -18,6 +21,30 @@ class Materials {
 
         material.registerAttribute('position', TVertexAttribute.Vec3);
         material.registerUniform('MVP', TShaderUniform.Matrix4);
+
+        return material;
+    }
+    
+    public static function tusk():Material {
+        var material:Material = new Material('tusk');
+
+        material.setShaderSource(Tusk.vertexShaderSrc, TShader.Vertex);
+        material.setShaderSource(Tusk.fragmentShaderSrc, TShader.Fragment);
+        material.compile();
+
+        material.registerAttribute('position', TVertexAttribute.Vec2);
+        material.registerAttribute('uv', TVertexAttribute.Vec2);
+        material.registerAttribute('colour', TVertexAttribute.Vec4);
+
+        material.registerUniform('VP', TShaderUniform.Matrix4);
+        material.registerUniform('texture', TShaderUniform.TextureSlot);
+
+        material.cullMode = TCullMode.None;
+        material.depthTest = false;
+        material.depthWrite = false;
+        material.blend = true;
+        material.srcBlend = TBlendFactor.SrcAlpha;
+        material.dstBlend = TBlendFactor.OneMinusSrcAlpha;
 
         return material;
     }
