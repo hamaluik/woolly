@@ -11,9 +11,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.types;
+package mammoth.gl.types;
 
-class Colours {
-    public static var Black:Colour = new Colour(0, 0, 0, 1);
-    public static var White:Colour = new Colour(1, 1, 1, 1);
+import mammoth.gl.GL;
+
+@:enum
+abstract TBufferUsage(Int) {
+    var Static = GL.STATIC_DRAW;
+    var Dynamic = GL.DYNAMIC_DRAW;
 }

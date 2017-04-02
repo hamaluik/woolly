@@ -11,18 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.types;
+package mammoth.gl.types;
 
-import haxe.ds.StringMap;
-import mammoth.types.Mesh;
-import mammoth.types.Material;
-
-class Resources {
-    public var meshes:StringMap<Mesh>;
-    public var materials:StringMap<Material>;
-
-    public function new() {
-        meshes = new StringMap<Mesh>();
-        materials = new StringMap<Material>();
-    }
+@:enum
+abstract TShader(Int) {
+    var Vertex = GL.VERTEX_SHADER;
+    var Fragment = GL.FRAGMENT_SHADER;
 }

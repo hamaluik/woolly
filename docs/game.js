@@ -1966,6 +1966,14 @@ mammoth_platform_js_Input.prototype = {
 	}
 	,__class__: mammoth_platform_js_Input
 };
+var mammoth_Resources = function() {
+	this.materials = new haxe_ds_StringMap();
+	this.meshes = new haxe_ds_StringMap();
+};
+mammoth_Resources.__name__ = ["mammoth","Resources"];
+mammoth_Resources.prototype = {
+	__class__: mammoth_Resources
+};
 var mammoth_Stats = function() {
 	this.renderEnd = 0;
 	this.renderStart = 0;
@@ -2134,7 +2142,7 @@ var mammoth_components_Camera = function() {
 	this12[14] = 0;
 	this12[15] = 0;
 	this.v = this12;
-	this.clearColour = mammoth_types_Colours.Black;
+	this.clearColour = mammoth_defaults_Colours.Black;
 	var this13 = new Float32Array(4);
 	this13[0] = 1;
 	this13[1] = 1;
@@ -2180,7 +2188,7 @@ var mammoth_components_DirectionalLight = function() {
 	this1[2] = 0;
 	this1[3] = 0;
 	this.direction = this1;
-	this.colour = mammoth_types_Colours.White;
+	this.colour = mammoth_defaults_Colours.White;
 };
 mammoth_components_DirectionalLight.__name__ = ["mammoth","components","DirectionalLight"];
 mammoth_components_DirectionalLight.__interfaces__ = [edge_IComponent];
@@ -2201,7 +2209,7 @@ mammoth_components_MeshRenderer.prototype = {
 };
 var mammoth_components_PointLight = function() {
 	this.distance = 25;
-	this.colour = mammoth_types_Colours.White;
+	this.colour = mammoth_defaults_Colours.White;
 };
 mammoth_components_PointLight.__name__ = ["mammoth","components","PointLight"];
 mammoth_components_PointLight.__interfaces__ = [edge_IComponent];
@@ -2432,6 +2440,8 @@ mammoth_debug_Exception.prototype = {
 	}
 	,__class__: mammoth_debug_Exception
 };
+var mammoth_defaults_Colours = function() { };
+mammoth_defaults_Colours.__name__ = ["mammoth","defaults","Colours"];
 var mammoth_defaults_Materials = function() { };
 mammoth_defaults_Materials.__name__ = ["mammoth","defaults","Materials"];
 mammoth_defaults_Materials.standard = function(directionalLights,pointLights) {
@@ -2453,26 +2463,26 @@ mammoth_defaults_Materials.standard = function(directionalLights,pointLights) {
 	material.setShaderSource(vertexSrc,35633);
 	material.setShaderSource(fragSrc,35632);
 	material.compile();
-	material.registerAttribute("position",mammoth_types_TVertexAttribute.Vec3);
-	material.registerAttribute("normal",mammoth_types_TVertexAttribute.Vec3);
-	material.registerUniform("MVP",mammoth_types_TShaderUniform.Matrix4);
-	material.registerUniform("M",mammoth_types_TShaderUniform.Matrix4);
-	material.registerUniform("albedoColour",mammoth_types_TShaderUniform.Vector3);
-	material.registerUniform("ambientColour",mammoth_types_TShaderUniform.Vector3);
+	material.registerAttribute("position",mammoth_gl_types_TVertexAttribute.Vec3);
+	material.registerAttribute("normal",mammoth_gl_types_TVertexAttribute.Vec3);
+	material.registerUniform("MVP",mammoth_gl_types_TShaderUniform.Matrix4);
+	material.registerUniform("M",mammoth_gl_types_TShaderUniform.Matrix4);
+	material.registerUniform("albedoColour",mammoth_gl_types_TShaderUniform.Vector3);
+	material.registerUniform("ambientColour",mammoth_gl_types_TShaderUniform.Vector3);
 	var _g1 = 0;
 	var _g = directionalLights;
 	while(_g1 < _g) {
 		var i = _g1++;
-		material.registerUniform("directionalLights[" + i + "].direction",mammoth_types_TShaderUniform.Vector3);
-		material.registerUniform("directionalLights[" + i + "].colour",mammoth_types_TShaderUniform.Vector3);
+		material.registerUniform("directionalLights[" + i + "].direction",mammoth_gl_types_TShaderUniform.Vector3);
+		material.registerUniform("directionalLights[" + i + "].colour",mammoth_gl_types_TShaderUniform.Vector3);
 	}
 	var _g11 = 0;
 	var _g2 = pointLights;
 	while(_g11 < _g2) {
 		var i1 = _g11++;
-		material.registerUniform("pointLights[" + i1 + "].position",mammoth_types_TShaderUniform.Vector3);
-		material.registerUniform("pointLights[" + i1 + "].colour",mammoth_types_TShaderUniform.Vector3);
-		material.registerUniform("pointLights[" + i1 + "].distance",mammoth_types_TShaderUniform.Float);
+		material.registerUniform("pointLights[" + i1 + "].position",mammoth_gl_types_TShaderUniform.Vector3);
+		material.registerUniform("pointLights[" + i1 + "].colour",mammoth_gl_types_TShaderUniform.Vector3);
+		material.registerUniform("pointLights[" + i1 + "].distance",mammoth_gl_types_TShaderUniform.Float);
 	}
 	return material;
 };
@@ -2535,20 +2545,20 @@ mammoth_filetypes_MammothJSON.loadLight = function(light) {
 mammoth_filetypes_MammothJSON.loadMaterialData = function(shader) {
 	var data = new haxe_ds_StringMap();
 	if(shader.unlit != null) {
-		var value = mammoth_types_TUniformData.RGB(shader.unlit.colour);
+		var value = mammoth_gl_types_TUniformData.RGB(shader.unlit.colour);
 		if(__map_reserved["albedoColour"] != null) {
 			data.setReserved("albedoColour",value);
 		} else {
 			data.h["albedoColour"] = value;
 		}
 	} else if(shader.diffuse != null) {
-		var value1 = mammoth_types_TUniformData.RGB(shader.diffuse.colour);
+		var value1 = mammoth_gl_types_TUniformData.RGB(shader.diffuse.colour);
 		if(__map_reserved["albedoColour"] != null) {
 			data.setReserved("albedoColour",value1);
 		} else {
 			data.h["albedoColour"] = value1;
 		}
-		var value2 = mammoth_types_TUniformData.RGB(shader.diffuse.ambient);
+		var value2 = mammoth_gl_types_TUniformData.RGB(shader.diffuse.ambient);
 		if(__map_reserved["ambientColour"] != null) {
 			data.setReserved("ambientColour",value2);
 		} else {
@@ -2575,16 +2585,16 @@ mammoth_filetypes_MammothJSON.loadMesh = function(meshData) {
 		var tmp;
 		switch(attribute) {
 		case "colour":
-			tmp = mammoth_types_TVertexAttribute.Vec4;
+			tmp = mammoth_gl_types_TVertexAttribute.Vec4;
 			break;
 		case "normal":
-			tmp = mammoth_types_TVertexAttribute.Vec3;
+			tmp = mammoth_gl_types_TVertexAttribute.Vec3;
 			break;
 		case "position":
-			tmp = mammoth_types_TVertexAttribute.Vec3;
+			tmp = mammoth_gl_types_TVertexAttribute.Vec3;
 			break;
 		case "uv":
-			tmp = mammoth_types_TVertexAttribute.Vec2;
+			tmp = mammoth_gl_types_TVertexAttribute.Vec2;
 			break;
 		default:
 			tmp = null;
@@ -2592,7 +2602,7 @@ mammoth_filetypes_MammothJSON.loadMesh = function(meshData) {
 		mesh.registerAttribute(attribute,tmp);
 	}
 	mesh.compile();
-	var _this = mammoth_filetypes_MammothJSON.meshes;
+	var _this = mammoth_Mammoth.resources.meshes;
 	var key = meshData.name;
 	if(__map_reserved[key] != null) {
 		_this.setReserved(key,mesh);
@@ -2634,12 +2644,12 @@ mammoth_filetypes_MammothJSON.loadObject = function(parentTransform,object) {
 	}
 	if(object.render != null && object.render.shader != null) {
 		var renderer = new mammoth_components_MeshRenderer();
-		var _this = mammoth_filetypes_MammothJSON.meshes;
+		var _this = mammoth_Mammoth.resources.meshes;
 		var key = object.render.mesh;
 		renderer.mesh = __map_reserved[key] != null ? _this.getReserved(key) : _this.h[key];
-		var _this1 = mammoth_filetypes_MammothJSON.materials;
+		var _this1 = mammoth_Mammoth.resources.materials;
 		if(!(__map_reserved["standard_1_0"] != null ? _this1.existsReserved("standard_1_0") : _this1.h.hasOwnProperty("standard_1_0"))) {
-			var _this2 = mammoth_filetypes_MammothJSON.materials;
+			var _this2 = mammoth_Mammoth.resources.materials;
 			var value = mammoth_defaults_Materials.standard(1,0);
 			if(__map_reserved["standard_1_0"] != null) {
 				_this2.setReserved("standard_1_0",value);
@@ -2647,7 +2657,7 @@ mammoth_filetypes_MammothJSON.loadObject = function(parentTransform,object) {
 				_this2.h["standard_1_0"] = value;
 			}
 		}
-		var _this3 = mammoth_filetypes_MammothJSON.materials;
+		var _this3 = mammoth_Mammoth.resources.materials;
 		renderer.material = __map_reserved["standard_1_0"] != null ? _this3.getReserved("standard_1_0") : _this3.h["standard_1_0"];
 		var _this4 = mammoth_filetypes_MammothJSON.materialDatas;
 		var key1 = object.render.shader;
@@ -2666,7 +2676,7 @@ mammoth_filetypes_MammothJSON.loadObject = function(parentTransform,object) {
 	}
 };
 mammoth_filetypes_MammothJSON.load = function(file) {
-	mammoth_Log.log("Loading data from " + file.meta.file + "..",mammoth_LogFunctions.Info,{ fileName : "MammothJSON.hx", lineNumber : 250, className : "mammoth.filetypes.MammothJSON", methodName : "load"});
+	mammoth_Log.log("Loading data from " + file.meta.file + "..",mammoth_LogFunctions.Info,{ fileName : "MammothJSON.hx", lineNumber : 249, className : "mammoth.filetypes.MammothJSON", methodName : "load"});
 	mammoth_filetypes_MammothJSON.cameras = new haxe_ds_StringMap();
 	var _g = 0;
 	var _g1 = file.cameras;
@@ -2691,7 +2701,6 @@ mammoth_filetypes_MammothJSON.load = function(file) {
 		++_g3;
 		mammoth_filetypes_MammothJSON.loadMaterialData(shad);
 	}
-	mammoth_filetypes_MammothJSON.meshes = new haxe_ds_StringMap();
 	var _g4 = 0;
 	var _g13 = file.meshes;
 	while(_g4 < _g13.length) {
@@ -2737,6 +2746,69 @@ mammoth_filetypes_MammothJSON.parseIntArrayURI = function(uri) {
 	}
 	return ret;
 };
+var mammoth_gl_types_TShaderUniform = { __ename__ : true, __constructs__ : ["Bool","Int","Float","Float2","Float3","Float4","Vector2","Vector3","Vector4","Matrix4","RGB","RGBA"] };
+mammoth_gl_types_TShaderUniform.Bool = ["Bool",0];
+mammoth_gl_types_TShaderUniform.Bool.toString = $estr;
+mammoth_gl_types_TShaderUniform.Bool.__enum__ = mammoth_gl_types_TShaderUniform;
+mammoth_gl_types_TShaderUniform.Int = ["Int",1];
+mammoth_gl_types_TShaderUniform.Int.toString = $estr;
+mammoth_gl_types_TShaderUniform.Int.__enum__ = mammoth_gl_types_TShaderUniform;
+mammoth_gl_types_TShaderUniform.Float = ["Float",2];
+mammoth_gl_types_TShaderUniform.Float.toString = $estr;
+mammoth_gl_types_TShaderUniform.Float.__enum__ = mammoth_gl_types_TShaderUniform;
+mammoth_gl_types_TShaderUniform.Float2 = ["Float2",3];
+mammoth_gl_types_TShaderUniform.Float2.toString = $estr;
+mammoth_gl_types_TShaderUniform.Float2.__enum__ = mammoth_gl_types_TShaderUniform;
+mammoth_gl_types_TShaderUniform.Float3 = ["Float3",4];
+mammoth_gl_types_TShaderUniform.Float3.toString = $estr;
+mammoth_gl_types_TShaderUniform.Float3.__enum__ = mammoth_gl_types_TShaderUniform;
+mammoth_gl_types_TShaderUniform.Float4 = ["Float4",5];
+mammoth_gl_types_TShaderUniform.Float4.toString = $estr;
+mammoth_gl_types_TShaderUniform.Float4.__enum__ = mammoth_gl_types_TShaderUniform;
+mammoth_gl_types_TShaderUniform.Vector2 = ["Vector2",6];
+mammoth_gl_types_TShaderUniform.Vector2.toString = $estr;
+mammoth_gl_types_TShaderUniform.Vector2.__enum__ = mammoth_gl_types_TShaderUniform;
+mammoth_gl_types_TShaderUniform.Vector3 = ["Vector3",7];
+mammoth_gl_types_TShaderUniform.Vector3.toString = $estr;
+mammoth_gl_types_TShaderUniform.Vector3.__enum__ = mammoth_gl_types_TShaderUniform;
+mammoth_gl_types_TShaderUniform.Vector4 = ["Vector4",8];
+mammoth_gl_types_TShaderUniform.Vector4.toString = $estr;
+mammoth_gl_types_TShaderUniform.Vector4.__enum__ = mammoth_gl_types_TShaderUniform;
+mammoth_gl_types_TShaderUniform.Matrix4 = ["Matrix4",9];
+mammoth_gl_types_TShaderUniform.Matrix4.toString = $estr;
+mammoth_gl_types_TShaderUniform.Matrix4.__enum__ = mammoth_gl_types_TShaderUniform;
+mammoth_gl_types_TShaderUniform.RGB = ["RGB",10];
+mammoth_gl_types_TShaderUniform.RGB.toString = $estr;
+mammoth_gl_types_TShaderUniform.RGB.__enum__ = mammoth_gl_types_TShaderUniform;
+mammoth_gl_types_TShaderUniform.RGBA = ["RGBA",11];
+mammoth_gl_types_TShaderUniform.RGBA.toString = $estr;
+mammoth_gl_types_TShaderUniform.RGBA.__enum__ = mammoth_gl_types_TShaderUniform;
+var mammoth_gl_types_TUniformData = { __ename__ : true, __constructs__ : ["Bool","Int","Float","Float2","Float3","Float4","Vector2","Vector3","Vector4","Matrix4","RGB","RGBA"] };
+mammoth_gl_types_TUniformData.Bool = function(x) { var $x = ["Bool",0,x]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_gl_types_TUniformData.Int = function(x) { var $x = ["Int",1,x]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_gl_types_TUniformData.Float = function(x) { var $x = ["Float",2,x]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_gl_types_TUniformData.Float2 = function(x,y) { var $x = ["Float2",3,x,y]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_gl_types_TUniformData.Float3 = function(x,y,z) { var $x = ["Float3",4,x,y,z]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_gl_types_TUniformData.Float4 = function(x,y,z,w) { var $x = ["Float4",5,x,y,z,w]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_gl_types_TUniformData.Vector2 = function(x) { var $x = ["Vector2",6,x]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_gl_types_TUniformData.Vector3 = function(x) { var $x = ["Vector3",7,x]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_gl_types_TUniformData.Vector4 = function(x) { var $x = ["Vector4",8,x]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_gl_types_TUniformData.Matrix4 = function(v) { var $x = ["Matrix4",9,v]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_gl_types_TUniformData.RGB = function(c) { var $x = ["RGB",10,c]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_gl_types_TUniformData.RGBA = function(c) { var $x = ["RGBA",11,c]; $x.__enum__ = mammoth_gl_types_TUniformData; $x.toString = $estr; return $x; };
+var mammoth_gl_types_TVertexAttribute = { __ename__ : true, __constructs__ : ["Float","Vec2","Vec3","Vec4"] };
+mammoth_gl_types_TVertexAttribute.Float = ["Float",0];
+mammoth_gl_types_TVertexAttribute.Float.toString = $estr;
+mammoth_gl_types_TVertexAttribute.Float.__enum__ = mammoth_gl_types_TVertexAttribute;
+mammoth_gl_types_TVertexAttribute.Vec2 = ["Vec2",1];
+mammoth_gl_types_TVertexAttribute.Vec2.toString = $estr;
+mammoth_gl_types_TVertexAttribute.Vec2.__enum__ = mammoth_gl_types_TVertexAttribute;
+mammoth_gl_types_TVertexAttribute.Vec3 = ["Vec3",2];
+mammoth_gl_types_TVertexAttribute.Vec3.toString = $estr;
+mammoth_gl_types_TVertexAttribute.Vec3.__enum__ = mammoth_gl_types_TVertexAttribute;
+mammoth_gl_types_TVertexAttribute.Vec4 = ["Vec4",3];
+mammoth_gl_types_TVertexAttribute.Vec4.toString = $estr;
+mammoth_gl_types_TVertexAttribute.Vec4.__enum__ = mammoth_gl_types_TVertexAttribute;
 var mammoth_systems_CameraSystem = function() {
 	this.__process__ = new mammoth_systems_CameraSystem_$SystemProcess(this);
 };
@@ -3771,8 +3843,6 @@ mammoth_systems_RenderSystem_$SystemProcess.prototype = {
 	}
 	,__class__: mammoth_systems_RenderSystem_$SystemProcess
 };
-var mammoth_types_Colours = function() { };
-mammoth_types_Colours.__name__ = ["mammoth","types","Colours"];
 var mammoth_types_Material = function(name) {
 	this.depthFunction = 515;
 	this.depthTest = true;
@@ -3973,69 +4043,6 @@ mammoth_types_ShaderUniform.__name__ = ["mammoth","types","ShaderUniform"];
 mammoth_types_ShaderUniform.prototype = {
 	__class__: mammoth_types_ShaderUniform
 };
-var mammoth_types_TShaderUniform = { __ename__ : true, __constructs__ : ["Bool","Int","Float","Float2","Float3","Float4","Vector2","Vector3","Vector4","Matrix4","RGB","RGBA"] };
-mammoth_types_TShaderUniform.Bool = ["Bool",0];
-mammoth_types_TShaderUniform.Bool.toString = $estr;
-mammoth_types_TShaderUniform.Bool.__enum__ = mammoth_types_TShaderUniform;
-mammoth_types_TShaderUniform.Int = ["Int",1];
-mammoth_types_TShaderUniform.Int.toString = $estr;
-mammoth_types_TShaderUniform.Int.__enum__ = mammoth_types_TShaderUniform;
-mammoth_types_TShaderUniform.Float = ["Float",2];
-mammoth_types_TShaderUniform.Float.toString = $estr;
-mammoth_types_TShaderUniform.Float.__enum__ = mammoth_types_TShaderUniform;
-mammoth_types_TShaderUniform.Float2 = ["Float2",3];
-mammoth_types_TShaderUniform.Float2.toString = $estr;
-mammoth_types_TShaderUniform.Float2.__enum__ = mammoth_types_TShaderUniform;
-mammoth_types_TShaderUniform.Float3 = ["Float3",4];
-mammoth_types_TShaderUniform.Float3.toString = $estr;
-mammoth_types_TShaderUniform.Float3.__enum__ = mammoth_types_TShaderUniform;
-mammoth_types_TShaderUniform.Float4 = ["Float4",5];
-mammoth_types_TShaderUniform.Float4.toString = $estr;
-mammoth_types_TShaderUniform.Float4.__enum__ = mammoth_types_TShaderUniform;
-mammoth_types_TShaderUniform.Vector2 = ["Vector2",6];
-mammoth_types_TShaderUniform.Vector2.toString = $estr;
-mammoth_types_TShaderUniform.Vector2.__enum__ = mammoth_types_TShaderUniform;
-mammoth_types_TShaderUniform.Vector3 = ["Vector3",7];
-mammoth_types_TShaderUniform.Vector3.toString = $estr;
-mammoth_types_TShaderUniform.Vector3.__enum__ = mammoth_types_TShaderUniform;
-mammoth_types_TShaderUniform.Vector4 = ["Vector4",8];
-mammoth_types_TShaderUniform.Vector4.toString = $estr;
-mammoth_types_TShaderUniform.Vector4.__enum__ = mammoth_types_TShaderUniform;
-mammoth_types_TShaderUniform.Matrix4 = ["Matrix4",9];
-mammoth_types_TShaderUniform.Matrix4.toString = $estr;
-mammoth_types_TShaderUniform.Matrix4.__enum__ = mammoth_types_TShaderUniform;
-mammoth_types_TShaderUniform.RGB = ["RGB",10];
-mammoth_types_TShaderUniform.RGB.toString = $estr;
-mammoth_types_TShaderUniform.RGB.__enum__ = mammoth_types_TShaderUniform;
-mammoth_types_TShaderUniform.RGBA = ["RGBA",11];
-mammoth_types_TShaderUniform.RGBA.toString = $estr;
-mammoth_types_TShaderUniform.RGBA.__enum__ = mammoth_types_TShaderUniform;
-var mammoth_types_TUniformData = { __ename__ : true, __constructs__ : ["Bool","Int","Float","Float2","Float3","Float4","Vector2","Vector3","Vector4","Matrix4","RGB","RGBA"] };
-mammoth_types_TUniformData.Bool = function(x) { var $x = ["Bool",0,x]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
-mammoth_types_TUniformData.Int = function(x) { var $x = ["Int",1,x]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
-mammoth_types_TUniformData.Float = function(x) { var $x = ["Float",2,x]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
-mammoth_types_TUniformData.Float2 = function(x,y) { var $x = ["Float2",3,x,y]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
-mammoth_types_TUniformData.Float3 = function(x,y,z) { var $x = ["Float3",4,x,y,z]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
-mammoth_types_TUniformData.Float4 = function(x,y,z,w) { var $x = ["Float4",5,x,y,z,w]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
-mammoth_types_TUniformData.Vector2 = function(x) { var $x = ["Vector2",6,x]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
-mammoth_types_TUniformData.Vector3 = function(x) { var $x = ["Vector3",7,x]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
-mammoth_types_TUniformData.Vector4 = function(x) { var $x = ["Vector4",8,x]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
-mammoth_types_TUniformData.Matrix4 = function(v) { var $x = ["Matrix4",9,v]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
-mammoth_types_TUniformData.RGB = function(c) { var $x = ["RGB",10,c]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
-mammoth_types_TUniformData.RGBA = function(c) { var $x = ["RGBA",11,c]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
-var mammoth_types_TVertexAttribute = { __ename__ : true, __constructs__ : ["Float","Vec2","Vec3","Vec4"] };
-mammoth_types_TVertexAttribute.Float = ["Float",0];
-mammoth_types_TVertexAttribute.Float.toString = $estr;
-mammoth_types_TVertexAttribute.Float.__enum__ = mammoth_types_TVertexAttribute;
-mammoth_types_TVertexAttribute.Vec2 = ["Vec2",1];
-mammoth_types_TVertexAttribute.Vec2.toString = $estr;
-mammoth_types_TVertexAttribute.Vec2.__enum__ = mammoth_types_TVertexAttribute;
-mammoth_types_TVertexAttribute.Vec3 = ["Vec3",2];
-mammoth_types_TVertexAttribute.Vec3.toString = $estr;
-mammoth_types_TVertexAttribute.Vec3.__enum__ = mammoth_types_TVertexAttribute;
-mammoth_types_TVertexAttribute.Vec4 = ["Vec4",3];
-mammoth_types_TVertexAttribute.Vec4.toString = $estr;
-mammoth_types_TVertexAttribute.Vec4.__enum__ = mammoth_types_TVertexAttribute;
 var promhx_base_AsyncBase = function(d,pos) {
 	this.parentConstructorPos = [];
 	var tmp = promhx_base_AsyncBase;
@@ -4805,24 +4812,10 @@ js_html_compat_Uint8Array.BYTES_PER_ELEMENT = 1;
 mammoth_Mammoth.timing = new mammoth_platform_js_Timing();
 mammoth_Mammoth.gl = new mammoth_gl_js_Graphics();
 mammoth_Mammoth.assets = new mammoth_platform_js_Assets();
+mammoth_Mammoth.resources = new mammoth_Resources();
 mammoth_Mammoth.input = new mammoth_platform_js_Input();
 mammoth_Mammoth.stats = new mammoth_Stats();
-mammoth_filetypes_MammothJSON.cameras = new haxe_ds_StringMap();
-mammoth_filetypes_MammothJSON.lights = new haxe_ds_StringMap();
-mammoth_filetypes_MammothJSON.meshes = new haxe_ds_StringMap();
-mammoth_filetypes_MammothJSON.materials = new haxe_ds_StringMap();
-mammoth_filetypes_MammothJSON.materialDatas = new haxe_ds_StringMap();
-mammoth_systems_DirectionalLightSystem.zDir = (function($this) {
-	var $r;
-	var this1 = new Float32Array(4);
-	this1[0] = 0;
-	this1[1] = 0;
-	this1[2] = 1;
-	this1[3] = 1;
-	$r = this1;
-	return $r;
-}(this));
-mammoth_types_Colours.Black = (function($this) {
+mammoth_defaults_Colours.Black = (function($this) {
 	var $r;
 	var this1 = new Float32Array(4);
 	this1[0] = 0;
@@ -4832,11 +4825,24 @@ mammoth_types_Colours.Black = (function($this) {
 	$r = this1;
 	return $r;
 }(this));
-mammoth_types_Colours.White = (function($this) {
+mammoth_defaults_Colours.White = (function($this) {
 	var $r;
 	var this1 = new Float32Array(4);
 	this1[0] = 1;
 	this1[1] = 1;
+	this1[2] = 1;
+	this1[3] = 1;
+	$r = this1;
+	return $r;
+}(this));
+mammoth_filetypes_MammothJSON.cameras = new haxe_ds_StringMap();
+mammoth_filetypes_MammothJSON.lights = new haxe_ds_StringMap();
+mammoth_filetypes_MammothJSON.materialDatas = new haxe_ds_StringMap();
+mammoth_systems_DirectionalLightSystem.zDir = (function($this) {
+	var $r;
+	var this1 = new Float32Array(4);
+	this1[0] = 0;
+	this1[1] = 0;
 	this1[2] = 1;
 	this1[3] = 1;
 	$r = this1;

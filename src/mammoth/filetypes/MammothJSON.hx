@@ -30,8 +30,8 @@ import mammoth.types.Colour;
 import mammoth.types.MaterialData;
 import mammoth.types.Mesh;
 import mammoth.types.Material;
-import mammoth.types.TUniformData;
-import mammoth.types.TVertexAttribute;
+import mammoth.gl.types.TUniformData;
+import mammoth.gl.types.TVertexAttribute;
 
 import haxe.io.Bytes;
 import haxe.crypto.Base64;
@@ -132,10 +132,8 @@ typedef MammothFile = {
 class MammothJSON {
     private static var cameras:StringMap<Camera> = new StringMap<Camera>();
     private static var lights:StringMap<IComponent> = new StringMap<IComponent>();
-    private static var meshes:StringMap<Mesh> = new StringMap<Mesh>();
-    private static var materials:StringMap<Material> = new StringMap<Material>();
     private static var materialDatas:StringMap<MaterialData> = new StringMap<MaterialData>();
-
+    
     private function new(){}
 
     private static function loadCamera(cam:MammothCamera):Void {
@@ -201,7 +199,8 @@ class MammothJSON {
         }
 
         mesh.compile();
-        meshes.set(meshData.name, mesh);
+        //meshes.set(meshData.name, mesh);
+        Mammoth.resources.meshes.set(meshData.name, mesh);
     }
 
     private static function loadObject(parentTransform:Transform, object:MammothObject):Void {
@@ -227,11 +226,11 @@ class MammothJSON {
         if(object.render != null && object.render.shader != null) {
             var renderer:MeshRenderer = new MeshRenderer();
             
-            renderer.mesh = meshes.get(object.render.mesh);
-            if(!materials.exists('standard_1_0')) {
-                materials.set('standard_1_0', Materials.standard(1, 0));
+            renderer.mesh = Mammoth.resources.meshes.get(object.render.mesh);
+            if(!Mammoth.resources.materials.exists('standard_1_0')) {
+                Mammoth.resources.materials.set('standard_1_0', Materials.standard(1, 0));
             }
-            renderer.material = materials.get('standard_1_0');
+            renderer.material = Mammoth.resources.materials.get('standard_1_0');
             renderer.materialData = materialDatas.get(object.render.shader);
 
             entity.add(renderer);
@@ -268,7 +267,6 @@ class MammothJSON {
         }
 
         // load meshes
-        meshes = new StringMap<Mesh>();
         for(me in file.meshes) {
             loadMesh(me);
         }

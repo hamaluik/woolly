@@ -14,6 +14,7 @@
 package mammoth.types;
 
 import mammoth.gl.AttributeLocation;
+import mammoth.gl.types.TVertexAttribute;
 
 @:allow(mammoth.types.Material)
 class MaterialAttribute {

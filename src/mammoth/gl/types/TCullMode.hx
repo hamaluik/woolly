@@ -11,19 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.types;
+package mammoth.gl.types;
 
-enum TShaderUniform {
-	Bool;
-	Int;
-	Float;
-	Float2;
-	Float3;
-	Float4;
-	Vector2;
-	Vector3;
-	Vector4;
-	Matrix4;
-	RGB;
-	RGBA;
+import mammoth.gl.GL;
+
+@:enum
+abstract TCullMode(Int) {
+    var None = GL.NONE;
+    var Front = GL.FRONT;
+    var Back = GL.BACK;
+    var Both = GL.FRONT_AND_BACK;
 }

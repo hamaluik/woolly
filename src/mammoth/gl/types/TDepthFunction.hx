@@ -11,14 +11,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.gl;
+package mammoth.gl.types;
 
 import mammoth.gl.GL;
 
 @:enum
-abstract TCullMode(Int) {
-    var None = GL.NONE;
-    var Front = GL.FRONT;
-    var Back = GL.BACK;
-    var Both = GL.FRONT_AND_BACK;
+abstract TDepthFunction(Int) {
+    var Never = GL.NEVER;
+    var Less = GL.LESS;
+    var Equal = GL.EQUAL;
+    var LessOrEqual = GL.LEQUAL;
+    var Greater = GL.GREATER;
+    var NotEqual = GL.NOTEQUAL;
+    var GreaterOrEqual = GL.GEQUAL;
+    var Aways = GL.ALWAYS;
 }

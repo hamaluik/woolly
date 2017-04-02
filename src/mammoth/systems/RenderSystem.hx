@@ -22,12 +22,12 @@ import mammoth.components.DirectionalLight;
 import mammoth.components.PointLight;
 import mammoth.Mammoth;
 import mammoth.gl.GL;
-import mammoth.gl.TCullMode;
 import mammoth.types.Material;
 import mammoth.types.Mesh;
 import mammoth.types.MeshAttribute;
-import mammoth.types.TUniformData;
 import mammoth.gl.UniformLocation;
+import mammoth.gl.types.TCullMode;
+import mammoth.gl.types.TUniformData;
 
 class RenderSystem implements ISystem {
     var objects:View<{ transform:Transform, renderer:MeshRenderer }>;

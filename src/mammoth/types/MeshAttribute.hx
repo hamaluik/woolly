@@ -13,6 +13,8 @@
 */
 package mammoth.types;
 
+import mammoth.gl.types.TVertexAttribute;
+
 @:allow(mammoth.types.Mesh)
 class MeshAttribute {
     public var name(default, null):String;

@@ -14,6 +14,7 @@
 package mammoth.types;
 
 import mammoth.gl.UniformLocation;
+import mammoth.gl.types.TShaderUniform;
 
 class ShaderUniform {
     public var name(default, null):String;

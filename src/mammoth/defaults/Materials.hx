@@ -1,9 +1,9 @@
 package mammoth.defaults;
 
 import mammoth.types.Material;
-import mammoth.gl.TShader;
-import mammoth.types.TVertexAttribute;
-import mammoth.types.TShaderUniform;
+import mammoth.gl.types.TShader;
+import mammoth.gl.types.TVertexAttribute;
+import mammoth.gl.types.TShaderUniform;
 
 class Materials {
     public static function shadow():Material {

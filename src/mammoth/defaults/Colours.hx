@@ -11,10 +11,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.gl;
+package mammoth.defaults;
 
-@:enum
-abstract TShader(Int) {
-    var Vertex = GL.VERTEX_SHADER;
-    var Fragment = GL.FRAGMENT_SHADER;
+import mammoth.types.Colour;
+
+class Colours {
+    public static var Black:Colour = new Colour(0, 0, 0, 1);
+    public static var White:Colour = new Colour(1, 1, 1, 1);
 }

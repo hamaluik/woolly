@@ -14,6 +14,6 @@
 package mammoth.types;
 
 import haxe.ds.StringMap;
-import mammoth.types.TUniformData;
+import mammoth.gl.types.TUniformData;
 
 typedef MaterialData = StringMap<TUniformData>;

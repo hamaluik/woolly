@@ -11,18 +11,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.gl;
+package mammoth;
 
-import mammoth.gl.GL;
+import haxe.ds.StringMap;
+import mammoth.types.Mesh;
+import mammoth.types.Material;
 
-@:enum
-abstract TDepthFunction(Int) {
-    var Never = GL.NEVER;
-    var Less = GL.LESS;
-    var Equal = GL.EQUAL;
-    var LessOrEqual = GL.LEQUAL;
-    var Greater = GL.GREATER;
-    var NotEqual = GL.NOTEQUAL;
-    var GreaterOrEqual = GL.GEQUAL;
-    var Aways = GL.ALWAYS;
+class Resources {
+    public var meshes:StringMap<Mesh> = new StringMap<Mesh>();
+    public var materials:StringMap<Material> = new StringMap<Material>();
+
+    public function new(){}
 }

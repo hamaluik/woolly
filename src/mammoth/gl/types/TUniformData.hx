@@ -11,7 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.types;
+package mammoth.gl.types;
+
+import mammoth.types.Colour;
 
 enum TUniformData {
 	Bool(x:Bool);

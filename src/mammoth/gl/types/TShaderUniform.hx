@@ -11,12 +11,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.gl;
+package mammoth.gl.types;
 
-import mammoth.gl.GL;
-
-@:enum
-abstract TBufferUsage(Int) {
-    var Static = GL.STATIC_DRAW;
-    var Dynamic = GL.DYNAMIC_DRAW;
+enum TShaderUniform {
+	Bool;
+	Int;
+	Float;
+	Float2;
+	Float3;
+	Float4;
+	Vector2;
+	Vector3;
+	Vector4;
+	Matrix4;
+	RGB;
+	RGBA;
 }

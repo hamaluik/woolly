@@ -17,10 +17,10 @@ import edge.Engine;
 import edge.Phase;
 import mammoth.gl.Graphics;
 import mammoth.platform.Assets;
+import mammoth.Resources;
 import mammoth.platform.Input;
 import mammoth.platform.Timing;
 import mammoth.debug.DebugView;
-import mammoth.types.Resources;
 import tusk.Tusk;
 
 @:expose

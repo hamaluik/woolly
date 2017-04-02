@@ -15,9 +15,10 @@ package mammoth.types;
 
 import mammoth.gl.GL;
 import mammoth.gl.Buffer;
-import mammoth.gl.TBufferUsage;
+import mammoth.gl.types.TBufferUsage;
 import mammoth.platform.Float32Array;
 import mammoth.platform.Int16Array;
+import mammoth.gl.types.TVertexAttribute;
 
 class Mesh {
     public var vertexBuffer(default, null):Buffer;

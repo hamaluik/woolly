@@ -20,12 +20,12 @@ import mammoth.gl.UniformLocation;
 import mammoth.gl.GL;
 import mammoth.gl.Shader;
 import mammoth.gl.Program;
-import mammoth.gl.TCullMode;
-import mammoth.gl.TDepthFunction;
-import mammoth.gl.TShader;
-import mammoth.types.TVertexAttribute;
+import mammoth.gl.types.TCullMode;
+import mammoth.gl.types.TDepthFunction;
+import mammoth.gl.types.TShader;
+import mammoth.gl.types.TVertexAttribute;
+import mammoth.gl.types.TShaderUniform;
 import mammoth.types.MaterialAttribute;
-import mammoth.types.TShaderUniform;
 import mammoth.types.ShaderUniform;
 
 class Material {

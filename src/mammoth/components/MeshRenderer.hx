@@ -17,7 +17,6 @@ import edge.IComponent;
 import mammoth.types.Material;
 import mammoth.types.Mesh;
 import mammoth.types.MaterialData;
-import mammoth.types.TUniformData;
 
 class MeshRenderer implements IComponent {
 	public var mesh:Mesh;
@@ -25,19 +24,4 @@ class MeshRenderer implements IComponent {
 	public var materialData:MaterialData = new MaterialData();
 
 	public function new() {}
-
-	public function setMesh(mesh:Mesh):MeshRenderer {
-		this.mesh = mesh;
-		return this;
-	}
-
-	public function setMaterial(material:Material):MeshRenderer {
-		this.material = material;
-		return this;
-	}
-
-	public function setMaterialData(name:String, data:TUniformData):MeshRenderer {
-		materialData.set(name, data);
-		return this;
-	}
 }
