@@ -21,6 +21,7 @@ import glm.Quat;
 @:allow(mammoth.systems.ModelMatrixSystem)
 @:allow(mammoth.systems.PreTransformSystem)
 @:allow(mammoth.systems.PostTransformSystem)
+@ignoreAutoMap
 class Transform implements Component {
     public var name:String = '';
 	public var parent(default, set):Transform = null;

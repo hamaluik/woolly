@@ -5304,6 +5304,11 @@ mammoth_Mammoth.assets = new mammoth_platform_js_Assets();
 mammoth_Mammoth.resources = new mammoth_Resources();
 mammoth_Mammoth.input = new mammoth_platform_js_Input();
 mammoth_Mammoth.stats = new mammoth_Stats();
+mammoth_components_Camera.__meta__ = { obj : { ignoreAutoMap : null}};
+mammoth_components_DirectionalLight.__meta__ = { obj : { ignoreAutoMap : null}};
+mammoth_components_MeshRenderer.__meta__ = { obj : { ignoreAutoMap : null}};
+mammoth_components_PointLight.__meta__ = { obj : { ignoreAutoMap : null}};
+mammoth_components_Transform.__meta__ = { obj : { ignoreAutoMap : null}};
 mammoth_defaults_Colours.Black = (function($this) {
 	var $r;
 	var this1 = new Float32Array(4);

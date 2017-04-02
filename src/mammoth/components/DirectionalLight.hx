@@ -19,6 +19,7 @@ import mammoth.defaults.Colours;
 import mammoth.gl.Framebuffer;
 import mammoth.gl.Texture;
 
+@ignoreAutoMap
 class DirectionalLight implements Component {
 	public var colour:Colour = Colours.White;
 	public var direction:Vec4 = new Vec4();

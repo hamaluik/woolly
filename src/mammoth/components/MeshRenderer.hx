@@ -18,6 +18,7 @@ import mammoth.types.Material;
 import mammoth.types.Mesh;
 import mammoth.types.MaterialData;
 
+@ignoreAutoMap
 class MeshRenderer implements Component {
 	public var mesh:Mesh;
 	public var material:Material;

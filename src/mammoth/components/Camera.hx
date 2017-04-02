@@ -24,6 +24,7 @@ enum ProjectionMode {
     Perspective(fieldOfView:Float);
 }
 
+@ignoreAutoMap
 class Camera implements Component {
     public var pDirty:Bool = true;
 

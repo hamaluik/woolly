@@ -1,0 +1,30 @@
+{
+  "Bounce": [
+    {
+      "name": "x",
+      "type": "float"
+    },
+    {
+      "name": "vx",
+      "type": "float"
+    },
+    {
+      "name": "xMin",
+      "type": "float"
+    },
+    {
+      "name": "xMax",
+      "type": "float"
+    }
+  ],
+  "Spin": [
+    {
+      "name": "angle",
+      "type": "float"
+    },
+    {
+      "name": "speed",
+      "type": "float"
+    }
+  ]
+}

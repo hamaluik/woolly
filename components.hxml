@@ -1,0 +1,6 @@
+-cp src
+
+-lib GLM
+
+--macro mammoth.macros.Assets.deleteFile('component_map.json')
+--macro ImportAll.run('components')

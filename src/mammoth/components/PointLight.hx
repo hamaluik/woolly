@@ -17,6 +17,7 @@ import mammoth.Component;
 import mammoth.types.Colour;
 import mammoth.defaults.Colours;
 
+@ignoreAutoMap
 class PointLight implements Component {
     public var colour:Colour = Colours.White;
     public var distance:Float = 25;

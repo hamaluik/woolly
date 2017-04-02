@@ -31,6 +31,13 @@ class Assets {
         }
     }
 
+    public static function deleteFile(path:String):Void {
+        if(FileSystem.exists(path)) {
+            FileSystem.deleteFile(path);
+            Sys.println('[\033[33mmammoth\033[0m] deleted file \033[32m${path}\033[0m!');
+        }
+    }
+
     public static function copy(source:String, target:String):Void {
         if(FileSystem.isDirectory(source))
             throw 'Cannot copy ${source}, it is a directory! Use `copyDir` instead!';
