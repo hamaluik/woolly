@@ -26,7 +26,7 @@ class Main {
         Log.info("Loading...");
         Mammoth.assets.loadJSON(AssetList.asset___iso__json)
             .then(function(data:Dynamic) {
-                mammoth.loader.Loader.load(data);
+                mammoth.filetypes.MammothJSON.load(data);
                 Log.info("Done!");
 
                 // print all the objects

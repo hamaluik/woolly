@@ -11,21 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.loader;
+package mammoth.types;
 
-@:enum
-abstract CameraType(String) {
-	var Orthographic = "orthographic";
-	var Perspective = "perspective";
-}
+import haxe.ds.StringMap;
+import mammoth.types.TUniformData;
 
-typedef Camera = {
-    var name:String;
-    var type:CameraType;
-    var near:Float;
-    var far:Float;
-    var clearColour:Colour;
-    @:optional var aspect:Float;
-    @:optional var fov:Float;
-    @:optional var ortho_size:Float;
-}
+typedef MaterialData = StringMap<TUniformData>;

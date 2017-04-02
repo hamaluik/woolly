@@ -11,11 +11,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.render;
+package mammoth.types;
 
-enum CullMode {
-	None;
-	Front;
-	Back;
-	Both;
+enum TVertexAttribute {
+    Float;
+    Vec2;
+    Vec3;
+    Vec4;
 }

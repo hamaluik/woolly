@@ -11,6 +11,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.utilities;
+package mammoth.types;
 
-typedef Colour = glm.Vec4;
+enum TUniformData {
+	Bool(x:Bool);
+	Int(x:Int);
+	Float(x:Float);
+	Float2(x:Float, y:Float);
+	Float3(x:Float, y:Float, z:Float);
+	Float4(x:Float, y:Float, z:Float, w:Float);
+	Vector2(x:Vec2);
+	Vector3(x:Vec3);
+	Vector4(x:Vec4);
+	Matrix4(v:Mat4);
+	RGB(c:Colour);
+	RGBA(c:Colour);
+}

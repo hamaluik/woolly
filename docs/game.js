@@ -324,7 +324,7 @@ Main.main = function() {
 Main.onReady = function() {
 	mammoth_Log.log("Loading...",mammoth_LogFunctions.Info,{ fileName : "Main.hx", lineNumber : 26, className : "Main", methodName : "onReady"});
 	mammoth_Mammoth.assets.loadJSON("assets/iso.json").then(function(data) {
-		mammoth_loader_Loader.load(data);
+		mammoth_filetypes_MammothJSON.load(data);
 		mammoth_Log.log("Done!",mammoth_LogFunctions.Info,{ fileName : "Main.hx", lineNumber : 30, className : "Main", methodName : "onReady"});
 		var entity = mammoth_Mammoth.engine.entities();
 		while(entity.hasNext()) {
@@ -2044,7 +2044,7 @@ mammoth_Mammoth.init = function(onReady,updateRate) {
 	mammoth_Mammoth.preUpdatePhase.add(new mammoth_systems_PreTransformSystem());
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_ModelMatrixSystem());
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_CameraSystem());
-	mammoth_Mammoth.renderPhase.add(new mammoth_systems_DirectionalShadowSystem());
+	mammoth_Mammoth.renderPhase.add(new mammoth_systems_DirectionalLightSystem());
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_RenderSystem());
 	if(onReady != null) {
 		onReady();
@@ -2134,7 +2134,7 @@ var mammoth_components_Camera = function() {
 	this12[14] = 0;
 	this12[15] = 0;
 	this.v = this12;
-	this.clearColour = mammoth_utilities_Colours.Black;
+	this.clearColour = mammoth_types_Colours.Black;
 	var this13 = new Float32Array(4);
 	this13[0] = 1;
 	this13[1] = 1;
@@ -2174,16 +2174,13 @@ mammoth_components_Camera.prototype = {
 	,__class__: mammoth_components_Camera
 };
 var mammoth_components_DirectionalLight = function() {
-	this.shadowmap = null;
-	this.colourmap = null;
-	this.shadowFramebuffer = null;
 	var this1 = new Float32Array(4);
 	this1[0] = 0;
 	this1[1] = 0;
 	this1[2] = 0;
 	this1[3] = 0;
 	this.direction = this1;
-	this.colour = mammoth_utilities_Colours.White;
+	this.colour = mammoth_types_Colours.White;
 };
 mammoth_components_DirectionalLight.__name__ = ["mammoth","components","DirectionalLight"];
 mammoth_components_DirectionalLight.__interfaces__ = [edge_IComponent];
@@ -2195,23 +2192,16 @@ mammoth_components_DirectionalLight.prototype = {
 	,__class__: mammoth_components_DirectionalLight
 };
 var mammoth_components_MeshRenderer = function() {
+	this.materialData = new haxe_ds_StringMap();
 };
 mammoth_components_MeshRenderer.__name__ = ["mammoth","components","MeshRenderer"];
 mammoth_components_MeshRenderer.__interfaces__ = [edge_IComponent];
 mammoth_components_MeshRenderer.prototype = {
-	setMesh: function(mesh) {
-		this.mesh = mesh;
-		return this;
-	}
-	,setMaterial: function(material) {
-		this.material = material;
-		return this;
-	}
-	,__class__: mammoth_components_MeshRenderer
+	__class__: mammoth_components_MeshRenderer
 };
 var mammoth_components_PointLight = function() {
 	this.distance = 25;
-	this.colour = mammoth_utilities_Colours.White;
+	this.colour = mammoth_types_Colours.White;
 };
 mammoth_components_PointLight.__name__ = ["mammoth","components","PointLight"];
 mammoth_components_PointLight.__interfaces__ = [edge_IComponent];
@@ -2444,200 +2434,94 @@ mammoth_debug_Exception.prototype = {
 };
 var mammoth_defaults_Materials = function() { };
 mammoth_defaults_Materials.__name__ = ["mammoth","defaults","Materials"];
-mammoth_defaults_Materials.shadow = function() {
-	var mat = new mammoth_render_Material("shadow");
-	var vertexSrc = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\n// attribute inputs\nattribute vec3 position;\nattribute vec3 normal;\n\n// camera uniforms\nuniform mat4 MVP;\n\nvoid main() {\n    // set the camera-space position of the vertex\n\tgl_Position = MVP * vec4(position, 1.0);\n}";
-	var fragSrc = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\nvoid main() {\n    gl_FragColor = vec4(gl_FragCoord.zzz, 1.0);\n}";
-	mat.setVertexShader(vertexSrc);
-	mat.setFragmentShader(fragSrc);
-	mat.registerAttribute("position",new mammoth_render_Attribute("position",mammoth_render_TAttribute.Vec3,18,0));
-	mat.registerAttribute("normal",new mammoth_render_Attribute("normal",mammoth_render_TAttribute.Vec3,18,9));
-	mat.compile();
-	var this1 = new Float32Array(16);
-	this1[0] = 0;
-	this1[1] = 0;
-	this1[2] = 0;
-	this1[3] = 0;
-	this1[4] = 0;
-	this1[5] = 0;
-	this1[6] = 0;
-	this1[7] = 0;
-	this1[8] = 0;
-	this1[9] = 0;
-	this1[10] = 0;
-	this1[11] = 0;
-	this1[12] = 0;
-	this1[13] = 0;
-	this1[14] = 0;
-	this1[15] = 0;
-	var dest = this1;
-	dest[0] = 1;
-	dest[1] = 0;
-	dest[2] = 0;
-	dest[3] = 0;
-	dest[4] = 0;
-	dest[5] = 1;
-	dest[6] = 0;
-	dest[7] = 0;
-	dest[8] = 0;
-	dest[9] = 0;
-	dest[10] = 1;
-	dest[11] = 0;
-	dest[12] = 0;
-	dest[13] = 0;
-	dest[14] = 0;
-	dest[15] = 1;
-	var m4 = dest;
-	mat.setUniform("MVP",mammoth_render_TUniform.Mat4(m4));
-	return mat;
+mammoth_defaults_Materials.standard = function(directionalLights,pointLights) {
+	var material = new mammoth_types_Material("standard_" + directionalLights + "_" + pointLights);
+	var vertexSrc = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\n// attribute inputs\nattribute vec3 position;\nattribute vec3 normal;\n\n#ifdef ATTRIBUTE_UV\nattribute vec2 uv;\n#endif\n#ifdef ATTRIBUTE_COLOUR\nattribute vec3 colour;\n#endif\n\n// camera uniforms\nuniform mat4 MVP;\nuniform mat4 M;\n\n// material uniforms\nuniform vec3 albedoColour;\nuniform vec3 ambientColour;\n\n// outputs\nvarying vec3 v_position;\nvarying vec3 v_normal;\nvarying vec3 v_colour;\n#ifdef ATTRIBUTE_UV\nvarying vec2 v_uv;\n#endif\n\nvoid main() {\n    // transform position to world space\n    vec3 worldPosition = (M * vec4(position, 1.0)).xyz;\n    v_position = worldPosition;\n\n\t// transform normals into world space\n\tvec3 worldNormal = (M * vec4(normal, 0.0)).xyz;\n    v_normal = worldNormal;\n\t\n    vec3 colour = albedoColour * ambientColour;\n\n    v_colour = colour;\n    #ifdef ATTRIBUTE_UV\n\tv_uv = uv;\n    #endif\n\n    // set the camera-space position of the vertex\n\tgl_Position = MVP * vec4(position, 1.0);\n}";
+	var fragSrc = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\n// lights\n#ifdef UNIFORM_DIRECTIONAL_LIGHTS\nstruct SDirectionalLight {\n    vec3 direction;\n    vec3 colour;\n};\nuniform SDirectionalLight directionalLights[NUMBER_DIRECTIONAL_LIGHTS];\n#endif\n#ifdef UNIFORM_POINT_LIGHTS\nstruct SPointLight {\n    vec3 position;\n    vec3 colour;\n    float distance;\n};\nuniform SPointLight pointLights[NUMBER_POINT_LIGHTS];\n#endif\n\n// material uniforms\nuniform vec3 albedoColour;\nuniform vec3 ambientColour;\n\n// inputs\nvarying vec3 v_position;\nvarying vec3 v_normal;\nvarying vec3 v_colour;\n#ifdef ATTRIBUTE_UV\nvarying vec2 v_uv;\n#endif\n\n#ifdef UNIFORM_TEXTURE\nuniform sampler2D texture;\n#endif\n\nvoid main() {\n    // base colour from vertex shader\n    vec3 colour = v_colour;\n\n    #ifdef UNIFORM_DIRECTIONAL_LIGHTS\n\t// sun diffuse term\n\tfloat dLight0 = clamp(dot(v_normal, directionalLights[0].direction), 0.0, 1.0);\n    colour += directionalLights[0].colour * dLight0 * albedoColour;\n    #endif\n\n    #ifdef UNIFORM_POINT_LIGHTS\n    vec3 pLightDir0 = pointLights[0].position - v_position;\n    float pDist0 = length(pLightDir0);\n\tfloat pLight0 = clamp(dot(v_normal, pLightDir0), 0.0, 1.0) * pointLights[0].distance / (pDist0 * pDist0);\n    colour += pointLights[0].colour * pLight0 * albedoColour;\n    #endif\n\n    vec4 outColour = vec4(colour, 1.0);\n    #ifdef UNIFORM_TEXTURE\n    outColour *= texture2D(texture, v_uv);\n    #endif\n\n    // gamma\n    gl_FragColor = vec4(pow(outColour.rgb, vec3(1.0/2.2)), outColour.a);\n    //gl_FragColor = outColour;\n}";
+	var vertexPre = [];
+	var fragmentPre = [];
+	if(directionalLights > 0) {
+		fragmentPre.push("#define UNIFORM_DIRECTIONAL_LIGHTS");
+		fragmentPre.push("#define NUMBER_DIRECTIONAL_LIGHTS " + directionalLights);
+	}
+	if(pointLights > 0) {
+		fragmentPre.push("#define UNIFORM_POINT_LIGHTS");
+		fragmentPre.push("#define NUMBER_POINT_LIGHTS " + pointLights);
+	}
+	vertexSrc = vertexPre.join("\n") + "\n" + vertexSrc;
+	fragSrc = fragmentPre.join("\n") + "\n" + fragSrc;
+	material.setShaderSource(vertexSrc,35633);
+	material.setShaderSource(fragSrc,35632);
+	material.compile();
+	material.registerAttribute("position",mammoth_types_TVertexAttribute.Vec3);
+	material.registerAttribute("normal",mammoth_types_TVertexAttribute.Vec3);
+	material.registerUniform("MVP",mammoth_types_TShaderUniform.Matrix4);
+	material.registerUniform("M",mammoth_types_TShaderUniform.Matrix4);
+	material.registerUniform("albedoColour",mammoth_types_TShaderUniform.Vector3);
+	material.registerUniform("ambientColour",mammoth_types_TShaderUniform.Vector3);
+	var _g1 = 0;
+	var _g = directionalLights;
+	while(_g1 < _g) {
+		var i = _g1++;
+		material.registerUniform("directionalLights[" + i + "].direction",mammoth_types_TShaderUniform.Vector3);
+		material.registerUniform("directionalLights[" + i + "].colour",mammoth_types_TShaderUniform.Vector3);
+	}
+	var _g11 = 0;
+	var _g2 = pointLights;
+	while(_g11 < _g2) {
+		var i1 = _g11++;
+		material.registerUniform("pointLights[" + i1 + "].position",mammoth_types_TShaderUniform.Vector3);
+		material.registerUniform("pointLights[" + i1 + "].colour",mammoth_types_TShaderUniform.Vector3);
+		material.registerUniform("pointLights[" + i1 + "].distance",mammoth_types_TShaderUniform.Float);
+	}
+	return material;
 };
-var mammoth_defaults_StandardAttributes = { __ename__ : true, __constructs__ : ["UV","Colour"] };
-mammoth_defaults_StandardAttributes.UV = ["UV",0];
-mammoth_defaults_StandardAttributes.UV.toString = $estr;
-mammoth_defaults_StandardAttributes.UV.__enum__ = mammoth_defaults_StandardAttributes;
-mammoth_defaults_StandardAttributes.Colour = ["Colour",1];
-mammoth_defaults_StandardAttributes.Colour.toString = $estr;
-mammoth_defaults_StandardAttributes.Colour.__enum__ = mammoth_defaults_StandardAttributes;
-var mammoth_defaults_StandardUniforms = { __ename__ : true, __constructs__ : ["DirectionalLights","PointLights","Texture"] };
-mammoth_defaults_StandardUniforms.DirectionalLights = ["DirectionalLights",0];
-mammoth_defaults_StandardUniforms.DirectionalLights.toString = $estr;
-mammoth_defaults_StandardUniforms.DirectionalLights.__enum__ = mammoth_defaults_StandardUniforms;
-mammoth_defaults_StandardUniforms.PointLights = ["PointLights",1];
-mammoth_defaults_StandardUniforms.PointLights.toString = $estr;
-mammoth_defaults_StandardUniforms.PointLights.__enum__ = mammoth_defaults_StandardUniforms;
-mammoth_defaults_StandardUniforms.Texture = ["Texture",2];
-mammoth_defaults_StandardUniforms.Texture.toString = $estr;
-mammoth_defaults_StandardUniforms.Texture.__enum__ = mammoth_defaults_StandardUniforms;
-var mammoth_defaults_StandardShader = function(origin) {
-	this.fragment = "";
-	this.vertex = "";
-	this.uniforms = 0;
-	this.attributes = 0;
-	this.built = false;
-	if(origin == null) {
-		return;
-	}
-	var this1 = origin.attributes;
-	this.attributes = this1;
-	var this2 = origin.uniforms;
-	this.uniforms = this2;
-	this.albedoColour = origin.albedoColour;
-	this.ambientColour = origin.ambientColour;
-};
-mammoth_defaults_StandardShader.__name__ = ["mammoth","defaults","StandardShader"];
-mammoth_defaults_StandardShader.prototype = {
-	get_vertex: function() {
-		if(!this.built) {
-			this.build();
-		}
-		return this.vertex;
-	}
-	,get_fragment: function() {
-		if(!this.built) {
-			this.build();
-		}
-		return this.fragment;
-	}
-	,build: function() {
-		var prepends = [];
-		if((this.attributes & 1 << mammoth_defaults_StandardAttributes.UV[1]) != 0) {
-			prepends.push("#define ATTRIBUTE_NORMAL");
-		}
-		if((this.attributes & 1 << mammoth_defaults_StandardAttributes.Colour[1]) != 0) {
-			prepends.push("#define ATTRIBUTE_COLOUR");
-		}
-		if((this.uniforms & 1 << mammoth_defaults_StandardUniforms.DirectionalLights[1]) != 0) {
-			prepends.push("#define UNIFORM_DIRECTIONAL_LIGHTS");
-			prepends.push("#define NUMBER_DIRECTIONAL_LIGHTS 1");
-		}
-		if((this.uniforms & 1 << mammoth_defaults_StandardUniforms.PointLights[1]) != 0) {
-			prepends.push("#define UNIFORM_POINT_LIGHTS");
-			prepends.push("#define NUMBER_POINT_LIGHTS 1");
-		}
-		if((this.uniforms & 1 << mammoth_defaults_StandardUniforms.Texture[1]) != 0) {
-			prepends.push("#define UNIFORM_TEXTURE");
-		}
-		var pre = prepends.join("\n");
-		this.vertex = pre + "\n\n" + mammoth_defaults_StandardShader.vertexStandard;
-		this.fragment = pre + "\n\n" + mammoth_defaults_StandardShader.fragmentStandard;
-		this.built = true;
-	}
-	,setAttribute: function(attribute) {
-		this.attributes |= 1 << attribute[1];
-		this.built = false;
-		return this;
-	}
-	,setUniform: function(uniform) {
-		this.uniforms |= 1 << uniform[1];
-		this.built = false;
-		return this;
-	}
-	,hasUniform: function(uniform) {
-		return (this.uniforms & 1 << uniform[1]) != 0;
-	}
-	,__class__: mammoth_defaults_StandardShader
-};
-var mammoth_loader_Loader = function() { };
-mammoth_loader_Loader.__name__ = ["mammoth","loader","Loader"];
-mammoth_loader_Loader.toColour = function(colour) {
-	var this1 = new Float32Array(4);
-	this1[0] = 0;
-	this1[1] = 0;
-	this1[2] = 0;
-	this1[3] = 0;
-	var c = this1;
-	c[0] = colour[0];
-	c[1] = colour[1];
-	c[2] = colour[2];
-	if(colour.length > 3) {
-		c[3] = colour[3];
-	}
-	return c;
-};
-mammoth_loader_Loader.loadCamera = function(camera) {
-	var cam = new mammoth_components_Camera();
-	cam.setNearFar(camera.near,camera.far);
-	cam.setClearColour(mammoth_loader_Loader.toColour(camera.clearColour));
-	var _g = camera.type;
+var mammoth_filetypes_MammothJSON = function() { };
+mammoth_filetypes_MammothJSON.__name__ = ["mammoth","filetypes","MammothJSON"];
+mammoth_filetypes_MammothJSON.loadCamera = function(cam) {
+	var camera = new mammoth_components_Camera();
+	camera.setNearFar(cam.near,cam.far);
+	camera.setClearColour(cam.clearColour);
+	var _g = cam.type;
 	var tmp;
 	switch(_g) {
 	case "orthographic":
-		tmp = mammoth_components_ProjectionMode.Orthographic(camera.ortho_size);
+		tmp = mammoth_components_ProjectionMode.Orthographic(cam.ortho_size);
 		break;
 	case "perspective":
-		tmp = mammoth_components_ProjectionMode.Perspective(camera.fov);
+		tmp = mammoth_components_ProjectionMode.Perspective(cam.fov);
 		break;
 	}
-	cam.setProjection(tmp);
+	camera.setProjection(tmp);
 	var this1 = new Float32Array(4);
 	this1[0] = 0;
 	this1[1] = 0;
 	var this2 = new Float32Array(4);
 	this2[0] = 1;
 	this2[1] = 1;
-	cam.setViewport(this1,this2);
-	var _this = mammoth_loader_Loader.cameras;
-	var key = camera.name;
+	camera.setViewport(this1,this2);
+	var _this = mammoth_filetypes_MammothJSON.cameras;
+	var key = cam.name;
 	if(__map_reserved[key] != null) {
-		_this.setReserved(key,cam);
+		_this.setReserved(key,camera);
 	} else {
-		_this.h[key] = cam;
+		_this.h[key] = camera;
 	}
 };
-mammoth_loader_Loader.loadLight = function(light) {
-	var _this = mammoth_loader_Loader.lights;
+mammoth_filetypes_MammothJSON.loadLight = function(light) {
+	var _this = mammoth_filetypes_MammothJSON.lights;
 	var key = light.name;
 	var value;
 	var _g = light.type;
 	switch(_g) {
 	case "directional":
 		var dirLight = new mammoth_components_DirectionalLight();
-		dirLight.setColour(mammoth_loader_Loader.toColour(light.colour));
+		dirLight.setColour(light.colour);
 		value = dirLight;
 		break;
 	case "point":
 		var pointLight = new mammoth_components_PointLight();
-		pointLight.setColour(mammoth_loader_Loader.toColour(light.colour));
+		pointLight.setColour(light.colour);
 		pointLight.setDistance(Math.sqrt(light.distance));
 		value = pointLight;
 		break;
@@ -2648,40 +2532,75 @@ mammoth_loader_Loader.loadLight = function(light) {
 		_this.h[key] = value;
 	}
 };
-mammoth_loader_Loader.loadShader = function(shad) {
-	var shader = new mammoth_defaults_StandardShader();
-	if(shad.unlit != null) {
-		shader.albedoColour = mammoth_loader_Loader.toColour(shad.unlit.colour);
-	} else if(shad.diffuse != null) {
-		shader.setUniform(mammoth_defaults_StandardUniforms.DirectionalLights);
-		shader.setUniform(mammoth_defaults_StandardUniforms.PointLights);
-		shader.albedoColour = mammoth_loader_Loader.toColour(shad.diffuse.colour);
-		shader.ambientColour = mammoth_loader_Loader.toColour(shad.diffuse.ambient);
+mammoth_filetypes_MammothJSON.loadMaterialData = function(shader) {
+	var data = new haxe_ds_StringMap();
+	if(shader.unlit != null) {
+		var value = mammoth_types_TUniformData.RGB(shader.unlit.colour);
+		if(__map_reserved["albedoColour"] != null) {
+			data.setReserved("albedoColour",value);
+		} else {
+			data.h["albedoColour"] = value;
+		}
+	} else if(shader.diffuse != null) {
+		var value1 = mammoth_types_TUniformData.RGB(shader.diffuse.colour);
+		if(__map_reserved["albedoColour"] != null) {
+			data.setReserved("albedoColour",value1);
+		} else {
+			data.h["albedoColour"] = value1;
+		}
+		var value2 = mammoth_types_TUniformData.RGB(shader.diffuse.ambient);
+		if(__map_reserved["ambientColour"] != null) {
+			data.setReserved("ambientColour",value2);
+		} else {
+			data.h["ambientColour"] = value2;
+		}
 	}
-	if(shad.textures.length > 0) {
-		shader.setUniform(mammoth_defaults_StandardUniforms.Texture);
-	}
-	var _this = mammoth_loader_Loader.shaders;
-	var key = shad.name;
+	var _this = mammoth_filetypes_MammothJSON.materialDatas;
+	var key = shader.name;
 	if(__map_reserved[key] != null) {
-		_this.setReserved(key,shader);
+		_this.setReserved(key,data);
 	} else {
-		_this.h[key] = shader;
+		_this.h[key] = data;
 	}
 };
-mammoth_loader_Loader.loadMesh = function(me) {
-	var mesh = new mammoth_render_Mesh(me.name,me.vlayout);
-	mesh.setVertexData(mammoth_loader_Loader.parseFloatArrayURI(me.vertices));
-	mesh.setIndexData(mammoth_loader_Loader.parseIntArrayURI(me.indices));
-	var _this = mammoth_loader_Loader.meshes;
-	var key = me.name;
+mammoth_filetypes_MammothJSON.loadMesh = function(meshData) {
+	var mesh = new mammoth_types_Mesh(meshData.name);
+	mesh.setVertexData(mammoth_filetypes_MammothJSON.parseFloatArrayURI(meshData.vertices));
+	mesh.setIndexData(mammoth_filetypes_MammothJSON.parseIntArrayURI(meshData.indices));
+	var _g = 0;
+	var _g1 = meshData.vlayout;
+	while(_g < _g1.length) {
+		var attribute = _g1[_g];
+		++_g;
+		var tmp;
+		switch(attribute) {
+		case "colour":
+			tmp = mammoth_types_TVertexAttribute.Vec4;
+			break;
+		case "normal":
+			tmp = mammoth_types_TVertexAttribute.Vec3;
+			break;
+		case "position":
+			tmp = mammoth_types_TVertexAttribute.Vec3;
+			break;
+		case "uv":
+			tmp = mammoth_types_TVertexAttribute.Vec2;
+			break;
+		default:
+			tmp = null;
+		}
+		mesh.registerAttribute(attribute,tmp);
+	}
+	mesh.compile();
+	var _this = mammoth_filetypes_MammothJSON.meshes;
+	var key = meshData.name;
 	if(__map_reserved[key] != null) {
 		_this.setReserved(key,mesh);
 	} else {
 		_this.h[key] = mesh;
 	}
 };
-mammoth_loader_Loader.loadObject = function(parentTransform,object) {
+mammoth_filetypes_MammothJSON.loadObject = function(parentTransform,object) {
 	var entity = mammoth_Mammoth.engine.create([]);
 	if(object.transform != null) {
 		var transform = new mammoth_components_Transform();
@@ -2708,220 +2627,87 @@ mammoth_loader_Loader.loadObject = function(parentTransform,object) {
 			while(_g < _g1.length) {
 				var child = _g1[_g];
 				++_g;
-				mammoth_loader_Loader.loadObject(transform,child);
+				mammoth_filetypes_MammothJSON.loadObject(transform,child);
 			}
 		}
 		entity.add(transform);
 	}
 	if(object.render != null && object.render.shader != null) {
 		var renderer = new mammoth_components_MeshRenderer();
-		var _this = mammoth_loader_Loader.meshes;
+		var _this = mammoth_filetypes_MammothJSON.meshes;
 		var key = object.render.mesh;
-		var renderer1 = renderer.setMesh(__map_reserved[key] != null ? _this.getReserved(key) : _this.h[key]);
-		var material = new mammoth_render_Material(object.render.mesh + "->" + object.render.shader);
-		var _this1 = mammoth_loader_Loader.shaders;
+		renderer.mesh = __map_reserved[key] != null ? _this.getReserved(key) : _this.h[key];
+		var _this1 = mammoth_filetypes_MammothJSON.materials;
+		if(!(__map_reserved["standard_1_0"] != null ? _this1.existsReserved("standard_1_0") : _this1.h.hasOwnProperty("standard_1_0"))) {
+			var _this2 = mammoth_filetypes_MammothJSON.materials;
+			var value = mammoth_defaults_Materials.standard(1,0);
+			if(__map_reserved["standard_1_0"] != null) {
+				_this2.setReserved("standard_1_0",value);
+			} else {
+				_this2.h["standard_1_0"] = value;
+			}
+		}
+		var _this3 = mammoth_filetypes_MammothJSON.materials;
+		renderer.material = __map_reserved["standard_1_0"] != null ? _this3.getReserved("standard_1_0") : _this3.h["standard_1_0"];
+		var _this4 = mammoth_filetypes_MammothJSON.materialDatas;
 		var key1 = object.render.shader;
-		material.setStandardShader(__map_reserved[key1] != null ? _this1.getReserved(key1) : _this1.h[key1]);
-		var _g2 = 0;
-		var _g11 = renderer1.mesh.attributeNames;
-		while(_g2 < _g11.length) {
-			var attribute = _g11[_g2];
-			++_g2;
-			switch(attribute) {
-			case "colour":
-				material.standardShader.setAttribute(mammoth_defaults_StandardAttributes.Colour);
-				break;
-			case "normal":
-				break;
-			case "position":
-				break;
-			case "uv":
-				material.standardShader.setAttribute(mammoth_defaults_StandardAttributes.UV);
-				break;
-			default:
-				throw new js__$Boot_HaxeError(new mammoth_debug_Exception("Unknown vertex attribute '" + attribute + "'!",false,"UnknownAttribute",null,{ fileName : "Loader.hx", lineNumber : 153, className : "mammoth.loader.Loader", methodName : "loadObject"}));
-			}
-		}
-		material.compile();
-		var offset = 0;
-		var attributes = [];
-		var _g3 = 0;
-		var _g12 = renderer1.mesh.attributeNames;
-		while(_g3 < _g12.length) {
-			var attribute1 = _g12[_g3];
-			++_g3;
-			switch(attribute1) {
-			case "colour":
-				attributes.push(new mammoth_render_Attribute("colour",mammoth_render_TAttribute.Vec3,0,offset));
-				offset += 12;
-				break;
-			case "normal":
-				attributes.push(new mammoth_render_Attribute("normal",mammoth_render_TAttribute.Vec3,0,offset));
-				offset += 12;
-				break;
-			case "position":
-				attributes.push(new mammoth_render_Attribute("position",mammoth_render_TAttribute.Vec3,0,offset));
-				offset += 12;
-				break;
-			case "uv":
-				attributes.push(new mammoth_render_Attribute("uv",mammoth_render_TAttribute.Vec2,0,offset));
-				offset += 8;
-				break;
-			}
-		}
-		var _g4 = 0;
-		while(_g4 < attributes.length) {
-			var attribute2 = attributes[_g4];
-			++_g4;
-			attribute2.stride = offset;
-			material.registerAttribute(attribute2.name,attribute2);
-		}
-		material.setUniform("albedoColour",mammoth_render_TUniform.RGB(material.standardShader.albedoColour));
-		material.setUniform("ambientColour",mammoth_render_TUniform.RGB(material.standardShader.ambientColour));
-		var this1 = new Float32Array(16);
-		this1[0] = 0;
-		this1[1] = 0;
-		this1[2] = 0;
-		this1[3] = 0;
-		this1[4] = 0;
-		this1[5] = 0;
-		this1[6] = 0;
-		this1[7] = 0;
-		this1[8] = 0;
-		this1[9] = 0;
-		this1[10] = 0;
-		this1[11] = 0;
-		this1[12] = 0;
-		this1[13] = 0;
-		this1[14] = 0;
-		this1[15] = 0;
-		var dest = this1;
-		dest[0] = 1;
-		dest[1] = 0;
-		dest[2] = 0;
-		dest[3] = 0;
-		dest[4] = 0;
-		dest[5] = 1;
-		dest[6] = 0;
-		dest[7] = 0;
-		dest[8] = 0;
-		dest[9] = 0;
-		dest[10] = 1;
-		dest[11] = 0;
-		dest[12] = 0;
-		dest[13] = 0;
-		dest[14] = 0;
-		dest[15] = 1;
-		material.setUniform("MVP",mammoth_render_TUniform.Mat4(dest));
-		var this2 = new Float32Array(16);
-		this2[0] = 0;
-		this2[1] = 0;
-		this2[2] = 0;
-		this2[3] = 0;
-		this2[4] = 0;
-		this2[5] = 0;
-		this2[6] = 0;
-		this2[7] = 0;
-		this2[8] = 0;
-		this2[9] = 0;
-		this2[10] = 0;
-		this2[11] = 0;
-		this2[12] = 0;
-		this2[13] = 0;
-		this2[14] = 0;
-		this2[15] = 0;
-		var dest1 = this2;
-		dest1[0] = 1;
-		dest1[1] = 0;
-		dest1[2] = 0;
-		dest1[3] = 0;
-		dest1[4] = 0;
-		dest1[5] = 1;
-		dest1[6] = 0;
-		dest1[7] = 0;
-		dest1[8] = 0;
-		dest1[9] = 0;
-		dest1[10] = 1;
-		dest1[11] = 0;
-		dest1[12] = 0;
-		dest1[13] = 0;
-		dest1[14] = 0;
-		dest1[15] = 1;
-		material.setUniform("M",mammoth_render_TUniform.Mat4(dest1));
-		if(material.standardShader.hasUniform(mammoth_defaults_StandardUniforms.DirectionalLights)) {
-			var this3 = new Float32Array(4);
-			this3[0] = 0;
-			this3[1] = 0;
-			this3[2] = 0;
-			material.setUniform("directionalLights[0].direction",mammoth_render_TUniform.Vec3(this3));
-			material.setUniform("directionalLights[0].colour",mammoth_render_TUniform.RGB(mammoth_utilities_Colours.Black));
-		}
-		if(material.standardShader.hasUniform(mammoth_defaults_StandardUniforms.PointLights)) {
-			var this4 = new Float32Array(4);
-			this4[0] = 0;
-			this4[1] = 0;
-			this4[2] = 0;
-			material.setUniform("pointLights[0].position",mammoth_render_TUniform.Vec3(this4));
-			material.setUniform("pointLights[0].colour",mammoth_render_TUniform.RGB(mammoth_utilities_Colours.Black));
-			material.setUniform("pointLights[0].distance",mammoth_render_TUniform.Float(0.0));
-		}
-		renderer1.setMaterial(material);
-		entity.add(renderer1);
+		renderer.materialData = __map_reserved[key1] != null ? _this4.getReserved(key1) : _this4.h[key1];
+		entity.add(renderer);
 	}
 	if(object.camera != null) {
-		var _this2 = mammoth_loader_Loader.cameras;
+		var _this5 = mammoth_filetypes_MammothJSON.cameras;
 		var key2 = object.camera;
-		entity.add(__map_reserved[key2] != null ? _this2.getReserved(key2) : _this2.h[key2]);
+		entity.add(__map_reserved[key2] != null ? _this5.getReserved(key2) : _this5.h[key2]);
 	}
 	if(object.light != null) {
-		var _this3 = mammoth_loader_Loader.lights;
+		var _this6 = mammoth_filetypes_MammothJSON.lights;
 		var key3 = object.light;
-		entity.add(__map_reserved[key3] != null ? _this3.getReserved(key3) : _this3.h[key3]);
+		entity.add(__map_reserved[key3] != null ? _this6.getReserved(key3) : _this6.h[key3]);
 	}
 };
-mammoth_loader_Loader.load = function(file) {
-	mammoth_Log.log("Loading data from " + file.meta.file + "..",mammoth_LogFunctions.Info,{ fileName : "Loader.hx", lineNumber : 224, className : "mammoth.loader.Loader", methodName : "load"});
-	mammoth_loader_Loader.cameras = new haxe_ds_StringMap();
+mammoth_filetypes_MammothJSON.load = function(file) {
+	mammoth_Log.log("Loading data from " + file.meta.file + "..",mammoth_LogFunctions.Info,{ fileName : "MammothJSON.hx", lineNumber : 250, className : "mammoth.filetypes.MammothJSON", methodName : "load"});
+	mammoth_filetypes_MammothJSON.cameras = new haxe_ds_StringMap();
 	var _g = 0;
 	var _g1 = file.cameras;
 	while(_g < _g1.length) {
 		var camera = _g1[_g];
 		++_g;
-		mammoth_loader_Loader.loadCamera(camera);
+		mammoth_filetypes_MammothJSON.loadCamera(camera);
 	}
-	mammoth_loader_Loader.lights = new haxe_ds_StringMap();
+	mammoth_filetypes_MammothJSON.lights = new haxe_ds_StringMap();
 	var _g2 = 0;
 	var _g11 = file.lights;
 	while(_g2 < _g11.length) {
 		var light = _g11[_g2];
 		++_g2;
-		mammoth_loader_Loader.loadLight(light);
+		mammoth_filetypes_MammothJSON.loadLight(light);
 	}
-	mammoth_loader_Loader.shaders = new haxe_ds_StringMap();
+	mammoth_filetypes_MammothJSON.materialDatas = new haxe_ds_StringMap();
 	var _g3 = 0;
 	var _g12 = file.shaders;
 	while(_g3 < _g12.length) {
 		var shad = _g12[_g3];
 		++_g3;
-		mammoth_loader_Loader.loadShader(shad);
+		mammoth_filetypes_MammothJSON.loadMaterialData(shad);
 	}
-	mammoth_loader_Loader.meshes = new haxe_ds_StringMap();
+	mammoth_filetypes_MammothJSON.meshes = new haxe_ds_StringMap();
 	var _g4 = 0;
 	var _g13 = file.meshes;
 	while(_g4 < _g13.length) {
 		var me = _g13[_g4];
 		++_g4;
-		mammoth_loader_Loader.loadMesh(me);
+		mammoth_filetypes_MammothJSON.loadMesh(me);
 	}
 	var _g5 = 0;
 	var _g14 = file.objects;
 	while(_g5 < _g14.length) {
 		var object = _g14[_g5];
 		++_g5;
-		mammoth_loader_Loader.loadObject(null,object);
+		mammoth_filetypes_MammothJSON.loadObject(null,object);
 	}
 };
-mammoth_loader_Loader.parseFloatArrayURI = function(uri) {
+mammoth_filetypes_MammothJSON.parseFloatArrayURI = function(uri) {
 	if(!StringTools.startsWith(uri,"data:text/plain;base64,")) {
 		return [];
 	}
@@ -2936,7 +2722,7 @@ mammoth_loader_Loader.parseFloatArrayURI = function(uri) {
 	}
 	return ret;
 };
-mammoth_loader_Loader.parseIntArrayURI = function(uri) {
+mammoth_filetypes_MammothJSON.parseIntArrayURI = function(uri) {
 	if(!StringTools.startsWith(uri,"data:text/plain;base64,")) {
 		return [];
 	}
@@ -2950,356 +2736,6 @@ mammoth_loader_Loader.parseIntArrayURI = function(uri) {
 		ret.push(arr[i]);
 	}
 	return ret;
-};
-var mammoth_render_Attribute = function(name,type,stride,offset) {
-	this.bound = false;
-	this.name = name;
-	this.type = type;
-	this.stride = stride;
-	this.offset = offset;
-};
-mammoth_render_Attribute.__name__ = ["mammoth","render","Attribute"];
-mammoth_render_Attribute.prototype = {
-	__class__: mammoth_render_Attribute
-};
-var mammoth_render_CullMode = { __ename__ : true, __constructs__ : ["None","Front","Back","Both"] };
-mammoth_render_CullMode.None = ["None",0];
-mammoth_render_CullMode.None.toString = $estr;
-mammoth_render_CullMode.None.__enum__ = mammoth_render_CullMode;
-mammoth_render_CullMode.Front = ["Front",1];
-mammoth_render_CullMode.Front.toString = $estr;
-mammoth_render_CullMode.Front.__enum__ = mammoth_render_CullMode;
-mammoth_render_CullMode.Back = ["Back",2];
-mammoth_render_CullMode.Back.toString = $estr;
-mammoth_render_CullMode.Back.__enum__ = mammoth_render_CullMode;
-mammoth_render_CullMode.Both = ["Both",3];
-mammoth_render_CullMode.Both.toString = $estr;
-mammoth_render_CullMode.Both.__enum__ = mammoth_render_CullMode;
-var mammoth_render_DepthCompareMode = { __ename__ : true, __constructs__ : ["Never","Less","Equal","LessOrEqual","Greater","NotEqual","GreaterOrEqual","Always"] };
-mammoth_render_DepthCompareMode.Never = ["Never",0];
-mammoth_render_DepthCompareMode.Never.toString = $estr;
-mammoth_render_DepthCompareMode.Never.__enum__ = mammoth_render_DepthCompareMode;
-mammoth_render_DepthCompareMode.Less = ["Less",1];
-mammoth_render_DepthCompareMode.Less.toString = $estr;
-mammoth_render_DepthCompareMode.Less.__enum__ = mammoth_render_DepthCompareMode;
-mammoth_render_DepthCompareMode.Equal = ["Equal",2];
-mammoth_render_DepthCompareMode.Equal.toString = $estr;
-mammoth_render_DepthCompareMode.Equal.__enum__ = mammoth_render_DepthCompareMode;
-mammoth_render_DepthCompareMode.LessOrEqual = ["LessOrEqual",3];
-mammoth_render_DepthCompareMode.LessOrEqual.toString = $estr;
-mammoth_render_DepthCompareMode.LessOrEqual.__enum__ = mammoth_render_DepthCompareMode;
-mammoth_render_DepthCompareMode.Greater = ["Greater",4];
-mammoth_render_DepthCompareMode.Greater.toString = $estr;
-mammoth_render_DepthCompareMode.Greater.__enum__ = mammoth_render_DepthCompareMode;
-mammoth_render_DepthCompareMode.NotEqual = ["NotEqual",5];
-mammoth_render_DepthCompareMode.NotEqual.toString = $estr;
-mammoth_render_DepthCompareMode.NotEqual.__enum__ = mammoth_render_DepthCompareMode;
-mammoth_render_DepthCompareMode.GreaterOrEqual = ["GreaterOrEqual",6];
-mammoth_render_DepthCompareMode.GreaterOrEqual.toString = $estr;
-mammoth_render_DepthCompareMode.GreaterOrEqual.__enum__ = mammoth_render_DepthCompareMode;
-mammoth_render_DepthCompareMode.Always = ["Always",7];
-mammoth_render_DepthCompareMode.Always.toString = $estr;
-mammoth_render_DepthCompareMode.Always.__enum__ = mammoth_render_DepthCompareMode;
-var mammoth_render_Material = function(name) {
-	this.depthMode = mammoth_render_DepthCompareMode.LessOrEqual;
-	this.depthWrite = true;
-	this.cullMode = mammoth_render_CullMode.Back;
-	this.name = name;
-	this.attributes = new haxe_ds_StringMap();
-	this.uniforms = new haxe_ds_StringMap();
-};
-mammoth_render_Material.__name__ = ["mammoth","render","Material"];
-mammoth_render_Material.prototype = {
-	compileShader: function(type,source) {
-		var shader = mammoth_Mammoth.gl.context.createShader(type);
-		mammoth_Mammoth.gl.context.shaderSource(shader,source);
-		mammoth_Mammoth.gl.context.compileShader(shader);
-		if(!mammoth_Mammoth.gl.context.getShaderParameter(shader,35713)) {
-			var info = mammoth_Mammoth.gl.context.getShaderInfoLog(shader);
-			var typeStr = type == 35633 ? "Vertex" : "Fragment";
-			throw new js__$Boot_HaxeError(new mammoth_debug_Exception(info,true,"Compile" + typeStr + "Shader",null,{ fileName : "Material.hx", lineNumber : 57, className : "mammoth.render.Material", methodName : "compileShader"}));
-		}
-		return shader;
-	}
-	,setStandardShader: function(shader) {
-		this.standardShader = new mammoth_defaults_StandardShader(shader);
-		return this;
-	}
-	,setVertexShader: function(source) {
-		this.vertexShader = source;
-		return this;
-	}
-	,setFragmentShader: function(source) {
-		this.fragmentShader = source;
-		return this;
-	}
-	,compile: function() {
-		var vertex = this.compileShader(35633,this.standardShader == null ? this.vertexShader : this.standardShader.get_vertex());
-		var fragment = this.compileShader(35632,this.standardShader == null ? this.fragmentShader : this.standardShader.get_fragment());
-		this.program = mammoth_Mammoth.gl.context.createProgram();
-		mammoth_Mammoth.gl.context.attachShader(this.program,vertex);
-		mammoth_Mammoth.gl.context.attachShader(this.program,fragment);
-		mammoth_Mammoth.gl.context.linkProgram(this.program);
-		if(!mammoth_Mammoth.gl.context.getProgramParameter(this.program,35714)) {
-			var info = mammoth_Mammoth.gl.context.getProgramInfoLog(this.program);
-			throw new js__$Boot_HaxeError(new mammoth_debug_Exception(info,true,"LinkProgram",null,{ fileName : "Material.hx", lineNumber : 90, className : "mammoth.render.Material", methodName : "compile"}));
-		}
-		return this;
-	}
-	,registerAttribute: function(name,attribute) {
-		var _this = this.attributes;
-		if(__map_reserved[name] != null) {
-			_this.setReserved(name,attribute);
-		} else {
-			_this.h[name] = attribute;
-		}
-		return this;
-	}
-	,setUniform: function(name,value) {
-		var _this = this.uniforms;
-		if(__map_reserved[name] != null ? _this.existsReserved(name) : _this.h.hasOwnProperty(name)) {
-			var _this1 = this.uniforms;
-			(__map_reserved[name] != null ? _this1.getReserved(name) : _this1.h[name]).value = value;
-		} else {
-			var uniform = new mammoth_render_Uniform();
-			uniform.value = value;
-			var _this2 = this.uniforms;
-			if(__map_reserved[name] != null) {
-				_this2.setReserved(name,uniform);
-			} else {
-				_this2.h[name] = uniform;
-			}
-		}
-		return this;
-	}
-	,bindAttributes: function() {
-		var name = this.attributes.keys();
-		while(name.hasNext()) {
-			var name1 = name.next();
-			var _this = this.attributes;
-			var attribute = __map_reserved[name1] != null ? _this.getReserved(name1) : _this.h[name1];
-			if(attribute.bound) {
-				continue;
-			}
-			attribute.location = mammoth_Mammoth.gl.context.getAttribLocation(this.program,name1);
-			attribute.bound = true;
-		}
-	}
-	,bindUniforms: function() {
-		var name = this.uniforms.keys();
-		while(name.hasNext()) {
-			var name1 = name.next();
-			var _this = this.uniforms;
-			var uniform = __map_reserved[name1] != null ? _this.getReserved(name1) : _this.h[name1];
-			if(uniform.bound) {
-				continue;
-			}
-			var _g = uniform.value;
-			uniform.location = mammoth_render_TLocation.Uniform(mammoth_Mammoth.gl.context.getUniformLocation(this.program,name1));
-			uniform.bound = true;
-		}
-	}
-	,applyCullMode: function() {
-		var _g = this.cullMode;
-		switch(_g[1]) {
-		case 0:
-			mammoth_Mammoth.gl.context.disable(2884);
-			break;
-		case 1:
-			mammoth_Mammoth.gl.context.enable(2884);
-			mammoth_Mammoth.gl.context.cullFace(1028);
-			break;
-		case 2:
-			mammoth_Mammoth.gl.context.enable(2884);
-			mammoth_Mammoth.gl.context.cullFace(1029);
-			break;
-		case 3:
-			mammoth_Mammoth.gl.context.enable(2884);
-			mammoth_Mammoth.gl.context.cullFace(1032);
-			break;
-		}
-	}
-	,applyDepthMode: function() {
-		if(this.depthWrite) {
-			mammoth_Mammoth.gl.context.enable(2929);
-		} else {
-			mammoth_Mammoth.gl.context.disable(2929);
-		}
-		var _this = mammoth_Mammoth.gl;
-		var func;
-		var _g = this.depthMode;
-		switch(_g[1]) {
-		case 0:
-			func = 512;
-			break;
-		case 1:
-			func = 513;
-			break;
-		case 2:
-			func = 514;
-			break;
-		case 3:
-			func = 515;
-			break;
-		case 4:
-			func = 516;
-			break;
-		case 5:
-			func = 517;
-			break;
-		case 6:
-			func = 518;
-			break;
-		case 7:
-			func = 519;
-			break;
-		}
-		_this.context.depthFunc(func);
-		mammoth_Mammoth.gl.context.depthMask(this.depthWrite);
-	}
-	,applyStencilMode: function() {
-	}
-	,applyBlendingMode: function() {
-	}
-	,apply: function() {
-		this.applyCullMode();
-		this.applyDepthMode();
-		this.applyStencilMode();
-		this.applyBlendingMode();
-		mammoth_Mammoth.gl.context.useProgram(this.program);
-		this.bindUniforms();
-		var _this = this.uniforms;
-		var uniform = new haxe_ds__$StringMap_StringMapIterator(_this,_this.arrayKeys());
-		while(uniform.hasNext()) {
-			var uniform1 = uniform.next();
-			var _g = uniform1.location;
-			var location = _g[2];
-			var _g1 = uniform1.value;
-			switch(_g1[1]) {
-			case 0:
-				var b = _g1[2];
-				mammoth_Mammoth.gl.context.uniform1i(location,b ? 1 : 0);
-				break;
-			case 1:
-				var i = _g1[2];
-				mammoth_Mammoth.gl.context.uniform1i(location,i);
-				break;
-			case 2:
-				var x = _g1[2];
-				mammoth_Mammoth.gl.context.uniform1f(location,x);
-				break;
-			case 3:
-				var y = _g1[3];
-				var x1 = _g1[2];
-				mammoth_Mammoth.gl.context.uniform2f(location,x1,y);
-				break;
-			case 4:
-				var z = _g1[4];
-				var y1 = _g1[3];
-				var x2 = _g1[2];
-				mammoth_Mammoth.gl.context.uniform3f(location,x2,y1,z);
-				break;
-			case 5:
-				var w = _g1[5];
-				var z1 = _g1[4];
-				var y2 = _g1[3];
-				var x3 = _g1[2];
-				mammoth_Mammoth.gl.context.uniform4f(location,x3,y2,z1,w);
-				break;
-			case 6:
-				var x4 = _g1[2];
-				mammoth_Mammoth.gl.context.uniform1fv(location,x4);
-				break;
-			case 7:
-				var v = _g1[2];
-				mammoth_Mammoth.gl.context.uniform2f(location,v[0],v[1]);
-				break;
-			case 8:
-				var v1 = _g1[2];
-				mammoth_Mammoth.gl.context.uniform3f(location,v1[0],v1[1],v1[2]);
-				break;
-			case 9:
-				var v2 = _g1[2];
-				mammoth_Mammoth.gl.context.uniform4f(location,v2[0],v2[1],v2[2],v2[3]);
-				break;
-			case 10:
-				var m = _g1[2];
-				mammoth_Mammoth.gl.context.uniformMatrix4fv(location,false,m);
-				break;
-			case 11:
-				var c = _g1[2];
-				mammoth_Mammoth.gl.context.uniform3f(location,c[0],c[1],c[2]);
-				break;
-			case 12:
-				var c1 = _g1[2];
-				mammoth_Mammoth.gl.context.uniform4f(location,c1[0],c1[1],c1[2],c1[3]);
-				break;
-			}
-		}
-		this.bindAttributes();
-	}
-	,__class__: mammoth_render_Material
-};
-var mammoth_render_Mesh = function(name,attributeNames) {
-	this.name = name;
-	this.attributeNames = attributeNames;
-	this.vertexBuffer = mammoth_Mammoth.gl.context.createBuffer();
-	this.indexBuffer = mammoth_Mammoth.gl.context.createBuffer();
-};
-mammoth_render_Mesh.__name__ = ["mammoth","render","Mesh"];
-mammoth_render_Mesh.prototype = {
-	setVertexData: function(data) {
-		mammoth_Mammoth.gl.context.bindBuffer(34962,this.vertexBuffer);
-		var _this = mammoth_Mammoth.gl;
-		var data1 = new Float32Array(data);
-		_this.context.bufferData(34962,data1,35044);
-		mammoth_Mammoth.gl.context.bindBuffer(34962,null);
-	}
-	,setIndexData: function(data) {
-		mammoth_Mammoth.gl.context.bindBuffer(34963,this.indexBuffer);
-		var _this = mammoth_Mammoth.gl;
-		var data1 = new Int16Array(data);
-		_this.context.bufferData(34963,data1,35044);
-		mammoth_Mammoth.gl.context.bindBuffer(34963,null);
-		this.vertexCount = data.length;
-	}
-	,__class__: mammoth_render_Mesh
-};
-var mammoth_render_TAttribute = { __ename__ : true, __constructs__ : ["Float","Vec2","Vec3","Vec4"] };
-mammoth_render_TAttribute.Float = ["Float",0];
-mammoth_render_TAttribute.Float.toString = $estr;
-mammoth_render_TAttribute.Float.__enum__ = mammoth_render_TAttribute;
-mammoth_render_TAttribute.Vec2 = ["Vec2",1];
-mammoth_render_TAttribute.Vec2.toString = $estr;
-mammoth_render_TAttribute.Vec2.__enum__ = mammoth_render_TAttribute;
-mammoth_render_TAttribute.Vec3 = ["Vec3",2];
-mammoth_render_TAttribute.Vec3.toString = $estr;
-mammoth_render_TAttribute.Vec3.__enum__ = mammoth_render_TAttribute;
-mammoth_render_TAttribute.Vec4 = ["Vec4",3];
-mammoth_render_TAttribute.Vec4.toString = $estr;
-mammoth_render_TAttribute.Vec4.__enum__ = mammoth_render_TAttribute;
-var mammoth_render_TLocation = { __ename__ : true, __constructs__ : ["Uniform"] };
-mammoth_render_TLocation.Uniform = function(location) { var $x = ["Uniform",0,location]; $x.__enum__ = mammoth_render_TLocation; $x.toString = $estr; return $x; };
-var mammoth_render_TUniform = { __ename__ : true, __constructs__ : ["Bool","Int","Float","Float2","Float3","Float4","Floats","Vec2","Vec3","Vec4","Mat4","RGB","RGBA"] };
-mammoth_render_TUniform.Bool = function(x) { var $x = ["Bool",0,x]; $x.__enum__ = mammoth_render_TUniform; $x.toString = $estr; return $x; };
-mammoth_render_TUniform.Int = function(x) { var $x = ["Int",1,x]; $x.__enum__ = mammoth_render_TUniform; $x.toString = $estr; return $x; };
-mammoth_render_TUniform.Float = function(x) { var $x = ["Float",2,x]; $x.__enum__ = mammoth_render_TUniform; $x.toString = $estr; return $x; };
-mammoth_render_TUniform.Float2 = function(x,y) { var $x = ["Float2",3,x,y]; $x.__enum__ = mammoth_render_TUniform; $x.toString = $estr; return $x; };
-mammoth_render_TUniform.Float3 = function(x,y,z) { var $x = ["Float3",4,x,y,z]; $x.__enum__ = mammoth_render_TUniform; $x.toString = $estr; return $x; };
-mammoth_render_TUniform.Float4 = function(x,y,z,w) { var $x = ["Float4",5,x,y,z,w]; $x.__enum__ = mammoth_render_TUniform; $x.toString = $estr; return $x; };
-mammoth_render_TUniform.Floats = function(x) { var $x = ["Floats",6,x]; $x.__enum__ = mammoth_render_TUniform; $x.toString = $estr; return $x; };
-mammoth_render_TUniform.Vec2 = function(x) { var $x = ["Vec2",7,x]; $x.__enum__ = mammoth_render_TUniform; $x.toString = $estr; return $x; };
-mammoth_render_TUniform.Vec3 = function(x) { var $x = ["Vec3",8,x]; $x.__enum__ = mammoth_render_TUniform; $x.toString = $estr; return $x; };
-mammoth_render_TUniform.Vec4 = function(x) { var $x = ["Vec4",9,x]; $x.__enum__ = mammoth_render_TUniform; $x.toString = $estr; return $x; };
-mammoth_render_TUniform.Mat4 = function(v) { var $x = ["Mat4",10,v]; $x.__enum__ = mammoth_render_TUniform; $x.toString = $estr; return $x; };
-mammoth_render_TUniform.RGB = function(c) { var $x = ["RGB",11,c]; $x.__enum__ = mammoth_render_TUniform; $x.toString = $estr; return $x; };
-mammoth_render_TUniform.RGBA = function(c) { var $x = ["RGBA",12,c]; $x.__enum__ = mammoth_render_TUniform; $x.toString = $estr; return $x; };
-var mammoth_render_Uniform = function() {
-	this.bound = false;
-};
-mammoth_render_Uniform.__name__ = ["mammoth","render","Uniform"];
-mammoth_render_Uniform.prototype = {
-	__class__: mammoth_render_Uniform
 };
 var mammoth_systems_CameraSystem = function() {
 	this.__process__ = new mammoth_systems_CameraSystem_$SystemProcess(this);
@@ -3547,155 +2983,15 @@ mammoth_systems_CameraSystem_$SystemProcess.prototype = {
 	}
 	,__class__: mammoth_systems_CameraSystem_$SystemProcess
 };
-var mammoth_systems_DirectionalShadowSystem = function() {
-	var this1 = new Float32Array(16);
-	this1[0] = 0;
-	this1[1] = 0;
-	this1[2] = 0;
-	this1[3] = 0;
-	this1[4] = 0;
-	this1[5] = 0;
-	this1[6] = 0;
-	this1[7] = 0;
-	this1[8] = 0;
-	this1[9] = 0;
-	this1[10] = 0;
-	this1[11] = 0;
-	this1[12] = 0;
-	this1[13] = 0;
-	this1[14] = 0;
-	this1[15] = 0;
-	var dest = this1;
-	dest[0] = 1;
-	dest[1] = 0;
-	dest[2] = 0;
-	dest[3] = 0;
-	dest[4] = 0;
-	dest[5] = 1;
-	dest[6] = 0;
-	dest[7] = 0;
-	dest[8] = 0;
-	dest[9] = 0;
-	dest[10] = 1;
-	dest[11] = 0;
-	dest[12] = 0;
-	dest[13] = 0;
-	dest[14] = 0;
-	dest[15] = 1;
-	this.MVP = dest;
-	var this11 = new Float32Array(16);
-	this11[0] = 0;
-	this11[1] = 0;
-	this11[2] = 0;
-	this11[3] = 0;
-	this11[4] = 0;
-	this11[5] = 0;
-	this11[6] = 0;
-	this11[7] = 0;
-	this11[8] = 0;
-	this11[9] = 0;
-	this11[10] = 0;
-	this11[11] = 0;
-	this11[12] = 0;
-	this11[13] = 0;
-	this11[14] = 0;
-	this11[15] = 0;
-	var dest1 = this11;
-	dest1[0] = 1;
-	dest1[1] = 0;
-	dest1[2] = 0;
-	dest1[3] = 0;
-	dest1[4] = 0;
-	dest1[5] = 1;
-	dest1[6] = 0;
-	dest1[7] = 0;
-	dest1[8] = 0;
-	dest1[9] = 0;
-	dest1[10] = 1;
-	dest1[11] = 0;
-	dest1[12] = 0;
-	dest1[13] = 0;
-	dest1[14] = 0;
-	dest1[15] = 1;
-	this.viewProjectionMatrix = dest1;
-	var this12 = new Float32Array(16);
-	this12[0] = 0;
-	this12[1] = 0;
-	this12[2] = 0;
-	this12[3] = 0;
-	this12[4] = 0;
-	this12[5] = 0;
-	this12[6] = 0;
-	this12[7] = 0;
-	this12[8] = 0;
-	this12[9] = 0;
-	this12[10] = 0;
-	this12[11] = 0;
-	this12[12] = 0;
-	this12[13] = 0;
-	this12[14] = 0;
-	this12[15] = 0;
-	var dest2 = this12;
-	dest2[0] = 1;
-	dest2[1] = 0;
-	dest2[2] = 0;
-	dest2[3] = 0;
-	dest2[4] = 0;
-	dest2[5] = 1;
-	dest2[6] = 0;
-	dest2[7] = 0;
-	dest2[8] = 0;
-	dest2[9] = 0;
-	dest2[10] = 1;
-	dest2[11] = 0;
-	dest2[12] = 0;
-	dest2[13] = 0;
-	dest2[14] = 0;
-	dest2[15] = 1;
-	this.projectionMatrix = dest2;
-	var this13 = new Float32Array(16);
-	this13[0] = 0;
-	this13[1] = 0;
-	this13[2] = 0;
-	this13[3] = 0;
-	this13[4] = 0;
-	this13[5] = 0;
-	this13[6] = 0;
-	this13[7] = 0;
-	this13[8] = 0;
-	this13[9] = 0;
-	this13[10] = 0;
-	this13[11] = 0;
-	this13[12] = 0;
-	this13[13] = 0;
-	this13[14] = 0;
-	this13[15] = 0;
-	var dest3 = this13;
-	dest3[0] = 1;
-	dest3[1] = 0;
-	dest3[2] = 0;
-	dest3[3] = 0;
-	dest3[4] = 0;
-	dest3[5] = 1;
-	dest3[6] = 0;
-	dest3[7] = 0;
-	dest3[8] = 0;
-	dest3[9] = 0;
-	dest3[10] = 1;
-	dest3[11] = 0;
-	dest3[12] = 0;
-	dest3[13] = 0;
-	dest3[14] = 0;
-	dest3[15] = 1;
-	this.viewMatrix = dest3;
-	this.__process__ = new mammoth_systems_DirectionalShadowSystem_$SystemProcess(this);
+var mammoth_systems_DirectionalLightSystem = function() {
+	this.__process__ = new mammoth_systems_DirectionalLightSystem_$SystemProcess(this);
 };
-mammoth_systems_DirectionalShadowSystem.__name__ = ["mammoth","systems","DirectionalShadowSystem"];
-mammoth_systems_DirectionalShadowSystem.__interfaces__ = [edge_ISystem];
-mammoth_systems_DirectionalShadowSystem.prototype = {
+mammoth_systems_DirectionalLightSystem.__name__ = ["mammoth","systems","DirectionalLightSystem"];
+mammoth_systems_DirectionalLightSystem.__interfaces__ = [edge_ISystem];
+mammoth_systems_DirectionalLightSystem.prototype = {
 	update: function(transform,light) {
 		var m = transform.m;
-		var v = mammoth_systems_DirectionalShadowSystem.zDir;
+		var v = mammoth_systems_DirectionalLightSystem.zDir;
 		var dest = light.direction;
 		var x = v[0];
 		var y = v[1];
@@ -3705,266 +3001,21 @@ mammoth_systems_DirectionalShadowSystem.prototype = {
 		dest[1] = m[1] * x + m[5] * y + m[9] * z + m[13] * w;
 		dest[2] = m[2] * x + m[6] * y + m[10] * z + m[14] * w;
 		dest[3] = m[3] * x + m[7] * y + m[11] * z + m[15] * w;
-		if(this.shadowMaterial == null) {
-			this.shadowMaterial = mammoth_defaults_Materials.shadow();
-		}
-		if(light.shadowFramebuffer == null) {
-			light.shadowFramebuffer = mammoth_Mammoth.gl.context.createFramebuffer();
-		}
-		mammoth_Mammoth.gl.context.bindFramebuffer(36160,light.shadowFramebuffer);
-		if(light.colourmap == null) {
-			light.colourmap = mammoth_Mammoth.gl.context.createTexture();
-			mammoth_Mammoth.gl.context.bindTexture(3553,light.colourmap);
-			mammoth_Mammoth.gl.context.texParameteri(3553,10240,9728);
-			mammoth_Mammoth.gl.context.texParameteri(3553,10241,9728);
-			mammoth_Mammoth.gl.context.texParameteri(3553,10242,33071);
-			mammoth_Mammoth.gl.context.texParameteri(3553,10243,33071);
-			mammoth_Mammoth.gl.context.texImage2D(3553,0,6408,1024,1024,0,6408,5121,null);
-			mammoth_Mammoth.gl.context.framebufferTexture2D(36160,36064,3553,light.colourmap,0);
-		}
-		if(light.shadowmap == null) {
-			light.shadowmap = mammoth_Mammoth.gl.context.createTexture();
-			mammoth_Mammoth.gl.context.bindTexture(3553,light.shadowmap);
-			mammoth_Mammoth.gl.context.texParameteri(3553,10240,9728);
-			mammoth_Mammoth.gl.context.texParameteri(3553,10241,9728);
-			mammoth_Mammoth.gl.context.texParameteri(3553,10242,33071);
-			mammoth_Mammoth.gl.context.texParameteri(3553,10243,33071);
-			mammoth_Mammoth.gl.context.texImage2D(3553,0,6402,1024,1024,0,6402,5123,null);
-			mammoth_Mammoth.gl.context.framebufferTexture2D(36160,36096,3553,light.shadowmap,0);
-		}
-		var dest1 = this.projectionMatrix;
-		var rl = 0.05;
-		var tb = 0.05;
-		var fn = 0.0333333333333333329;
-		dest1[0] = 2 * rl;
-		dest1[4] = 0;
-		dest1[8] = 0;
-		dest1[12] = 0 * rl;
-		dest1[1] = 0;
-		dest1[5] = 2 * tb;
-		dest1[9] = 0;
-		dest1[13] = 0 * tb;
-		dest1[2] = 0;
-		dest1[6] = 0;
-		dest1[10] = -2 * fn;
-		dest1[14] = -10 * fn;
-		dest1[3] = 0;
-		dest1[7] = 0;
-		dest1[11] = 0;
-		dest1[15] = 1;
-		var src = transform.m;
-		var dest2 = this.viewMatrix;
-		var a00 = src[0];
-		var a01 = src[4];
-		var a02 = src[8];
-		var a03 = src[12];
-		var a10 = src[1];
-		var a11 = src[5];
-		var a12 = src[9];
-		var a13 = src[13];
-		var a20 = src[2];
-		var a21 = src[6];
-		var a22 = src[10];
-		var a23 = src[14];
-		var a30 = src[3];
-		var a31 = src[7];
-		var a32 = src[11];
-		var a33 = src[15];
-		var t00 = a12 * a23 * a31 - a13 * a22 * a31 + a13 * a21 * a32 - a11 * a23 * a32 - a12 * a21 * a33 + a11 * a22 * a33;
-		var t01 = a03 * a22 * a31 - a02 * a23 * a31 - a03 * a21 * a32 + a01 * a23 * a32 + a02 * a21 * a33 - a01 * a22 * a33;
-		var t02 = a02 * a13 * a31 - a03 * a12 * a31 + a03 * a11 * a32 - a01 * a13 * a32 - a02 * a11 * a33 + a01 * a12 * a33;
-		var t03 = a03 * a12 * a21 - a02 * a13 * a21 - a03 * a11 * a22 + a01 * a13 * a22 + a02 * a11 * a23 - a01 * a12 * a23;
-		var det = a00 * t00 + a10 * t01 + a20 * t02 + a30 * t03;
-		if(Math.abs(det) <= glm_GLM.EPSILON) {
-			throw new js__$Boot_HaxeError("Can't invert matrix, det (" + det + ") is too small!");
-		}
-		var idet = 1 / det;
-		dest2[0] = t00 * idet;
-		dest2[1] = (a13 * a22 * a30 - a12 * a23 * a30 - a13 * a20 * a32 + a10 * a23 * a32 + a12 * a20 * a33 - a10 * a22 * a33) * idet;
-		dest2[2] = (a11 * a23 * a30 - a13 * a21 * a30 + a13 * a20 * a31 - a10 * a23 * a31 - a11 * a20 * a33 + a10 * a21 * a33) * idet;
-		dest2[3] = (a12 * a21 * a30 - a11 * a22 * a30 - a12 * a20 * a31 + a10 * a22 * a31 + a11 * a20 * a32 - a10 * a21 * a32) * idet;
-		dest2[4] = t01 * idet;
-		dest2[5] = (a02 * a23 * a30 - a03 * a22 * a30 + a03 * a20 * a32 - a00 * a23 * a32 - a02 * a20 * a33 + a00 * a22 * a33) * idet;
-		dest2[6] = (a03 * a21 * a30 - a01 * a23 * a30 - a03 * a20 * a31 + a00 * a23 * a31 + a01 * a20 * a33 - a00 * a21 * a33) * idet;
-		dest2[7] = (a01 * a22 * a30 - a02 * a21 * a30 + a02 * a20 * a31 - a00 * a22 * a31 - a01 * a20 * a32 + a00 * a21 * a32) * idet;
-		dest2[8] = t02 * idet;
-		dest2[9] = (a03 * a12 * a30 - a02 * a13 * a30 - a03 * a10 * a32 + a00 * a13 * a32 + a02 * a10 * a33 - a00 * a12 * a33) * idet;
-		dest2[10] = (a01 * a13 * a30 - a03 * a11 * a30 + a03 * a10 * a31 - a00 * a13 * a31 - a01 * a10 * a33 + a00 * a11 * a33) * idet;
-		dest2[11] = (a02 * a11 * a30 - a01 * a12 * a30 - a02 * a10 * a31 + a00 * a12 * a31 + a01 * a10 * a32 - a00 * a11 * a32) * idet;
-		dest2[12] = t03 * idet;
-		dest2[13] = (a02 * a13 * a20 - a03 * a12 * a20 + a03 * a10 * a22 - a00 * a13 * a22 - a02 * a10 * a23 + a00 * a12 * a23) * idet;
-		dest2[14] = (a03 * a11 * a20 - a01 * a13 * a20 - a03 * a10 * a21 + a00 * a13 * a21 + a01 * a10 * a23 - a00 * a11 * a23) * idet;
-		dest2[15] = (a01 * a12 * a20 - a02 * a11 * a20 + a02 * a10 * a21 - a00 * a12 * a21 - a01 * a10 * a22 + a00 * a11 * a22) * idet;
-		var a = this.projectionMatrix;
-		var b = this.viewMatrix;
-		var dest3 = this.viewProjectionMatrix;
-		var a001 = a[0];
-		var a011 = a[1];
-		var a021 = a[2];
-		var a031 = a[3];
-		var a101 = a[4];
-		var a111 = a[5];
-		var a121 = a[6];
-		var a131 = a[7];
-		var a201 = a[8];
-		var a211 = a[9];
-		var a221 = a[10];
-		var a231 = a[11];
-		var a301 = a[12];
-		var a311 = a[13];
-		var a321 = a[14];
-		var a331 = a[15];
-		var b00 = b[0];
-		var b01 = b[1];
-		var b02 = b[2];
-		var b03 = b[3];
-		var b10 = b[4];
-		var b11 = b[5];
-		var b12 = b[6];
-		var b13 = b[7];
-		var b20 = b[8];
-		var b21 = b[9];
-		var b22 = b[10];
-		var b23 = b[11];
-		var b30 = b[12];
-		var b31 = b[13];
-		var b32 = b[14];
-		var b33 = b[15];
-		dest3[0] = b00 * a001 + b01 * a101 + b02 * a201 + b03 * a301;
-		dest3[1] = b00 * a011 + b01 * a111 + b02 * a211 + b03 * a311;
-		dest3[2] = b00 * a021 + b01 * a121 + b02 * a221 + b03 * a321;
-		dest3[3] = b00 * a031 + b01 * a131 + b02 * a231 + b03 * a331;
-		dest3[4] = b10 * a001 + b11 * a101 + b12 * a201 + b13 * a301;
-		dest3[5] = b10 * a011 + b11 * a111 + b12 * a211 + b13 * a311;
-		dest3[6] = b10 * a021 + b11 * a121 + b12 * a221 + b13 * a321;
-		dest3[7] = b10 * a031 + b11 * a131 + b12 * a231 + b13 * a331;
-		dest3[8] = b20 * a001 + b21 * a101 + b22 * a201 + b23 * a301;
-		dest3[9] = b20 * a011 + b21 * a111 + b22 * a211 + b23 * a311;
-		dest3[10] = b20 * a021 + b21 * a121 + b22 * a221 + b23 * a321;
-		dest3[11] = b20 * a031 + b21 * a131 + b22 * a231 + b23 * a331;
-		dest3[12] = b30 * a001 + b31 * a101 + b32 * a201 + b33 * a301;
-		dest3[13] = b30 * a011 + b31 * a111 + b32 * a211 + b33 * a311;
-		dest3[14] = b30 * a021 + b31 * a121 + b32 * a221 + b33 * a321;
-		dest3[15] = b30 * a031 + b31 * a131 + b32 * a231 + b33 * a331;
-		mammoth_Mammoth.gl.context.viewport(0,0,1024,1024);
-		mammoth_Mammoth.gl.context.scissor(0,0,1024,1024);
-		mammoth_Mammoth.gl.context.clear(16640);
-		var caster = this.shadowCasters.iterator();
-		while(caster.hasNext()) {
-			var caster1 = caster.next();
-			var transform1 = caster1.data.transform;
-			var renderer = caster1.data.renderer;
-			var mesh = renderer.mesh;
-			var a1 = this.viewProjectionMatrix;
-			var b1 = transform1.m;
-			var dest4 = this.MVP;
-			var a002 = a1[0];
-			var a012 = a1[1];
-			var a022 = a1[2];
-			var a032 = a1[3];
-			var a102 = a1[4];
-			var a112 = a1[5];
-			var a122 = a1[6];
-			var a132 = a1[7];
-			var a202 = a1[8];
-			var a212 = a1[9];
-			var a222 = a1[10];
-			var a232 = a1[11];
-			var a302 = a1[12];
-			var a312 = a1[13];
-			var a322 = a1[14];
-			var a332 = a1[15];
-			var b001 = b1[0];
-			var b011 = b1[1];
-			var b021 = b1[2];
-			var b031 = b1[3];
-			var b101 = b1[4];
-			var b111 = b1[5];
-			var b121 = b1[6];
-			var b131 = b1[7];
-			var b201 = b1[8];
-			var b211 = b1[9];
-			var b221 = b1[10];
-			var b231 = b1[11];
-			var b301 = b1[12];
-			var b311 = b1[13];
-			var b321 = b1[14];
-			var b331 = b1[15];
-			dest4[0] = b001 * a002 + b011 * a102 + b021 * a202 + b031 * a302;
-			dest4[1] = b001 * a012 + b011 * a112 + b021 * a212 + b031 * a312;
-			dest4[2] = b001 * a022 + b011 * a122 + b021 * a222 + b031 * a322;
-			dest4[3] = b001 * a032 + b011 * a132 + b021 * a232 + b031 * a332;
-			dest4[4] = b101 * a002 + b111 * a102 + b121 * a202 + b131 * a302;
-			dest4[5] = b101 * a012 + b111 * a112 + b121 * a212 + b131 * a312;
-			dest4[6] = b101 * a022 + b111 * a122 + b121 * a222 + b131 * a322;
-			dest4[7] = b101 * a032 + b111 * a132 + b121 * a232 + b131 * a332;
-			dest4[8] = b201 * a002 + b211 * a102 + b221 * a202 + b231 * a302;
-			dest4[9] = b201 * a012 + b211 * a112 + b221 * a212 + b231 * a312;
-			dest4[10] = b201 * a022 + b211 * a122 + b221 * a222 + b231 * a322;
-			dest4[11] = b201 * a032 + b211 * a132 + b221 * a232 + b231 * a332;
-			dest4[12] = b301 * a002 + b311 * a102 + b321 * a202 + b331 * a302;
-			dest4[13] = b301 * a012 + b311 * a112 + b321 * a212 + b331 * a312;
-			dest4[14] = b301 * a022 + b311 * a122 + b321 * a222 + b331 * a322;
-			dest4[15] = b301 * a032 + b311 * a132 + b321 * a232 + b331 * a332;
-			this.shadowMaterial.setUniform("MVP",mammoth_render_TUniform.Mat4(this.MVP));
-			this.shadowMaterial.apply();
-			mammoth_Mammoth.gl.context.bindBuffer(34962,mesh.vertexBuffer);
-			var _g = 0;
-			var _g1 = mesh.attributeNames;
-			while(_g < _g1.length) {
-				var attributeName = _g1[_g];
-				++_g;
-				var _this = this.shadowMaterial.attributes;
-				if(!(__map_reserved[attributeName] != null ? _this.existsReserved(attributeName) : _this.h.hasOwnProperty(attributeName))) {
-					continue;
-				}
-				var _this1 = this.shadowMaterial.attributes;
-				var attribute = __map_reserved[attributeName] != null ? _this1.getReserved(attributeName) : _this1.h[attributeName];
-				mammoth_Mammoth.gl.context.enableVertexAttribArray(attribute.location);
-				var _this2 = mammoth_Mammoth.gl;
-				var indx = attribute.location;
-				var size;
-				var _g2 = attribute.type;
-				switch(_g2[1]) {
-				case 0:
-					size = 1;
-					break;
-				case 1:
-					size = 2;
-					break;
-				case 2:
-					size = 3;
-					break;
-				case 3:
-					size = 4;
-					break;
-				}
-				_this2.context.vertexAttribPointer(indx,size,5126,false,attribute.stride,attribute.offset);
-			}
-			mammoth_Mammoth.gl.context.bindBuffer(34963,mesh.indexBuffer);
-			mammoth_Mammoth.gl.context.drawElements(4,mesh.vertexCount,5123,0);
-			mammoth_Mammoth.stats.drawCalls++;
-			mammoth_Mammoth.stats.triangles += mesh.vertexCount / 3 | 0;
-		}
-		mammoth_Mammoth.gl.context.bindFramebuffer(36160,null);
 		return true;
 	}
-	,__class__: mammoth_systems_DirectionalShadowSystem
+	,__class__: mammoth_systems_DirectionalLightSystem
 };
-var mammoth_systems_DirectionalShadowSystem_$SystemProcess = function(system) {
+var mammoth_systems_DirectionalLightSystem_$SystemProcess = function(system) {
 	this.system = system;
 	this.updateItems = new edge_View();
-	system.shadowCasters = new edge_View();
 };
-mammoth_systems_DirectionalShadowSystem_$SystemProcess.__name__ = ["mammoth","systems","DirectionalShadowSystem_SystemProcess"];
-mammoth_systems_DirectionalShadowSystem_$SystemProcess.__interfaces__ = [edge_core_ISystemProcess];
-mammoth_systems_DirectionalShadowSystem_$SystemProcess.prototype = {
+mammoth_systems_DirectionalLightSystem_$SystemProcess.__name__ = ["mammoth","systems","DirectionalLightSystem_SystemProcess"];
+mammoth_systems_DirectionalLightSystem_$SystemProcess.__interfaces__ = [edge_core_ISystemProcess];
+mammoth_systems_DirectionalLightSystem_$SystemProcess.prototype = {
 	removeEntity: function(entity) {
 		this.updateItems.tryRemove(entity);
-		this.system.shadowCasters.tryRemove(entity);
 	}
 	,addEntity: function(entity) {
-		this.shadowCastersMatchRequirements(entity);
 		this.updateMatchRequirements(entity);
 	}
 	,update: function(engine,delta) {
@@ -3980,32 +3031,6 @@ mammoth_systems_DirectionalShadowSystem_$SystemProcess.prototype = {
 			}
 		}
 		return result;
-	}
-	,shadowCastersMatchRequirements: function(entity) {
-		var removed = this.system.shadowCasters.tryRemove(entity);
-		var count = 2;
-		var o = { transform : null, renderer : null};
-		var component = entity.map.iterator();
-		while(component.hasNext()) {
-			var component1 = component.next();
-			if(js_Boot.__instanceof(component1,mammoth_components_Transform)) {
-				o.transform = component1;
-				if(--count == 0) {
-					break;
-				} else {
-					continue;
-				}
-			}
-			if(js_Boot.__instanceof(component1,mammoth_components_MeshRenderer)) {
-				o.renderer = component1;
-				if(--count == 0) {
-					break;
-				} else {
-					continue;
-				}
-			}
-		}
-		var added = count == 0 && this.system.shadowCasters.tryAdd(entity,o);
 	}
 	,updateMatchRequirements: function(entity) {
 		var removed = this.updateItems.tryRemove(entity);
@@ -4033,7 +3058,7 @@ mammoth_systems_DirectionalShadowSystem_$SystemProcess.prototype = {
 		}
 		var added = count == 0 && this.updateItems.tryAdd(entity,o);
 	}
-	,__class__: mammoth_systems_DirectionalShadowSystem_$SystemProcess
+	,__class__: mammoth_systems_DirectionalLightSystem_$SystemProcess
 };
 var mammoth_systems_ModelMatrixSystem = function() {
 	var this1 = new Float32Array(4);
@@ -4436,75 +3461,158 @@ mammoth_systems_RenderSystem.prototype = {
 			dest[13] = b30 * a01 + b31 * a11 + b32 * a21 + b33 * a31;
 			dest[14] = b30 * a02 + b31 * a12 + b32 * a22 + b33 * a32;
 			dest[15] = b30 * a03 + b31 * a13 + b32 * a23 + b33 * a33;
+			if(material.cullMode == 0) {
+				mammoth_Mammoth.gl.context.disable(2884);
+			} else {
+				mammoth_Mammoth.gl.context.enable(2884);
+				mammoth_Mammoth.gl.context.cullFace(material.cullMode);
+			}
+			mammoth_Mammoth.gl.context.depthMask(material.depthWrite);
+			if(material.depthTest) {
+				mammoth_Mammoth.gl.context.enable(2929);
+			} else {
+				mammoth_Mammoth.gl.context.disable(2929);
+			}
+			mammoth_Mammoth.gl.context.depthFunc(material.depthFunction);
+			mammoth_Mammoth.gl.context.useProgram(material.program);
 			var _this = material.uniforms;
 			if(__map_reserved["MVP"] != null ? _this.existsReserved("MVP") : _this.h.hasOwnProperty("MVP")) {
-				material.setUniform("MVP",mammoth_render_TUniform.Mat4(this.MVP));
-			}
-			var _this1 = material.uniforms;
-			if(__map_reserved["M"] != null ? _this1.existsReserved("M") : _this1.h.hasOwnProperty("M")) {
-				material.setUniform("M",mammoth_render_TUniform.Mat4(transform.m));
-			}
-			var _this2 = material.uniforms;
-			if(__map_reserved["VP"] != null ? _this2.existsReserved("VP") : _this2.h.hasOwnProperty("VP")) {
-				material.setUniform("VP",mammoth_render_TUniform.Mat4(camera.vp));
+				var _this1 = mammoth_Mammoth.gl;
+				var _this2 = material.uniforms;
+				var location = __map_reserved["MVP"] != null ? _this2.getReserved("MVP") : _this2.h["MVP"];
+				_this1.context.uniformMatrix4fv(location.location,false,this.MVP);
 			}
 			var _this3 = material.uniforms;
-			if(__map_reserved["V"] != null ? _this3.existsReserved("V") : _this3.h.hasOwnProperty("V")) {
-				material.setUniform("V",mammoth_render_TUniform.Mat4(camera.v));
+			if(__map_reserved["M"] != null ? _this3.existsReserved("M") : _this3.h.hasOwnProperty("M")) {
+				var _this4 = mammoth_Mammoth.gl;
+				var _this5 = material.uniforms;
+				var location1 = __map_reserved["M"] != null ? _this5.getReserved("M") : _this5.h["M"];
+				_this4.context.uniformMatrix4fv(location1.location,false,transform.m);
 			}
-			var _this4 = material.uniforms;
-			if(__map_reserved["P"] != null ? _this4.existsReserved("P") : _this4.h.hasOwnProperty("P")) {
-				material.setUniform("P",mammoth_render_TUniform.Mat4(camera.p));
+			var _this6 = material.uniforms;
+			if(__map_reserved["VP"] != null ? _this6.existsReserved("VP") : _this6.h.hasOwnProperty("VP")) {
+				var _this7 = mammoth_Mammoth.gl;
+				var _this8 = material.uniforms;
+				var location2 = __map_reserved["VP"] != null ? _this8.getReserved("VP") : _this8.h["VP"];
+				_this7.context.uniformMatrix4fv(location2.location,false,camera.vp);
 			}
-			var _this5 = material.uniforms;
-			if(__map_reserved["directionalLights[0].direction"] != null ? _this5.existsReserved("directionalLights[0].direction") : _this5.h.hasOwnProperty("directionalLights[0].direction")) {
+			var _this9 = material.uniforms;
+			if(__map_reserved["V"] != null ? _this9.existsReserved("V") : _this9.h.hasOwnProperty("V")) {
+				var _this10 = mammoth_Mammoth.gl;
+				var _this11 = material.uniforms;
+				var location3 = __map_reserved["V"] != null ? _this11.getReserved("V") : _this11.h["V"];
+				_this10.context.uniformMatrix4fv(location3.location,false,camera.v);
+			}
+			var _this12 = material.uniforms;
+			if(__map_reserved["P"] != null ? _this12.existsReserved("P") : _this12.h.hasOwnProperty("P")) {
+				var _this13 = mammoth_Mammoth.gl;
+				var _this14 = material.uniforms;
+				var location4 = __map_reserved["P"] != null ? _this14.getReserved("P") : _this14.h["P"];
+				_this13.context.uniformMatrix4fv(location4.location,false,camera.p);
+			}
+			var _this15 = material.uniforms;
+			if(__map_reserved["directionalLights[0].direction"] != null ? _this15.existsReserved("directionalLights[0].direction") : _this15.h.hasOwnProperty("directionalLights[0].direction")) {
 				var i = 0;
 				var dl = this.directionalLights.iterator();
 				while(dl.hasNext()) {
 					var dl1 = dl.next();
-					var x = dl1.data.light.direction[0];
-					var y = dl1.data.light.direction[1];
-					var z = dl1.data.light.direction[2];
-					var this1 = new Float32Array(4);
-					this1[0] = x;
-					this1[1] = y;
-					this1[2] = z;
-					material.setUniform("directionalLights[" + i + "].direction",mammoth_render_TUniform.Vec3(this1));
-					material.setUniform("directionalLights[" + i + "].colour",mammoth_render_TUniform.RGB(dl1.data.light.colour));
+					var light = dl1.data.light;
+					var _this16 = mammoth_Mammoth.gl;
+					var name = "directionalLights[" + i + "].direction";
+					var _this17 = material.uniforms;
+					var location5 = __map_reserved[name] != null ? _this17.getReserved(name) : _this17.h[name];
+					_this16.context.uniform3f(location5.location,light.direction[0],light.direction[1],light.direction[2]);
+					var _this18 = mammoth_Mammoth.gl;
+					var name1 = "directionalLights[" + i + "].colour";
+					var _this19 = material.uniforms;
+					var location6 = __map_reserved[name1] != null ? _this19.getReserved(name1) : _this19.h[name1];
+					_this18.context.uniform3f(location6.location,light.colour[0],light.colour[1],light.colour[2]);
 					++i;
 				}
 			}
-			var _this6 = material.uniforms;
-			if(__map_reserved["pointLights[0].position"] != null ? _this6.existsReserved("pointLights[0].position") : _this6.h.hasOwnProperty("pointLights[0].position")) {
-				var i1 = 0;
-				var pl = this.pointLights.iterator();
-				while(pl.hasNext()) {
-					var pl1 = pl.next();
-					material.setUniform("pointLights[" + i1 + "].position",mammoth_render_TUniform.Vec3(pl1.data.transform.position));
-					material.setUniform("pointLights[" + i1 + "].colour",mammoth_render_TUniform.RGB(pl1.data.light.colour));
-					material.setUniform("pointLights[" + i1 + "].distance",mammoth_render_TUniform.Float(pl1.data.light.distance));
-					++i1;
-				}
-			}
-			material.apply();
-			mammoth_Mammoth.gl.context.bindBuffer(34962,mesh.vertexBuffer);
-			var _g = 0;
-			var _g1 = mesh.attributeNames;
-			while(_g < _g1.length) {
-				var attributeName = _g1[_g];
-				++_g;
-				var _this7 = material.attributes;
-				if(!(__map_reserved[attributeName] != null ? _this7.existsReserved(attributeName) : _this7.h.hasOwnProperty(attributeName))) {
+			var dataName = renderer.materialData.keys();
+			while(dataName.hasNext()) {
+				var dataName1 = dataName.next();
+				var _this20 = material.uniforms;
+				if(!(__map_reserved[dataName1] != null ? _this20.existsReserved(dataName1) : _this20.h.hasOwnProperty(dataName1))) {
 					continue;
 				}
-				var _this8 = material.attributes;
-				var attribute = __map_reserved[attributeName] != null ? _this8.getReserved(attributeName) : _this8.h[attributeName];
-				mammoth_Mammoth.gl.context.enableVertexAttribArray(attribute.location);
-				var _this9 = mammoth_Mammoth.gl;
-				var indx = attribute.location;
+				var _this21 = material.uniforms;
+				var location7 = (__map_reserved[dataName1] != null ? _this21.getReserved(dataName1) : _this21.h[dataName1]).location;
+				var _this22 = renderer.materialData;
+				var data = __map_reserved[dataName1] != null ? _this22.getReserved(dataName1) : _this22.h[dataName1];
+				switch(data[1]) {
+				case 0:
+					var b1 = data[2];
+					mammoth_Mammoth.gl.context.uniform1i(location7,b1 ? 1 : 0);
+					break;
+				case 1:
+					var i1 = data[2];
+					mammoth_Mammoth.gl.context.uniform1i(location7,i1);
+					break;
+				case 2:
+					var x = data[2];
+					mammoth_Mammoth.gl.context.uniform1f(location7,x);
+					break;
+				case 3:
+					var y = data[3];
+					var x1 = data[2];
+					mammoth_Mammoth.gl.context.uniform2f(location7,x1,y);
+					break;
+				case 4:
+					var z = data[4];
+					var y1 = data[3];
+					var x2 = data[2];
+					mammoth_Mammoth.gl.context.uniform3f(location7,x2,y1,z);
+					break;
+				case 5:
+					var w = data[5];
+					var z1 = data[4];
+					var y2 = data[3];
+					var x3 = data[2];
+					mammoth_Mammoth.gl.context.uniform4f(location7,x3,y2,z1,w);
+					break;
+				case 6:
+					var v = data[2];
+					mammoth_Mammoth.gl.context.uniform2f(location7,v[0],v[1]);
+					break;
+				case 7:
+					var v1 = data[2];
+					mammoth_Mammoth.gl.context.uniform3f(location7,v1[0],v1[1],v1[2]);
+					break;
+				case 8:
+					var v2 = data[2];
+					mammoth_Mammoth.gl.context.uniform4f(location7,v2[0],v2[1],v2[2],v2[3]);
+					break;
+				case 9:
+					var m = data[2];
+					mammoth_Mammoth.gl.context.uniformMatrix4fv(location7,false,m);
+					break;
+				case 10:
+					var c = data[2];
+					mammoth_Mammoth.gl.context.uniform3f(location7,c[0],c[1],c[2]);
+					break;
+				case 11:
+					var c1 = data[2];
+					mammoth_Mammoth.gl.context.uniform4f(location7,c1[0],c1[1],c1[2],c1[3]);
+					break;
+				}
+			}
+			mammoth_Mammoth.gl.context.bindBuffer(34962,mesh.vertexBuffer);
+			var _this23 = material.attributes;
+			var materialAttribute = new haxe_ds__$StringMap_StringMapIterator(_this23,_this23.arrayKeys());
+			while(materialAttribute.hasNext()) {
+				var materialAttribute1 = materialAttribute.next();
+				if(!mesh.hasAttribute(materialAttribute1.name)) {
+					throw new js__$Boot_HaxeError(new mammoth_debug_Exception("Can\t use material " + material.name + " with mesh " + mesh.name + " as mesh is missing attribute " + materialAttribute1.name + "!",true,null,null,{ fileName : "RenderSystem.hx", lineNumber : 143, className : "mammoth.systems.RenderSystem", methodName : "update"}));
+				}
+				var meshAttribute = mesh.getAttribute(materialAttribute1.name);
+				mammoth_Mammoth.gl.context.enableVertexAttribArray(materialAttribute1.location);
+				var _this24 = mammoth_Mammoth.gl;
+				var indx = materialAttribute1.location;
 				var size;
-				var _g2 = attribute.type;
-				switch(_g2[1]) {
+				var _g = meshAttribute.type;
+				switch(_g[1]) {
 				case 0:
 					size = 1;
 					break;
@@ -4518,12 +3626,12 @@ mammoth_systems_RenderSystem.prototype = {
 					size = 4;
 					break;
 				}
-				_this9.context.vertexAttribPointer(indx,size,5126,false,attribute.stride,attribute.offset);
+				_this24.context.vertexAttribPointer(indx,size,5126,false,meshAttribute.stride,meshAttribute.offset);
 			}
 			mammoth_Mammoth.gl.context.bindBuffer(34963,mesh.indexBuffer);
-			mammoth_Mammoth.gl.context.drawElements(4,mesh.vertexCount,5123,0);
+			mammoth_Mammoth.gl.context.drawElements(4,mesh.indexCount,5123,0);
 			mammoth_Mammoth.stats.drawCalls++;
-			mammoth_Mammoth.stats.triangles += mesh.vertexCount / 3 | 0;
+			mammoth_Mammoth.stats.triangles += mesh.indexCount / 3 | 0;
 		}
 		return true;
 	}
@@ -4663,8 +3771,271 @@ mammoth_systems_RenderSystem_$SystemProcess.prototype = {
 	}
 	,__class__: mammoth_systems_RenderSystem_$SystemProcess
 };
-var mammoth_utilities_Colours = function() { };
-mammoth_utilities_Colours.__name__ = ["mammoth","utilities","Colours"];
+var mammoth_types_Colours = function() { };
+mammoth_types_Colours.__name__ = ["mammoth","types","Colours"];
+var mammoth_types_Material = function(name) {
+	this.depthFunction = 515;
+	this.depthTest = true;
+	this.depthWrite = true;
+	this.cullMode = 1029;
+	this.name = name;
+	this.attributes = new haxe_ds_StringMap();
+	this.uniforms = new haxe_ds_StringMap();
+};
+mammoth_types_Material.__name__ = ["mammoth","types","Material"];
+mammoth_types_Material.prototype = {
+	setShaderSource: function(source,type) {
+		switch(type) {
+		case 35632:
+			this.fragmentShaderSource = source;
+			break;
+		case 35633:
+			this.vertexShaderSource = source;
+			break;
+		}
+		return this;
+	}
+	,compileShader: function(source,type) {
+		var shader = mammoth_Mammoth.gl.context.createShader(type);
+		mammoth_Mammoth.gl.context.shaderSource(shader,source);
+		mammoth_Mammoth.gl.context.compileShader(shader);
+		if(!mammoth_Mammoth.gl.context.getShaderParameter(shader,35713)) {
+			var info = mammoth_Mammoth.gl.context.getShaderInfoLog(shader);
+			var typeStr = type == 35633 ? "Vertex" : "Fragment";
+			throw new js__$Boot_HaxeError(new mammoth_debug_Exception(info,true,"Compile" + typeStr + "Shader",null,{ fileName : "Material.hx", lineNumber : 81, className : "mammoth.types.Material", methodName : "compileShader"}));
+		}
+		return shader;
+	}
+	,compile: function() {
+		if(this.vertexShaderSource == null || this.fragmentShaderSource == null) {
+			throw new js__$Boot_HaxeError(new mammoth_debug_Exception("Can't compile material " + this.name + ", shaders are missing!",true,null,null,{ fileName : "Material.hx", lineNumber : 88, className : "mammoth.types.Material", methodName : "compile"}));
+		}
+		this.vertexShader = this.compileShader(this.vertexShaderSource,35633);
+		this.fragmentShader = this.compileShader(this.fragmentShaderSource,35632);
+		this.program = mammoth_Mammoth.gl.context.createProgram();
+		mammoth_Mammoth.gl.context.attachShader(this.program,this.vertexShader);
+		mammoth_Mammoth.gl.context.attachShader(this.program,this.fragmentShader);
+		mammoth_Mammoth.gl.context.linkProgram(this.program);
+		if(!mammoth_Mammoth.gl.context.getProgramParameter(this.program,35714)) {
+			var info = mammoth_Mammoth.gl.context.getProgramInfoLog(this.program);
+			throw new js__$Boot_HaxeError(new mammoth_debug_Exception(info,true,"LinkProgram",null,{ fileName : "Material.hx", lineNumber : 100, className : "mammoth.types.Material", methodName : "compile"}));
+		}
+		return this;
+	}
+	,registerAttribute: function(name,type) {
+		var attribute = new mammoth_types_MaterialAttribute(name,type);
+		mammoth_Mammoth.gl.context.useProgram(this.program);
+		attribute.location = mammoth_Mammoth.gl.context.getAttribLocation(this.program,name);
+		var _this = this.attributes;
+		if(__map_reserved[name] != null) {
+			_this.setReserved(name,attribute);
+		} else {
+			_this.h[name] = attribute;
+		}
+		return this;
+	}
+	,registerUniform: function(name,type) {
+		var uniform = new mammoth_types_ShaderUniform(name,type);
+		mammoth_Mammoth.gl.context.useProgram(this.program);
+		uniform.location = mammoth_Mammoth.gl.context.getUniformLocation(this.program,name);
+		var _this = this.uniforms;
+		if(__map_reserved[name] != null) {
+			_this.setReserved(name,uniform);
+		} else {
+			_this.h[name] = uniform;
+		}
+		return this;
+	}
+	,__class__: mammoth_types_Material
+};
+var mammoth_types_MaterialAttribute = function(name,type) {
+	this.name = name;
+	this.type = type;
+};
+mammoth_types_MaterialAttribute.__name__ = ["mammoth","types","MaterialAttribute"];
+mammoth_types_MaterialAttribute.prototype = {
+	__class__: mammoth_types_MaterialAttribute
+};
+var mammoth_types_Mesh = function(name) {
+	this.name = name;
+	this.vertexBuffer = mammoth_Mammoth.gl.context.createBuffer();
+	this.indexBuffer = mammoth_Mammoth.gl.context.createBuffer();
+	this.indexCount = 0;
+	this.attributes = [];
+};
+mammoth_types_Mesh.__name__ = ["mammoth","types","Mesh"];
+mammoth_types_Mesh.prototype = {
+	registerAttribute: function(name,type,order) {
+		var attribute = new mammoth_types_MeshAttribute(name,type);
+		if(order == null) {
+			this.attributes.push(attribute);
+		} else {
+			this.attributes.splice(order,0,attribute);
+		}
+		return this;
+	}
+	,setVertexData: function(data,usage) {
+		if(usage == null) {
+			usage = 35044;
+		}
+		mammoth_Mammoth.gl.context.bindBuffer(34962,this.vertexBuffer);
+		var _this = mammoth_Mammoth.gl;
+		var data1 = new Float32Array(data);
+		_this.context.bufferData(34962,data1,usage);
+		mammoth_Mammoth.gl.context.bindBuffer(34962,null);
+		return this;
+	}
+	,setIndexData: function(data,usage) {
+		if(usage == null) {
+			usage = 35044;
+		}
+		mammoth_Mammoth.gl.context.bindBuffer(34963,this.indexBuffer);
+		var _this = mammoth_Mammoth.gl;
+		var data1 = new Int16Array(data);
+		_this.context.bufferData(34963,data1,usage);
+		mammoth_Mammoth.gl.context.bindBuffer(34963,null);
+		this.indexCount = data.length;
+		return this;
+	}
+	,compile: function() {
+		var offset = 0;
+		var _g = 0;
+		var _g1 = this.attributes;
+		while(_g < _g1.length) {
+			var attribute = _g1[_g];
+			++_g;
+			attribute.offset = offset;
+			var _g3 = attribute.type;
+			var offset1;
+			switch(_g3[1]) {
+			case 0:
+				offset1 = 4;
+				break;
+			case 1:
+				offset1 = 8;
+				break;
+			case 2:
+				offset1 = 12;
+				break;
+			case 3:
+				offset1 = 16;
+				break;
+			}
+			offset += offset1;
+		}
+		var _g2 = 0;
+		var _g11 = this.attributes;
+		while(_g2 < _g11.length) {
+			var attribute1 = _g11[_g2];
+			++_g2;
+			attribute1.stride = offset;
+		}
+	}
+	,hasAttribute: function(name) {
+		var _g = 0;
+		var _g1 = this.attributes;
+		while(_g < _g1.length) {
+			var attribute = _g1[_g];
+			++_g;
+			if(attribute.name == name) {
+				return true;
+			}
+		}
+		return false;
+	}
+	,getAttribute: function(name) {
+		var _g = 0;
+		var _g1 = this.attributes;
+		while(_g < _g1.length) {
+			var attribute = _g1[_g];
+			++_g;
+			if(attribute.name == name) {
+				return attribute;
+			}
+		}
+		return null;
+	}
+	,__class__: mammoth_types_Mesh
+};
+var mammoth_types_MeshAttribute = function(name,type) {
+	this.name = name;
+	this.type = type;
+};
+mammoth_types_MeshAttribute.__name__ = ["mammoth","types","MeshAttribute"];
+mammoth_types_MeshAttribute.prototype = {
+	__class__: mammoth_types_MeshAttribute
+};
+var mammoth_types_ShaderUniform = function(name,type) {
+	this.name = name;
+	this.type = type;
+};
+mammoth_types_ShaderUniform.__name__ = ["mammoth","types","ShaderUniform"];
+mammoth_types_ShaderUniform.prototype = {
+	__class__: mammoth_types_ShaderUniform
+};
+var mammoth_types_TShaderUniform = { __ename__ : true, __constructs__ : ["Bool","Int","Float","Float2","Float3","Float4","Vector2","Vector3","Vector4","Matrix4","RGB","RGBA"] };
+mammoth_types_TShaderUniform.Bool = ["Bool",0];
+mammoth_types_TShaderUniform.Bool.toString = $estr;
+mammoth_types_TShaderUniform.Bool.__enum__ = mammoth_types_TShaderUniform;
+mammoth_types_TShaderUniform.Int = ["Int",1];
+mammoth_types_TShaderUniform.Int.toString = $estr;
+mammoth_types_TShaderUniform.Int.__enum__ = mammoth_types_TShaderUniform;
+mammoth_types_TShaderUniform.Float = ["Float",2];
+mammoth_types_TShaderUniform.Float.toString = $estr;
+mammoth_types_TShaderUniform.Float.__enum__ = mammoth_types_TShaderUniform;
+mammoth_types_TShaderUniform.Float2 = ["Float2",3];
+mammoth_types_TShaderUniform.Float2.toString = $estr;
+mammoth_types_TShaderUniform.Float2.__enum__ = mammoth_types_TShaderUniform;
+mammoth_types_TShaderUniform.Float3 = ["Float3",4];
+mammoth_types_TShaderUniform.Float3.toString = $estr;
+mammoth_types_TShaderUniform.Float3.__enum__ = mammoth_types_TShaderUniform;
+mammoth_types_TShaderUniform.Float4 = ["Float4",5];
+mammoth_types_TShaderUniform.Float4.toString = $estr;
+mammoth_types_TShaderUniform.Float4.__enum__ = mammoth_types_TShaderUniform;
+mammoth_types_TShaderUniform.Vector2 = ["Vector2",6];
+mammoth_types_TShaderUniform.Vector2.toString = $estr;
+mammoth_types_TShaderUniform.Vector2.__enum__ = mammoth_types_TShaderUniform;
+mammoth_types_TShaderUniform.Vector3 = ["Vector3",7];
+mammoth_types_TShaderUniform.Vector3.toString = $estr;
+mammoth_types_TShaderUniform.Vector3.__enum__ = mammoth_types_TShaderUniform;
+mammoth_types_TShaderUniform.Vector4 = ["Vector4",8];
+mammoth_types_TShaderUniform.Vector4.toString = $estr;
+mammoth_types_TShaderUniform.Vector4.__enum__ = mammoth_types_TShaderUniform;
+mammoth_types_TShaderUniform.Matrix4 = ["Matrix4",9];
+mammoth_types_TShaderUniform.Matrix4.toString = $estr;
+mammoth_types_TShaderUniform.Matrix4.__enum__ = mammoth_types_TShaderUniform;
+mammoth_types_TShaderUniform.RGB = ["RGB",10];
+mammoth_types_TShaderUniform.RGB.toString = $estr;
+mammoth_types_TShaderUniform.RGB.__enum__ = mammoth_types_TShaderUniform;
+mammoth_types_TShaderUniform.RGBA = ["RGBA",11];
+mammoth_types_TShaderUniform.RGBA.toString = $estr;
+mammoth_types_TShaderUniform.RGBA.__enum__ = mammoth_types_TShaderUniform;
+var mammoth_types_TUniformData = { __ename__ : true, __constructs__ : ["Bool","Int","Float","Float2","Float3","Float4","Vector2","Vector3","Vector4","Matrix4","RGB","RGBA"] };
+mammoth_types_TUniformData.Bool = function(x) { var $x = ["Bool",0,x]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_types_TUniformData.Int = function(x) { var $x = ["Int",1,x]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_types_TUniformData.Float = function(x) { var $x = ["Float",2,x]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_types_TUniformData.Float2 = function(x,y) { var $x = ["Float2",3,x,y]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_types_TUniformData.Float3 = function(x,y,z) { var $x = ["Float3",4,x,y,z]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_types_TUniformData.Float4 = function(x,y,z,w) { var $x = ["Float4",5,x,y,z,w]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_types_TUniformData.Vector2 = function(x) { var $x = ["Vector2",6,x]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_types_TUniformData.Vector3 = function(x) { var $x = ["Vector3",7,x]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_types_TUniformData.Vector4 = function(x) { var $x = ["Vector4",8,x]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_types_TUniformData.Matrix4 = function(v) { var $x = ["Matrix4",9,v]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_types_TUniformData.RGB = function(c) { var $x = ["RGB",10,c]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
+mammoth_types_TUniformData.RGBA = function(c) { var $x = ["RGBA",11,c]; $x.__enum__ = mammoth_types_TUniformData; $x.toString = $estr; return $x; };
+var mammoth_types_TVertexAttribute = { __ename__ : true, __constructs__ : ["Float","Vec2","Vec3","Vec4"] };
+mammoth_types_TVertexAttribute.Float = ["Float",0];
+mammoth_types_TVertexAttribute.Float.toString = $estr;
+mammoth_types_TVertexAttribute.Float.__enum__ = mammoth_types_TVertexAttribute;
+mammoth_types_TVertexAttribute.Vec2 = ["Vec2",1];
+mammoth_types_TVertexAttribute.Vec2.toString = $estr;
+mammoth_types_TVertexAttribute.Vec2.__enum__ = mammoth_types_TVertexAttribute;
+mammoth_types_TVertexAttribute.Vec3 = ["Vec3",2];
+mammoth_types_TVertexAttribute.Vec3.toString = $estr;
+mammoth_types_TVertexAttribute.Vec3.__enum__ = mammoth_types_TVertexAttribute;
+mammoth_types_TVertexAttribute.Vec4 = ["Vec4",3];
+mammoth_types_TVertexAttribute.Vec4.toString = $estr;
+mammoth_types_TVertexAttribute.Vec4.__enum__ = mammoth_types_TVertexAttribute;
 var promhx_base_AsyncBase = function(d,pos) {
 	this.parentConstructorPos = [];
 	var tmp = promhx_base_AsyncBase;
@@ -5436,13 +4807,12 @@ mammoth_Mammoth.gl = new mammoth_gl_js_Graphics();
 mammoth_Mammoth.assets = new mammoth_platform_js_Assets();
 mammoth_Mammoth.input = new mammoth_platform_js_Input();
 mammoth_Mammoth.stats = new mammoth_Stats();
-mammoth_defaults_StandardShader.vertexStandard = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\n// attribute inputs\nattribute vec3 position;\nattribute vec3 normal;\n\n#ifdef ATTRIBUTE_UV\nattribute vec2 uv;\n#endif\n#ifdef ATTRIBUTE_COLOUR\nattribute vec3 colour;\n#endif\n\n// camera uniforms\nuniform mat4 MVP;\nuniform mat4 M;\n\n// material uniforms\nuniform vec3 albedoColour;\nuniform vec3 ambientColour;\n\n// outputs\nvarying vec3 v_position;\nvarying vec3 v_normal;\nvarying vec3 v_colour;\n#ifdef ATTRIBUTE_UV\nvarying vec2 v_uv;\n#endif\n\nvoid main() {\n    // transform position to world space\n    vec3 worldPosition = (M * vec4(position, 1.0)).xyz;\n    v_position = worldPosition;\n\n\t// transform normals into world space\n\tvec3 worldNormal = (M * vec4(normal, 0.0)).xyz;\n    v_normal = worldNormal;\n\t\n    vec3 colour = albedoColour * ambientColour;\n\n    v_colour = colour;\n    #ifdef ATTRIBUTE_UV\n\tv_uv = uv;\n    #endif\n\n    // set the camera-space position of the vertex\n\tgl_Position = MVP * vec4(position, 1.0);\n}";
-mammoth_defaults_StandardShader.fragmentStandard = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\n// lights\n#ifdef UNIFORM_DIRECTIONAL_LIGHTS\nstruct SDirectionalLight {\n    vec3 direction;\n    vec3 colour;\n};\nuniform SDirectionalLight directionalLights[NUMBER_DIRECTIONAL_LIGHTS];\n#endif\n#ifdef UNIFORM_POINT_LIGHTS\nstruct SPointLight {\n    vec3 position;\n    vec3 colour;\n    float distance;\n};\nuniform SPointLight pointLights[NUMBER_POINT_LIGHTS];\n#endif\n\n// material uniforms\nuniform vec3 albedoColour;\nuniform vec3 ambientColour;\n\n// inputs\nvarying vec3 v_position;\nvarying vec3 v_normal;\nvarying vec3 v_colour;\n#ifdef ATTRIBUTE_UV\nvarying vec2 v_uv;\n#endif\n\n#ifdef UNIFORM_TEXTURE\nuniform sampler2D texture;\n#endif\n\nvoid main() {\n    // base colour from vertex shader\n    vec3 colour = v_colour;\n\n    #ifdef UNIFORM_DIRECTIONAL_LIGHTS\n\t// sun diffuse term\n\tfloat dLight0 = clamp(dot(v_normal, directionalLights[0].direction), 0.0, 1.0);\n    colour += directionalLights[0].colour * dLight0 * albedoColour;\n    #endif\n\n    #ifdef UNIFORM_POINT_LIGHTS\n    vec3 pLightDir0 = pointLights[0].position - v_position;\n    float pDist0 = length(pLightDir0);\n\tfloat pLight0 = clamp(dot(v_normal, pLightDir0), 0.0, 1.0) * pointLights[0].distance / (pDist0 * pDist0);\n    colour += pointLights[0].colour * pLight0 * albedoColour;\n    #endif\n\n    vec4 outColour = vec4(colour, 1.0);\n    #ifdef UNIFORM_TEXTURE\n    outColour *= texture2D(texture, v_uv);\n    #endif\n\n    // gamma\n    gl_FragColor = vec4(pow(outColour.rgb, vec3(1.0/2.2)), outColour.a);\n    //gl_FragColor = outColour;\n}";
-mammoth_loader_Loader.cameras = new haxe_ds_StringMap();
-mammoth_loader_Loader.lights = new haxe_ds_StringMap();
-mammoth_loader_Loader.shaders = new haxe_ds_StringMap();
-mammoth_loader_Loader.meshes = new haxe_ds_StringMap();
-mammoth_systems_DirectionalShadowSystem.zDir = (function($this) {
+mammoth_filetypes_MammothJSON.cameras = new haxe_ds_StringMap();
+mammoth_filetypes_MammothJSON.lights = new haxe_ds_StringMap();
+mammoth_filetypes_MammothJSON.meshes = new haxe_ds_StringMap();
+mammoth_filetypes_MammothJSON.materials = new haxe_ds_StringMap();
+mammoth_filetypes_MammothJSON.materialDatas = new haxe_ds_StringMap();
+mammoth_systems_DirectionalLightSystem.zDir = (function($this) {
 	var $r;
 	var this1 = new Float32Array(4);
 	this1[0] = 0;
@@ -5452,7 +4822,7 @@ mammoth_systems_DirectionalShadowSystem.zDir = (function($this) {
 	$r = this1;
 	return $r;
 }(this));
-mammoth_utilities_Colours.Black = (function($this) {
+mammoth_types_Colours.Black = (function($this) {
 	var $r;
 	var this1 = new Float32Array(4);
 	this1[0] = 0;
@@ -5462,7 +4832,7 @@ mammoth_utilities_Colours.Black = (function($this) {
 	$r = this1;
 	return $r;
 }(this));
-mammoth_utilities_Colours.White = (function($this) {
+mammoth_types_Colours.White = (function($this) {
 	var $r;
 	var this1 = new Float32Array(4);
 	this1[0] = 1;

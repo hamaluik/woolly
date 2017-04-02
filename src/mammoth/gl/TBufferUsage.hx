@@ -11,22 +11,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.loader;
+package mammoth.gl;
 
-import mammoth.loader.Colour;
+import mammoth.gl.GL;
 
-typedef UnlitShader = {
-    var colour:Colour;
-}
-
-typedef DiffuseShader = {
-    var ambient:Colour;
-    var colour:Colour;
-}
-
-typedef Shader = {
-    var name:String;
-    var textures:Array<String>;
-    @:optional var unlit:UnlitShader;
-    @:optional var diffuse:DiffuseShader;
+@:enum
+abstract TBufferUsage(Int) {
+    var Static = GL.STATIC_DRAW;
+    var Dynamic = GL.DYNAMIC_DRAW;
 }

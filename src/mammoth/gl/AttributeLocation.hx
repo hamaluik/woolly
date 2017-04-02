@@ -11,12 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.render;
+package mammoth.gl;
 
-import mammoth.gl.GL;
-
-@:enum
-abstract TShaderType(Int) {
-    var Vertex = GL.VERTEX_SHADER;
-    var Fragment = GL.FRAGMENT_SHADER;
-}
+typedef AttributeLocation = Int;

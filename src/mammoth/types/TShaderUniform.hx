@@ -11,12 +11,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.render;
+package mammoth.types;
 
-import mammoth.gl.UniformLocation;
-
-enum TLocation {
-	Uniform(location:UniformLocation);
-	// TODO: implement textures
-	//Texture(location:UniformLocation, unit:TextureUnit);
+enum TShaderUniform {
+	Bool;
+	Int;
+	Float;
+	Float2;
+	Float3;
+	Float4;
+	Vector2;
+	Vector3;
+	Vector4;
+	Matrix4;
+	RGB;
+	RGBA;
 }

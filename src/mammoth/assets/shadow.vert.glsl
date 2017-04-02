@@ -4,7 +4,6 @@ precision mediump float;
 
 // attribute inputs
 attribute vec3 position;
-attribute vec3 normal;
 
 // camera uniforms
 uniform mat4 MVP;

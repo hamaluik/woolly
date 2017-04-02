@@ -11,6 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.loader;
+package mammoth.gl;
 
-typedef Colour = Array<Float>;
+import mammoth.gl.GL;
+
+@:enum
+abstract TCullMode(Int) {
+    var None = GL.NONE;
+    var Front = GL.FRONT;
+    var Back = GL.BACK;
+    var Both = GL.FRONT_AND_BACK;
+}

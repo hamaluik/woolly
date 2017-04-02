@@ -11,11 +11,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.render;
+package mammoth.systems;
 
-enum TAttribute {
-	Float;
-	Vec2;
-	Vec3;
-	Vec4;
+import edge.ISystem;
+import mammoth.components.Transform;
+import mammoth.components.DirectionalLight;
+
+class DirectionalLightSystem implements ISystem {
+    private static var zDir:Vec4 = new Vec4(0, 0, 1, 1);
+    
+    public function update(transform:Transform, light:DirectionalLight) {
+        transform.m.multVec(zDir, light.direction);
+    }
 }

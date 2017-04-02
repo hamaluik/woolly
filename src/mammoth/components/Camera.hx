@@ -16,8 +16,8 @@ package mammoth.components;
 import edge.IComponent;
 import glm.Mat4;
 import glm.Vec2;
-import mammoth.utilities.Colour;
-import mammoth.utilities.Colours;
+import mammoth.types.Colour;
+import mammoth.types.Colours;
 
 enum ProjectionMode {
     Orthographic(size:Float);

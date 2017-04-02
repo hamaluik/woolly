@@ -11,19 +11,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.loader;
+package mammoth.types;
 
-import mammoth.loader.Colour;
+import mammoth.gl.AttributeLocation;
 
-@:enum
-abstract LightType(String) {
-	var Directional = "directional";
-	var Point = "point";
-}
+@:allow(mammoth.types.Material)
+class MaterialAttribute {
+    public var name(default, null):String;
+    public var type(default, null):TVertexAttribute;
 
-typedef Light = {
-    var name:String;
-    var type:LightType;
-    var colour:Colour;
-    @:optional var distance:Float;
+    public var location(default, null):AttributeLocation;
+
+    public function new(name:String, type:TVertexAttribute) {
+        this.name = name;
+        this.type = type;
+    }
 }

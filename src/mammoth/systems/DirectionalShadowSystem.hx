@@ -13,19 +13,16 @@
 */
 package mammoth.systems;
 
-import mammoth.render.Mesh;
 import edge.ISystem;
 import edge.View;
 import mammoth.components.MeshRenderer;
 import mammoth.components.Transform;
 import mammoth.components.DirectionalLight;
-import mammoth.render.Material;
+import mammoth.types.Material;
 import mammoth.gl.GL;
 import mammoth.defaults.Materials;
-import mammoth.render.Attribute;
 
 class DirectionalShadowSystem implements ISystem {
-    private static var zDir:Vec4 = new Vec4(0, 0, 1, 1);
     private var viewMatrix:Mat4 = Mat4.identity(new Mat4());
     private var projectionMatrix:Mat4 = Mat4.identity(new Mat4());
     private var viewProjectionMatrix:Mat4 = Mat4.identity(new Mat4());
@@ -35,9 +32,6 @@ class DirectionalShadowSystem implements ISystem {
     var shadowCasters:View<{ transform:Transform, renderer:MeshRenderer }>;
 
     public function update(transform:Transform, light:DirectionalLight) {
-        // update the direction
-        transform.m.multVec(zDir, light.direction);
-
         // create a shadow material if one doesn't exist yet
         if(shadowMaterial == null) {
             shadowMaterial = Materials.shadow();
@@ -77,6 +71,7 @@ class DirectionalShadowSystem implements ISystem {
         }
 
         // calculate the VP matrix for the light
+        // TODO: calculate this smarter
         GLM.orthographic(-10, 10, -10, 10, -10, 20, projectionMatrix);
         transform.m.invert(viewMatrix);
         Mat4.multMat(projectionMatrix, viewMatrix, viewProjectionMatrix);
@@ -86,44 +81,7 @@ class DirectionalShadowSystem implements ISystem {
         Mammoth.gl.scissor(0, 0, 1024, 1024);
         Mammoth.gl.clear(GL.COLOR_BUFFER_BIT | GL.DEPTH_BUFFER_BIT);
 
-        // render it all
-        for(caster in shadowCasters) {
-            var transform:Transform = caster.data.transform;
-            var renderer:MeshRenderer = caster.data.renderer;
-            var mesh:Mesh = renderer.mesh;
-
-            Mat4.multMat(viewProjectionMatrix, transform.m, MVP);
-            shadowMaterial.setUniform('MVP', mammoth.render.TUniform.Mat4(MVP));
-            shadowMaterial.apply();
-
-            Mammoth.gl.bindBuffer(GL.ARRAY_BUFFER, mesh.vertexBuffer);
-            for(attributeName in mesh.attributeNames) {
-                if(!shadowMaterial.attributes.exists(attributeName)) continue;
-                var attribute:Attribute = shadowMaterial.attributes.get(attributeName);
-                
-                Mammoth.gl.enableVertexAttribArray(attribute.location);
-                Mammoth.gl.vertexAttribPointer(
-                    attribute.location,
-                    switch(attribute.type) {
-                        case Float: 1;
-                        case Vec2: 2;
-                        case Vec3: 3;
-                        case Vec4: 4;
-                    },
-                    GL.FLOAT,
-                    false,
-                    attribute.stride,
-                    attribute.offset);
-            }
-
-            // bind the index buffer to the vertices for triangles
-            Mammoth.gl.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
-
-            // and draw those suckers!
-            Mammoth.gl.drawElements(GL.TRIANGLES, mesh.vertexCount, GL.UNSIGNED_SHORT, 0);
-            Mammoth.stats.drawCalls++;
-            Mammoth.stats.triangles += Std.int(mesh.vertexCount / 3);
-        }
+        // TODO: actually render!
 
         // switch back to the main framebuffer
         Mammoth.gl.bindFramebuffer(GL.FRAMEBUFFER, null);

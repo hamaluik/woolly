@@ -11,25 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.components;
+package mammoth.gl;
 
-import edge.IComponent;
-import mammoth.types.Colour;
-import mammoth.types.Colours;
-
-class PointLight implements IComponent {
-    public var colour:Colour = Colours.White;
-    public var distance:Float = 25;
-
-    public function new() {}
-
-    public function setColour(colour:Colour):PointLight {
-        this.colour = colour;
-        return this;
-    }
-
-    public function setDistance(distance:Float):PointLight {
-        this.distance = distance;
-        return this;
-    }
+@:enum
+abstract TShader(Int) {
+    var Vertex = GL.VERTEX_SHADER;
+    var Fragment = GL.FRAGMENT_SHADER;
 }

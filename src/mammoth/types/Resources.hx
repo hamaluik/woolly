@@ -11,23 +11,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.render;
+package mammoth.types;
 
-import mammoth.render.TAttribute;
+import haxe.ds.StringMap;
+import mammoth.types.Mesh;
+import mammoth.types.Material;
 
-@:allow(mammoth.render.Material)
-class Attribute {
-	public var name(default, null):String;
-	public var location(default, null):Int;
-	public var bound(default, null):Bool = false;
-	public var type:TAttribute;
-	public var stride:Int;
-	public var offset:Int;
+class Resources {
+    public var meshes:StringMap<Mesh>;
+    public var materials:StringMap<Material>;
 
-	public function new(name:String, type:TAttribute, stride:Int, offset:Int) {
-		this.name = name;
-		this.type = type;
-		this.stride = stride;
-		this.offset = offset;
-	}
+    public function new() {
+        meshes = new StringMap<Mesh>();
+        materials = new StringMap<Material>();
+    }
 }

@@ -14,14 +14,15 @@
 package mammoth.components;
 
 import edge.IComponent;
-import mammoth.render.Material;
-import mammoth.render.Mesh;
-
-import glm.Mat4;
+import mammoth.types.Material;
+import mammoth.types.Mesh;
+import mammoth.types.MaterialData;
+import mammoth.types.TUniformData;
 
 class MeshRenderer implements IComponent {
-	public var material:Material;
 	public var mesh:Mesh;
+	public var material:Material;
+	public var materialData:MaterialData = new MaterialData();
 
 	public function new() {}
 
@@ -32,6 +33,11 @@ class MeshRenderer implements IComponent {
 
 	public function setMaterial(material:Material):MeshRenderer {
 		this.material = material;
+		return this;
+	}
+
+	public function setMaterialData(name:String, data:TUniformData):MeshRenderer {
+		materialData.set(name, data);
 		return this;
 	}
 }

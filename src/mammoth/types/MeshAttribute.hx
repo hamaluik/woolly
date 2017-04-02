@@ -11,29 +11,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.render;
+package mammoth.types;
 
-import haxe.ds.Vector;
-import glm.Mat4;
-import glm.Vec2;
-import glm.Vec3;
-import glm.Vec4;
-import mammoth.utilities.Colour;
+@:allow(mammoth.types.Mesh)
+class MeshAttribute {
+    public var name(default, null):String;
+    public var type(default, null):TVertexAttribute;
 
-enum TUniform {
-	Bool(x:Bool);
-	Int(x:Int);
-	Float(x:Float);
-	Float2(x:Float, y:Float);
-	Float3(x:Float, y:Float, z:Float);
-	Float4(x:Float, y:Float, z:Float, w:Float);
-	Floats(x:Vector<Float>);
-	Vec2(x:Vec2);
-	Vec3(x:Vec3);
-	Vec4(x:Vec4);
-	Mat4(v:Mat4);
-	RGB(c:Colour);
-	RGBA(c:Colour);
-	// TODO: implement textures
-	//Texture2D(t:Image, slot:Int);
+    public var stride(default, null):Int;
+    public var offset(default, null):Int;
+
+    public function new(name:String, type:TVertexAttribute) {
+        this.name = name;
+        this.type = type;
+    }
 }

@@ -22,16 +22,11 @@ import js.html.webgl.RenderingContext;
 import mammoth.platform.ArrayBufferView;
 import mammoth.platform.Float32Array;
 import mammoth.platform.Int32Array;
-import mammoth.utilities.Colour;
+import mammoth.types.Colour;
 
 @:allow(mammoth.Mammoth)
 class Graphics {
     public var context:RenderingContext;
-
-    /*private var halfFloat:Dynamic;
-    private var depthTexture:Dynamic;
-    private var anisotropicFilter:Dynamic;
-    private var drawBuffers:Dynamic;*/
 
     private var width(get, never):Float;
     private inline function get_width():Float return context.drawingBufferWidth;

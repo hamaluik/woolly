@@ -11,23 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.loader;
+package mammoth.types;
 
-typedef Mesh = {
-    var name:String;
-
-    /**
-     *  URI (most likely data-uri) of vertex data for the mesh
-     */
-    var vertices:String;
-
-    /**
-     *  Ordered array specifying how vertex data is laid out in `vertices`
-     */
-    var vlayout:Array<String>;
-
-    /**
-     *  URI (most likely data-uri) of triangle indices of the mesh
-     */
-    var indices:String;
+class Colours {
+    public static var Black:Colour = new Colour(0, 0, 0, 1);
+    public static var White:Colour = new Colour(1, 1, 1, 1);
 }

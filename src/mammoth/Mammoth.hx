@@ -20,6 +20,7 @@ import mammoth.platform.Assets;
 import mammoth.platform.Input;
 import mammoth.platform.Timing;
 import mammoth.debug.DebugView;
+import mammoth.types.Resources;
 import tusk.Tusk;
 
 @:expose
@@ -34,6 +35,7 @@ class Mammoth {
     public static var timing:Timing = new Timing();
     public static var gl:Graphics = new Graphics();
     public static var assets:Assets = new Assets();
+    public static var resources:Resources = new Resources();
     public static var input:Input = new Input();
     public static var stats:Stats = new Stats();
     private static var debugView:DebugView;
@@ -77,7 +79,8 @@ class Mammoth {
         // initialize our rendering
         renderPhase.add(new mammoth.systems.ModelMatrixSystem());
         renderPhase.add(new mammoth.systems.CameraSystem());
-        renderPhase.add(new mammoth.systems.DirectionalShadowSystem());
+        renderPhase.add(new mammoth.systems.DirectionalLightSystem());
+        //renderPhase.add(new mammoth.systems.DirectionalShadowSystem());
         renderPhase.add(new mammoth.systems.RenderSystem());
 
         if(onReady != null)

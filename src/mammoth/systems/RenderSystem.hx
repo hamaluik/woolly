@@ -22,9 +22,12 @@ import mammoth.components.DirectionalLight;
 import mammoth.components.PointLight;
 import mammoth.Mammoth;
 import mammoth.gl.GL;
-import mammoth.render.Attribute;
-import mammoth.render.Material;
-import mammoth.render.Mesh;
+import mammoth.gl.TCullMode;
+import mammoth.types.Material;
+import mammoth.types.Mesh;
+import mammoth.types.MeshAttribute;
+import mammoth.types.TUniformData;
+import mammoth.gl.UniformLocation;
 
 class RenderSystem implements ISystem {
     var objects:View<{ transform:Transform, renderer:MeshRenderer }>;
@@ -57,32 +60,50 @@ class RenderSystem implements ISystem {
             // calculate the MVP for this object
             Mat4.multMat(camera.vp, transform.m, MVP);
 
+            // apply the states
+            if(material.cullMode == TCullMode.None)
+                Mammoth.gl.disable(GL.CULL_FACE);
+            else {
+                Mammoth.gl.enable(GL.CULL_FACE);
+                Mammoth.gl.cullFace(cast(material.cullMode));
+            }
+            Mammoth.gl.depthMask(material.depthWrite);
+            if(material.depthTest)
+                Mammoth.gl.enable(GL.DEPTH_TEST);
+            else
+                Mammoth.gl.disable(GL.DEPTH_TEST);
+            Mammoth.gl.depthFunc(cast(material.depthFunction));
+
+            // switch to our material's program
+            Mammoth.gl.useProgram(material.program);
+
             // set the M, V, P uniforms
-            if(material.uniforms.exists('MVP')) {
-                material.setUniform('MVP', TUniform.Mat4(MVP));
+            if(material.hasUniform('MVP')) {
+                Mammoth.gl.uniformMatrix4fv(material.uniformLocation('MVP'), cast(MVP));
             }
-            if(material.uniforms.exists('M')) {
-                material.setUniform('M', TUniform.Mat4(transform.m));
+            if(material.hasUniform('M')) {
+                Mammoth.gl.uniformMatrix4fv(material.uniformLocation('M'), cast(transform.m));
             }
-            if(material.uniforms.exists('VP')) {
-                material.setUniform('VP', TUniform.Mat4(camera.vp));
+            if(material.hasUniform('VP')) {
+                Mammoth.gl.uniformMatrix4fv(material.uniformLocation('VP'), cast(camera.vp));
             }
-            if(material.uniforms.exists('V')) {
-                material.setUniform('V', TUniform.Mat4(camera.v));
+            if(material.hasUniform('V')) {
+                Mammoth.gl.uniformMatrix4fv(material.uniformLocation('V'), cast(camera.v));
             }
-            if(material.uniforms.exists('P')) {
-                material.setUniform('P', TUniform.Mat4(camera.p));
+            if(material.hasUniform('P')) {
+                Mammoth.gl.uniformMatrix4fv(material.uniformLocation('P'), cast(camera.p));
             }
         
-            if(material.uniforms.exists('directionalLights[0].direction')) {
+            if(material.hasUniform('directionalLights[0].direction')) {
                 var i:Int = 0;
                 for(dl in directionalLights) {
-                    material.setUniform('directionalLights[${i}].direction', TUniform.Vec3(new Vec3(dl.data.light.direction.x, dl.data.light.direction.y, dl.data.light.direction.z)));
-                    material.setUniform('directionalLights[${i}].colour', TUniform.RGB(dl.data.light.colour));
+                    var light:DirectionalLight = dl.data.light;
+                    Mammoth.gl.uniform3f(material.uniformLocation('directionalLights[${i}].direction'), light.direction.x, light.direction.y, light.direction.z);
+                    Mammoth.gl.uniform3f(material.uniformLocation('directionalLights[${i}].colour'), light.colour.r, light.colour.g, light.colour.b);
                     i++;
                 }
             }
-            if(material.uniforms.exists('pointLights[0].position')) {
+            /*if(material.uniforms.exists('pointLights[0].position')) {
                 var i:Int = 0;
                 for(pl in pointLights) {
                     material.setUniform('pointLights[${i}].position', TUniform.Vec3(pl.data.transform.position));
@@ -90,22 +111,41 @@ class RenderSystem implements ISystem {
                     material.setUniform('pointLights[${i}].distance', TUniform.Float(pl.data.light.distance));
                     i++;
                 }
-            }
+            }*/
             // TODO: spotlights
-            
-            // apply the material and render!
-            material.apply();
+
+            // apply material data
+            for(dataName in renderer.materialData.keys()) {
+                if(!material.hasUniform(dataName)) continue;
+
+                var location:UniformLocation = material.uniformLocation(dataName);
+                var data:TUniformData = renderer.materialData.get(dataName);
+                switch(data) {
+                    case Bool(b): Mammoth.gl.uniform1i(location, b ? 1 : 0);
+                    case Int(i): Mammoth.gl.uniform1i(location, i);
+                    case Float(x): Mammoth.gl.uniform1f(location, x);
+                    case Float2(x, y): Mammoth.gl.uniform2f(location, x, y);
+                    case Float3(x, y, z): Mammoth.gl.uniform3f(location, x, y, z);
+                    case Float4(x, y, z, w): Mammoth.gl.uniform4f(location, x, y, z, w);
+                    case Vector2(v): Mammoth.gl.uniform2f(location, v.x, v.y);
+                    case Vector3(v): Mammoth.gl.uniform3f(location, v.x, v.y, v.z);
+                    case Vector4(v): Mammoth.gl.uniform4f(location, v.x, v.y, v.z, v.w);
+                    case Matrix4(m): Mammoth.gl.uniformMatrix4fv(location, cast(m));
+                    case RGB(c): Mammoth.gl.uniform3f(location, c.r, c.g, c.b);
+                    case RGBA(c): Mammoth.gl.uniform4f(location, c.r, c.g, c.b, c.a);
+                }
+            }
 
             // set up the attributes
             Mammoth.gl.bindBuffer(GL.ARRAY_BUFFER, mesh.vertexBuffer);
-            for(attributeName in mesh.attributeNames) {
-                if(!material.attributes.exists(attributeName)) continue;
-                var attribute:Attribute = material.attributes.get(attributeName);
-                
-                Mammoth.gl.enableVertexAttribArray(attribute.location);
-                Mammoth.gl.vertexAttribPointer(
-                    attribute.location,
-                    switch(attribute.type) {
+            for(materialAttribute in material.attributes) {
+                if(!mesh.hasAttribute(materialAttribute.name))
+                    throw new mammoth.debug.Exception('Can\t use material ${material.name} with mesh ${mesh.name} as mesh is missing attribute ${materialAttribute.name}!', true);
+                var meshAttribute:MeshAttribute = mesh.getAttribute(materialAttribute.name);
+
+                Mammoth.gl.enableVertexAttribArray(materialAttribute.location);
+                Mammoth.gl.vertexAttribPointer(materialAttribute.location,
+                    switch(meshAttribute.type) {
                         case Float: 1;
                         case Vec2: 2;
                         case Vec3: 3;
@@ -113,17 +153,16 @@ class RenderSystem implements ISystem {
                     },
                     GL.FLOAT,
                     false,
-                    attribute.stride,
-                    attribute.offset);
+                    meshAttribute.stride, meshAttribute.offset);
             }
 
             // bind the index buffer to the vertices for triangles
             Mammoth.gl.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
 
             // and draw those suckers!
-            Mammoth.gl.drawElements(GL.TRIANGLES, mesh.vertexCount, GL.UNSIGNED_SHORT, 0);
+            Mammoth.gl.drawElements(GL.TRIANGLES, mesh.indexCount, GL.UNSIGNED_SHORT, 0);
             Mammoth.stats.drawCalls++;
-            Mammoth.stats.triangles += Std.int(mesh.vertexCount / 3);
+            Mammoth.stats.triangles += Std.int(mesh.indexCount / 3);
         }
     }
 }

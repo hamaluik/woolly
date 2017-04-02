@@ -14,8 +14,8 @@
 package mammoth.components;
 
 import edge.IComponent;
-import mammoth.utilities.Colour;
-import mammoth.utilities.Colours;
+import mammoth.types.Colour;
+import mammoth.types.Colours;
 import mammoth.gl.Framebuffer;
 import mammoth.gl.Texture;
 

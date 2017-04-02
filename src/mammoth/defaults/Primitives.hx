@@ -13,11 +13,11 @@
 */
 package mammoth.defaults;
 
-import mammoth.render.Mesh;
+import mammoth.types.Mesh;
 
 class Primitives {
 	public static function screenQuad():Mesh {
-		var m:Mesh = new Mesh("screen", Mammoth.gl, ["position"]);
+		var m:Mesh = new Mesh("screen");
 
 		m.setVertexData([
 			-1.0, -1.0,
@@ -28,6 +28,10 @@ class Primitives {
 		m.setIndexData([
 			0, 1, 2,
 			0, 2, 3]);
+
+		m.registerAttribute('position', mammoth.types.TVertexAttribute.Vec2);
+
+		m.compile();
 
 		return m;
 	}

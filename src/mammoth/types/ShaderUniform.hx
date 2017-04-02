@@ -11,14 +11,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.render;
+package mammoth.types;
 
-import mammoth.render.TUniform;
+import mammoth.gl.UniformLocation;
 
-class Uniform {
-	public var value:TUniform;
-	public var location:TLocation;
-	public var bound:Bool = false;
+class ShaderUniform {
+    public var name(default, null):String;
+    public var type(default, null):TShaderUniform;
 
-	public function new(){}
+    @:allow(mammoth.types.Material)
+    public var location(default, null):UniformLocation;
+
+    public function new(name:String, type:TShaderUniform) {
+        this.name = name;
+        this.type = type;
+    }
 }
