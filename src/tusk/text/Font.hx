@@ -69,6 +69,10 @@ class Font {
                     4 * spaceWidth;
                 }
 
+                case 0x1B: { // escape
+                    0;
+                }
+
                 case _: {
                     var g:Glyph = glyphs.get(idx);
                     if(g == null) g = unknownGlyph;
@@ -87,7 +91,9 @@ class Font {
         var _x:Float = x;
         var _y:Float = y;
 
-        for(i in 0...text.length) {
+        var i:Int = 0;
+        var colour:Vec4 = null;
+        while(i < text.length) {
             var idx:Int = text.charCodeAt(i);
             if(idx == null) continue;
 
@@ -109,6 +115,21 @@ class Font {
                 _x += (spaceWidth * 4);
                 continue;
             }
+            else if(idx == 0x1B) {
+                if(i + 1 >= text.length) return;
+                colour = switch(text.charCodeAt(i + 1)) {
+                    case 0x72: colour = new Vec4(1, 0, 0, 1); // 'r'
+                    case 0x67: colour = new Vec4(0, 1, 0, 1); // 'g'
+                    case 0x62: colour = new Vec4(0, 0, 1, 1); // 'b'
+                    case 0x63: colour = new Vec4(0, 1, 1, 1); // 'c'
+                    case 0x79: colour = new Vec4(1, 1, 0, 1); // 'y'
+                    case 0x6d: colour = new Vec4(1, 0, 1, 1); // 'm'
+                    case 0x6b: colour = new Vec4(0, 0, 0, 1); // 'k'
+                    case _: null;
+                };
+                i += 2;
+                continue;
+            }
 
             // draw a glyph
             var g:Glyph = glyphs.get(idx);
@@ -128,6 +149,7 @@ class Font {
             addVertex(x1, y1, g.uvMax.x, g.uvMax.y);
 
             _x += g.xAdvance;
+            i++;
         }
     }
 }
