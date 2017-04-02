@@ -95,36 +95,43 @@ class Font {
         var colour:Vec4 = null;
         while(i < text.length) {
             var idx:Int = text.charCodeAt(i);
-            if(idx == null) continue;
+            if(idx == null) {
+                i++;
+                continue;
+            }
 
             // deal with special characters
             if(idx == ' '.charCodeAt(0)) {
                 _x += spaceWidth;
+                i++;
                 continue;
             }
             else if(idx == '\n'.charCodeAt(0)) {
                 _x = x;
                 _y += lineHeight;
+                i++;
                 continue;
             }
             else if(idx == '\r'.charCodeAt(0)) {
                 _x = x;
+                i++;
                 continue;
             }
             else if(idx == '\t'.charCodeAt(0)) {
                 _x += (spaceWidth * 4);
+                i++;
                 continue;
             }
             else if(idx == 0x1B) {
                 if(i + 1 >= text.length) return;
                 colour = switch(text.charCodeAt(i + 1)) {
-                    case 0x72: colour = new Vec4(1, 0, 0, 1); // 'r'
-                    case 0x67: colour = new Vec4(0, 1, 0, 1); // 'g'
-                    case 0x62: colour = new Vec4(0, 0, 1, 1); // 'b'
-                    case 0x63: colour = new Vec4(0, 1, 1, 1); // 'c'
-                    case 0x79: colour = new Vec4(1, 1, 0, 1); // 'y'
-                    case 0x6d: colour = new Vec4(1, 0, 1, 1); // 'm'
-                    case 0x6b: colour = new Vec4(0, 0, 0, 1); // 'k'
+                    case 0x72: tusk.TuskConfig.text_red;
+                    case 0x67: tusk.TuskConfig.text_green;
+                    case 0x62: tusk.TuskConfig.text_blue;
+                    case 0x63: tusk.TuskConfig.text_cyan;
+                    case 0x6d: tusk.TuskConfig.text_magenta;
+                    case 0x79: tusk.TuskConfig.text_yellow;
+                    case 0x6b: tusk.TuskConfig.text_black;
                     case _: null;
                 };
                 i += 2;
@@ -140,13 +147,13 @@ class Font {
             var y0:Float = _y + g.offset.y - base;
             var y1:Float = y0 + g.size.y;
 
-            addVertex(x0, y0, g.uvMin.x, g.uvMin.y);
-            addVertex(x1, y0, g.uvMax.x, g.uvMin.y);
-            addVertex(x0, y1, g.uvMin.x, g.uvMax.y);
+            addVertex(x0, y0, g.uvMin.x, g.uvMin.y, colour);
+            addVertex(x1, y0, g.uvMax.x, g.uvMin.y, colour);
+            addVertex(x0, y1, g.uvMin.x, g.uvMax.y, colour);
 
-            addVertex(x0, y1, g.uvMin.x, g.uvMax.y);
-            addVertex(x1, y0, g.uvMax.x, g.uvMin.y);
-            addVertex(x1, y1, g.uvMax.x, g.uvMax.y);
+            addVertex(x0, y1, g.uvMin.x, g.uvMax.y, colour);
+            addVertex(x1, y0, g.uvMax.x, g.uvMin.y, colour);
+            addVertex(x1, y1, g.uvMax.x, g.uvMax.y, colour);
 
             _x += g.xAdvance;
             i++;

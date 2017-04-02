@@ -106,10 +106,10 @@ class Mammoth {
         postUpdatePhase.update(dt);
 
         Tusk.window(tusk.Control.uuid(), Mammoth.width - 160, 10, 150, 75, 'Stats');
-        Tusk.label('Render t: ' + Math.fround(stats.renderTime * 1000 * 10) / 10 + 'ms');
-        Tusk.label('FPS: ' + Math.fround(stats.fps * 10) / 10);
-        Tusk.label('Draw calls: ' + stats.drawCalls);
-        Tusk.label('Triangles: ' + stats.triangles);
+        Tusk.label('Render t: \u001br' + Math.fround(stats.renderTime * 1000 * 10) / 10 + '\u001b_ ms');
+        Tusk.label('FPS: \u001bc' + Math.fround(stats.fps * 10) / 10);
+        Tusk.label('Draw calls: \u001bg' + stats.drawCalls);
+        Tusk.label('Triangles: \u001bm' + stats.triangles);
     }
 
     private static function onRender(dt:Float, alpha:Float):Void {

@@ -2071,10 +2071,10 @@ mammoth_Mammoth.onUpdate = function(dt) {
 	mammoth_Mammoth.updatePhase.update(dt);
 	mammoth_Mammoth.postUpdatePhase.update(dt);
 	tusk_Tusk.window(0,mammoth_Mammoth.gl.context.drawingBufferWidth - 160,10,150,75,"Stats");
-	tusk_Tusk.label("Render t: " + Math.round(mammoth_Mammoth.stats.renderTime * 1000 * 10) / 10 + "ms");
-	tusk_Tusk.label("FPS: " + Math.round(mammoth_Mammoth.stats.get_fps() * 10) / 10);
-	tusk_Tusk.label("Draw calls: " + mammoth_Mammoth.stats.drawCalls);
-	tusk_Tusk.label("Triangles: " + mammoth_Mammoth.stats.triangles);
+	tusk_Tusk.label("Render t: \x1Br" + Math.round(mammoth_Mammoth.stats.renderTime * 1000 * 10) / 10 + "\x1B_ ms");
+	tusk_Tusk.label("FPS: \x1Bc" + Math.round(mammoth_Mammoth.stats.get_fps() * 10) / 10);
+	tusk_Tusk.label("Draw calls: \x1Bg" + mammoth_Mammoth.stats.drawCalls);
+	tusk_Tusk.label("Triangles: \x1Bm" + mammoth_Mammoth.stats.triangles);
 };
 mammoth_Mammoth.onRender = function(dt,alpha) {
 	mammoth_Mammoth.stats.drawCalls = 0;
@@ -5052,10 +5052,10 @@ tusk_Draw.prototype = {
 	,text: function(x,y,text,colour) {
 		var _gthis = this;
 		if(colour == null) {
-			colour = tusk_TuskConfig.text_Colour;
+			colour = tusk_TuskConfig.text_normal;
 		}
-		this.font.print(x,y + this.font.ascent,text,function(_x,_y,_u,_v) {
-			_gthis.addVertex(_x,_y,_u,_v,colour);
+		this.font.print(x,y + this.font.ascent,text,function(_x,_y,_u,_v,charColour) {
+			_gthis.addVertex(_x,_y,_u,_v,charColour == null ? colour : charColour);
 		});
 	}
 	,window: function(x,y,w,h,title) {
@@ -5167,20 +5167,25 @@ tusk_text_Font.prototype = {
 		while(i < text.length) {
 			var idx = HxOverrides.cca(text,i);
 			if(idx == null) {
+				++i;
 				continue;
 			}
 			if(idx == HxOverrides.cca(" ",0)) {
 				_x += this.spaceWidth;
+				++i;
 				continue;
 			} else if(idx == HxOverrides.cca("\n",0)) {
 				_x = x;
 				_y += this.lineHeight;
+				++i;
 				continue;
 			} else if(idx == HxOverrides.cca("\r",0)) {
 				_x = x;
+				++i;
 				continue;
 			} else if(idx == HxOverrides.cca("\t",0)) {
 				_x += this.spaceWidth * 4;
+				++i;
 				continue;
 			} else if(idx == 27) {
 				if(i + 1 >= text.length) {
@@ -5192,67 +5197,25 @@ tusk_text_Font.prototype = {
 				} else {
 					switch(_g) {
 					case 98:
-						var this1 = new Float32Array(4);
-						this1[0] = 0;
-						this1[1] = 0;
-						this1[2] = 1;
-						this1[3] = 1;
-						colour = this1;
-						colour = colour;
+						colour = tusk_TuskConfig.text_blue;
 						break;
 					case 99:
-						var this2 = new Float32Array(4);
-						this2[0] = 0;
-						this2[1] = 1;
-						this2[2] = 1;
-						this2[3] = 1;
-						colour = this2;
-						colour = colour;
+						colour = tusk_TuskConfig.text_cyan;
 						break;
 					case 103:
-						var this3 = new Float32Array(4);
-						this3[0] = 0;
-						this3[1] = 1;
-						this3[2] = 0;
-						this3[3] = 1;
-						colour = this3;
-						colour = colour;
+						colour = tusk_TuskConfig.text_green;
 						break;
 					case 107:
-						var this4 = new Float32Array(4);
-						this4[0] = 0;
-						this4[1] = 0;
-						this4[2] = 0;
-						this4[3] = 1;
-						colour = this4;
-						colour = colour;
+						colour = tusk_TuskConfig.text_black;
 						break;
 					case 109:
-						var this5 = new Float32Array(4);
-						this5[0] = 1;
-						this5[1] = 0;
-						this5[2] = 1;
-						this5[3] = 1;
-						colour = this5;
-						colour = colour;
+						colour = tusk_TuskConfig.text_magenta;
 						break;
 					case 114:
-						var this6 = new Float32Array(4);
-						this6[0] = 1;
-						this6[1] = 0;
-						this6[2] = 0;
-						this6[3] = 1;
-						colour = this6;
-						colour = colour;
+						colour = tusk_TuskConfig.text_red;
 						break;
 					case 121:
-						var this7 = new Float32Array(4);
-						this7[0] = 1;
-						this7[1] = 1;
-						this7[2] = 0;
-						this7[3] = 1;
-						colour = this7;
-						colour = colour;
+						colour = tusk_TuskConfig.text_yellow;
 						break;
 					default:
 						colour = null;
@@ -5269,12 +5232,12 @@ tusk_text_Font.prototype = {
 			var x1 = x0 + g.size[0];
 			var y0 = _y + g.offset[1] - this.base;
 			var y1 = y0 + g.size[1];
-			addVertex(x0,y0,g.uvMin[0],g.uvMin[1]);
-			addVertex(x1,y0,g.uvMax[0],g.uvMin[1]);
-			addVertex(x0,y1,g.uvMin[0],g.uvMax[1]);
-			addVertex(x0,y1,g.uvMin[0],g.uvMax[1]);
-			addVertex(x1,y0,g.uvMax[0],g.uvMin[1]);
-			addVertex(x1,y1,g.uvMax[0],g.uvMax[1]);
+			addVertex(x0,y0,g.uvMin[0],g.uvMin[1],colour);
+			addVertex(x1,y0,g.uvMax[0],g.uvMin[1],colour);
+			addVertex(x0,y1,g.uvMin[0],g.uvMax[1],colour);
+			addVertex(x0,y1,g.uvMin[0],g.uvMax[1],colour);
+			addVertex(x1,y0,g.uvMax[0],g.uvMin[1],colour);
+			addVertex(x1,y1,g.uvMax[0],g.uvMax[1],colour);
 			_x += g.xAdvance;
 			++i;
 		}
@@ -5447,12 +5410,82 @@ tusk_Tusk.nextPos = (function($this) {
 	return $r;
 }(this));
 tusk_Tusk.currentWidth = 0;
-tusk_TuskConfig.text_Colour = (function($this) {
+tusk_TuskConfig.text_normal = (function($this) {
 	var $r;
 	var this1 = new Float32Array(4);
 	this1[0] = 1;
 	this1[1] = 1;
 	this1[2] = 1;
+	this1[3] = 1;
+	$r = this1;
+	return $r;
+}(this));
+tusk_TuskConfig.text_red = (function($this) {
+	var $r;
+	var this1 = new Float32Array(4);
+	this1[0] = 0.671;
+	this1[1] = 0.275;
+	this1[2] = 0.259;
+	this1[3] = 1;
+	$r = this1;
+	return $r;
+}(this));
+tusk_TuskConfig.text_green = (function($this) {
+	var $r;
+	var this1 = new Float32Array(4);
+	this1[0] = 0.631;
+	this1[1] = 0.71;
+	this1[2] = 0.424;
+	this1[3] = 1;
+	$r = this1;
+	return $r;
+}(this));
+tusk_TuskConfig.text_blue = (function($this) {
+	var $r;
+	var this1 = new Float32Array(4);
+	this1[0] = 0.486;
+	this1[1] = 0.686;
+	this1[2] = 0.761;
+	this1[3] = 1;
+	$r = this1;
+	return $r;
+}(this));
+tusk_TuskConfig.text_cyan = (function($this) {
+	var $r;
+	var this1 = new Float32Array(4);
+	this1[0] = 0.525;
+	this1[1] = 0.757;
+	this1[2] = 0.725;
+	this1[3] = 1;
+	$r = this1;
+	return $r;
+}(this));
+tusk_TuskConfig.text_magenta = (function($this) {
+	var $r;
+	var this1 = new Float32Array(4);
+	this1[0] = 0.729;
+	this1[1] = 0.545;
+	this1[2] = 0.686;
+	this1[3] = 1;
+	$r = this1;
+	return $r;
+}(this));
+tusk_TuskConfig.text_yellow = (function($this) {
+	var $r;
+	var this1 = new Float32Array(4);
+	this1[0] = 0.969;
+	this1[1] = 0.792;
+	this1[2] = 0.533;
+	this1[3] = 1;
+	$r = this1;
+	return $r;
+}(this));
+tusk_TuskConfig.text_black = (function($this) {
+	var $r;
+	var this1 = new Float32Array(4);
+	this1[0] = 0.094;
+	this1[1] = 0.094;
+	this1[2] = 0.094;
 	this1[3] = 1;
 	$r = this1;
 	return $r;
