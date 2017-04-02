@@ -2,6 +2,8 @@
 precision mediump float;
 #endif
 
+#define SHADER_NAME Standard
+
 // lights
 #ifdef UNIFORM_DIRECTIONAL_LIGHTS
 struct SDirectionalLight {

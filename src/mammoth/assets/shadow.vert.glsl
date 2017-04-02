@@ -2,6 +2,8 @@
 precision mediump float;
 #endif
 
+#define SHADER_NAME Shadow
+
 // attribute inputs
 attribute vec3 position;
 

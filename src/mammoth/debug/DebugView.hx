@@ -124,5 +124,9 @@ class DebugView {
         Mammoth.gl.vertexAttribPointer(colourLoc, 4, GL.FLOAT, false, 8*4, 4*4);
 
         Mammoth.gl.drawArrays(GL.TRIANGLES, 0, Tusk.draw.numVertices);
+
+        Mammoth.gl.disableVertexAttribArray(positionLoc);
+        Mammoth.gl.disableVertexAttribArray(uvLoc);
+        Mammoth.gl.disableVertexAttribArray(colourLoc);
     }
 }
