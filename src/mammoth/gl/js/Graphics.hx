@@ -105,7 +105,7 @@ class Graphics {
 	/*@:overload(function(target:Int, offset:Int, data:js.html.ArrayBufferView):Void {})
 	// @:overload(function(target:Int, offset:Int, data:js.html.ArrayBuffer):Void {})*/
 	// public inline function bufferSubData(target:Int, offset:Int, data:Dynamic):Void context.bufferSubData(target, offset, data);
-	// public inline function checkFramebufferStatus(target:Int):Int return context.checkFrameBufferStatus(target);
+	public inline function checkFramebufferStatus(target:Int):Int return context.checkFramebufferStatus(target);
 	public inline function clear(mask:Int):Void context.clear(mask);
 	public inline function clearColor(colour:Colour):Void context.clearColor(colour.r, colour.g, colour.b, colour.a);
 	// public inline function clearDepth(depth:Float):Void;
@@ -134,7 +134,7 @@ class Graphics {
 	// public inline function depthRange(zNear:Float, zFar:Float):Void;
 	// public inline function detachShader(program:Program, shader:Shader):Void;
 	public inline function disable(cap:Int):Void context.disable(cap);
-	// public inline function disableVertexAttribArray(index:Int):Void;
+	public inline function disableVertexAttribArray(index:Int):Void context.disableVertexAttribArray(index);
 	public inline function drawArrays(mode:Int, first:Int, count:Int):Void context.drawArrays(mode, first, count);
 	public inline function drawElements(mode:Int, count:Int, type:Int, offset:Int):Void context.drawElements(mode, count, type, offset);
 	public inline function enable(cap:Int):Void context.enable(cap);

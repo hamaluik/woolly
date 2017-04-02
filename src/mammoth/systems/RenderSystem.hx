@@ -163,6 +163,11 @@ class RenderSystem implements ISystem {
             Mammoth.gl.drawElements(GL.TRIANGLES, mesh.indexCount, GL.UNSIGNED_SHORT, 0);
             Mammoth.stats.drawCalls++;
             Mammoth.stats.triangles += Std.int(mesh.indexCount / 3);
+
+            // disable the attrib arrays!
+            for(materialAttribute in material.attributes) {
+                Mammoth.gl.disableVertexAttribArray(materialAttribute.location);
+            }
         }
     }
 }

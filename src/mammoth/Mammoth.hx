@@ -80,7 +80,7 @@ class Mammoth {
         renderPhase.add(new mammoth.systems.ModelMatrixSystem());
         renderPhase.add(new mammoth.systems.CameraSystem());
         renderPhase.add(new mammoth.systems.DirectionalLightSystem());
-        //renderPhase.add(new mammoth.systems.DirectionalShadowSystem());
+        renderPhase.add(new mammoth.systems.DirectionalShadowSystem());
         renderPhase.add(new mammoth.systems.RenderSystem());
 
         if(onReady != null)

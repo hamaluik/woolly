@@ -18,16 +18,6 @@
         {
             "colour": [
                 1.0,
-                1.0,
-                1.0
-            ],
-            "distance": 25.0,
-            "name": "Point",
-            "type": "point"
-        },
-        {
-            "colour": [
-                1.0,
                 0.9561488628387451,
                 0.7573099136352539
             ],
@@ -48,15 +38,6 @@
         {
             "indices": "data:text/plain;base64,AQAAAAIAAAAAAAAAAQAAAAMAAAACAAAA",
             "name": "Plane",
-            "vertices": "data:text/plain;base64,AACgwQAAoMEAAAAAAAAAAAAAAAAAAIA/AACgQQAAoMEAAAAAAAAAAAAAAAAAAIA/AACgwQAAoEEAAAAAAAAAAAAAAAAAAIA/AACgQQAAoEEAAAAAAAAAAAAAAAAAAIA/",
-            "vlayout": [
-                "position",
-                "normal"
-            ]
-        },
-        {
-            "indices": "data:text/plain;base64,AQAAAAIAAAAAAAAAAQAAAAMAAAACAAAA",
-            "name": "Plane.001",
             "vertices": "data:text/plain;base64,AAAgwQAAIMEAAAAAAAAAAAAAAAAAAIA/AAAgQQAAIMEAAAAAAAAAAAAAAAAAAIA/AAAgwQAAIEEAAAAAAAAAAAAAAAAAAIA/AAAgQQAAIEEAAAAAAAAAAAAAAAAAAIA/",
             "vlayout": [
                 "position",
@@ -143,7 +124,7 @@
         {
             "name": "Plane",
             "render": {
-                "mesh": "Plane.001",
+                "mesh": "Plane",
                 "shader": "Plane"
             },
             "transform": {

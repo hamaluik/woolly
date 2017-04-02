@@ -2053,6 +2053,7 @@ mammoth_Mammoth.init = function(onReady,updateRate) {
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_ModelMatrixSystem());
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_CameraSystem());
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_DirectionalLightSystem());
+	mammoth_Mammoth.renderPhase.add(new mammoth_systems_DirectionalShadowSystem());
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_RenderSystem());
 	if(onReady != null) {
 		onReady();
@@ -2182,6 +2183,9 @@ mammoth_components_Camera.prototype = {
 	,__class__: mammoth_components_Camera
 };
 var mammoth_components_DirectionalLight = function() {
+	this.shadowmap = null;
+	this.colourmap = null;
+	this.shadowFramebuffer = null;
 	var this1 = new Float32Array(4);
 	this1[0] = 0;
 	this1[1] = 0;
@@ -2444,6 +2448,17 @@ var mammoth_defaults_Colours = function() { };
 mammoth_defaults_Colours.__name__ = ["mammoth","defaults","Colours"];
 var mammoth_defaults_Materials = function() { };
 mammoth_defaults_Materials.__name__ = ["mammoth","defaults","Materials"];
+mammoth_defaults_Materials.shadow = function() {
+	var material = new mammoth_types_Material("shadow");
+	var vertexSrc = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\n// attribute inputs\nattribute vec3 position;\n\n// camera uniforms\nuniform mat4 MVP;\n\nvoid main() {\n    // set the camera-space position of the vertex\n\tgl_Position = MVP * vec4(position, 1.0);\n}";
+	var fragSrc = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\nvoid main() {\n    gl_FragColor = vec4(gl_FragCoord.z, 1.0, 0.0, 1.0);\n}";
+	material.setShaderSource(vertexSrc,35633);
+	material.setShaderSource(fragSrc,35632);
+	material.compile();
+	material.registerAttribute("position",mammoth_gl_types_TVertexAttribute.Vec3);
+	material.registerUniform("MVP",mammoth_gl_types_TShaderUniform.Matrix4);
+	return material;
+};
 mammoth_defaults_Materials.standard = function(directionalLights,pointLights) {
 	var material = new mammoth_types_Material("standard_" + directionalLights + "_" + pointLights);
 	var vertexSrc = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\n// attribute inputs\nattribute vec3 position;\nattribute vec3 normal;\n\n#ifdef ATTRIBUTE_UV\nattribute vec2 uv;\n#endif\n#ifdef ATTRIBUTE_COLOUR\nattribute vec3 colour;\n#endif\n\n// camera uniforms\nuniform mat4 MVP;\nuniform mat4 M;\n\n// material uniforms\nuniform vec3 albedoColour;\nuniform vec3 ambientColour;\n\n// outputs\nvarying vec3 v_position;\nvarying vec3 v_normal;\nvarying vec3 v_colour;\n#ifdef ATTRIBUTE_UV\nvarying vec2 v_uv;\n#endif\n\nvoid main() {\n    // transform position to world space\n    vec3 worldPosition = (M * vec4(position, 1.0)).xyz;\n    v_position = worldPosition;\n\n\t// transform normals into world space\n\tvec3 worldNormal = (M * vec4(normal, 0.0)).xyz;\n    v_normal = worldNormal;\n\t\n    vec3 colour = albedoColour * ambientColour;\n\n    v_colour = colour;\n    #ifdef ATTRIBUTE_UV\n\tv_uv = uv;\n    #endif\n\n    // set the camera-space position of the vertex\n\tgl_Position = MVP * vec4(position, 1.0);\n}";
@@ -3132,6 +3147,472 @@ mammoth_systems_DirectionalLightSystem_$SystemProcess.prototype = {
 	}
 	,__class__: mammoth_systems_DirectionalLightSystem_$SystemProcess
 };
+var mammoth_systems_DirectionalShadowSystem = function() {
+	var this1 = new Float32Array(16);
+	this1[0] = 0;
+	this1[1] = 0;
+	this1[2] = 0;
+	this1[3] = 0;
+	this1[4] = 0;
+	this1[5] = 0;
+	this1[6] = 0;
+	this1[7] = 0;
+	this1[8] = 0;
+	this1[9] = 0;
+	this1[10] = 0;
+	this1[11] = 0;
+	this1[12] = 0;
+	this1[13] = 0;
+	this1[14] = 0;
+	this1[15] = 0;
+	var dest = this1;
+	dest[0] = 1;
+	dest[1] = 0;
+	dest[2] = 0;
+	dest[3] = 0;
+	dest[4] = 0;
+	dest[5] = 1;
+	dest[6] = 0;
+	dest[7] = 0;
+	dest[8] = 0;
+	dest[9] = 0;
+	dest[10] = 1;
+	dest[11] = 0;
+	dest[12] = 0;
+	dest[13] = 0;
+	dest[14] = 0;
+	dest[15] = 1;
+	this.MVP = dest;
+	var this11 = new Float32Array(16);
+	this11[0] = 0;
+	this11[1] = 0;
+	this11[2] = 0;
+	this11[3] = 0;
+	this11[4] = 0;
+	this11[5] = 0;
+	this11[6] = 0;
+	this11[7] = 0;
+	this11[8] = 0;
+	this11[9] = 0;
+	this11[10] = 0;
+	this11[11] = 0;
+	this11[12] = 0;
+	this11[13] = 0;
+	this11[14] = 0;
+	this11[15] = 0;
+	var dest1 = this11;
+	dest1[0] = 1;
+	dest1[1] = 0;
+	dest1[2] = 0;
+	dest1[3] = 0;
+	dest1[4] = 0;
+	dest1[5] = 1;
+	dest1[6] = 0;
+	dest1[7] = 0;
+	dest1[8] = 0;
+	dest1[9] = 0;
+	dest1[10] = 1;
+	dest1[11] = 0;
+	dest1[12] = 0;
+	dest1[13] = 0;
+	dest1[14] = 0;
+	dest1[15] = 1;
+	this.viewProjectionMatrix = dest1;
+	var this12 = new Float32Array(16);
+	this12[0] = 0;
+	this12[1] = 0;
+	this12[2] = 0;
+	this12[3] = 0;
+	this12[4] = 0;
+	this12[5] = 0;
+	this12[6] = 0;
+	this12[7] = 0;
+	this12[8] = 0;
+	this12[9] = 0;
+	this12[10] = 0;
+	this12[11] = 0;
+	this12[12] = 0;
+	this12[13] = 0;
+	this12[14] = 0;
+	this12[15] = 0;
+	var dest2 = this12;
+	dest2[0] = 1;
+	dest2[1] = 0;
+	dest2[2] = 0;
+	dest2[3] = 0;
+	dest2[4] = 0;
+	dest2[5] = 1;
+	dest2[6] = 0;
+	dest2[7] = 0;
+	dest2[8] = 0;
+	dest2[9] = 0;
+	dest2[10] = 1;
+	dest2[11] = 0;
+	dest2[12] = 0;
+	dest2[13] = 0;
+	dest2[14] = 0;
+	dest2[15] = 1;
+	this.projectionMatrix = dest2;
+	var this13 = new Float32Array(16);
+	this13[0] = 0;
+	this13[1] = 0;
+	this13[2] = 0;
+	this13[3] = 0;
+	this13[4] = 0;
+	this13[5] = 0;
+	this13[6] = 0;
+	this13[7] = 0;
+	this13[8] = 0;
+	this13[9] = 0;
+	this13[10] = 0;
+	this13[11] = 0;
+	this13[12] = 0;
+	this13[13] = 0;
+	this13[14] = 0;
+	this13[15] = 0;
+	var dest3 = this13;
+	dest3[0] = 1;
+	dest3[1] = 0;
+	dest3[2] = 0;
+	dest3[3] = 0;
+	dest3[4] = 0;
+	dest3[5] = 1;
+	dest3[6] = 0;
+	dest3[7] = 0;
+	dest3[8] = 0;
+	dest3[9] = 0;
+	dest3[10] = 1;
+	dest3[11] = 0;
+	dest3[12] = 0;
+	dest3[13] = 0;
+	dest3[14] = 0;
+	dest3[15] = 1;
+	this.viewMatrix = dest3;
+	this.__process__ = new mammoth_systems_DirectionalShadowSystem_$SystemProcess(this);
+};
+mammoth_systems_DirectionalShadowSystem.__name__ = ["mammoth","systems","DirectionalShadowSystem"];
+mammoth_systems_DirectionalShadowSystem.__interfaces__ = [edge_ISystem];
+mammoth_systems_DirectionalShadowSystem.prototype = {
+	update: function(transform,light) {
+		if(this.shadowMaterial == null) {
+			this.shadowMaterial = mammoth_defaults_Materials.shadow();
+		}
+		if(light.shadowFramebuffer == null) {
+			light.shadowFramebuffer = mammoth_Mammoth.gl.context.createFramebuffer();
+		}
+		mammoth_Mammoth.gl.context.bindFramebuffer(36160,light.shadowFramebuffer);
+		if(light.colourmap == null) {
+			light.colourmap = mammoth_Mammoth.gl.context.createTexture();
+			mammoth_Mammoth.gl.context.bindTexture(3553,light.colourmap);
+			mammoth_Mammoth.gl.context.texParameteri(3553,10240,9728);
+			mammoth_Mammoth.gl.context.texParameteri(3553,10241,9728);
+			mammoth_Mammoth.gl.context.texParameteri(3553,10242,33071);
+			mammoth_Mammoth.gl.context.texParameteri(3553,10243,33071);
+			mammoth_Mammoth.gl.context.texImage2D(3553,0,6408,1024,1024,0,6408,5121,null);
+			mammoth_Mammoth.gl.context.framebufferTexture2D(36160,36064,3553,light.colourmap,0);
+		}
+		if(light.shadowmap == null) {
+			light.shadowmap = mammoth_Mammoth.gl.context.createTexture();
+			mammoth_Mammoth.gl.context.bindTexture(3553,light.shadowmap);
+			mammoth_Mammoth.gl.context.texParameteri(3553,10240,9728);
+			mammoth_Mammoth.gl.context.texParameteri(3553,10241,9728);
+			mammoth_Mammoth.gl.context.texParameteri(3553,10242,33071);
+			mammoth_Mammoth.gl.context.texParameteri(3553,10243,33071);
+			mammoth_Mammoth.gl.context.texImage2D(3553,0,6402,1024,1024,0,6402,5123,null);
+			mammoth_Mammoth.gl.context.framebufferTexture2D(36160,36096,3553,light.shadowmap,0);
+		}
+		if(mammoth_Mammoth.gl.context.checkFramebufferStatus(36160) != 36053) {
+			mammoth_Log.log("Framebuffer isn't complete!",mammoth_LogFunctions.Error,{ fileName : "DirectionalShadowSystem.hx", lineNumber : 79, className : "mammoth.systems.DirectionalShadowSystem", methodName : "update"});
+		}
+		var dest = this.projectionMatrix;
+		var rl = 0.05;
+		var tb = 0.05;
+		var fn = 0.0333333333333333329;
+		dest[0] = 2 * rl;
+		dest[4] = 0;
+		dest[8] = 0;
+		dest[12] = 0 * rl;
+		dest[1] = 0;
+		dest[5] = 2 * tb;
+		dest[9] = 0;
+		dest[13] = 0 * tb;
+		dest[2] = 0;
+		dest[6] = 0;
+		dest[10] = -2 * fn;
+		dest[14] = -10 * fn;
+		dest[3] = 0;
+		dest[7] = 0;
+		dest[11] = 0;
+		dest[15] = 1;
+		var src = transform.m;
+		var dest1 = this.viewMatrix;
+		var a00 = src[0];
+		var a01 = src[4];
+		var a02 = src[8];
+		var a03 = src[12];
+		var a10 = src[1];
+		var a11 = src[5];
+		var a12 = src[9];
+		var a13 = src[13];
+		var a20 = src[2];
+		var a21 = src[6];
+		var a22 = src[10];
+		var a23 = src[14];
+		var a30 = src[3];
+		var a31 = src[7];
+		var a32 = src[11];
+		var a33 = src[15];
+		var t00 = a12 * a23 * a31 - a13 * a22 * a31 + a13 * a21 * a32 - a11 * a23 * a32 - a12 * a21 * a33 + a11 * a22 * a33;
+		var t01 = a03 * a22 * a31 - a02 * a23 * a31 - a03 * a21 * a32 + a01 * a23 * a32 + a02 * a21 * a33 - a01 * a22 * a33;
+		var t02 = a02 * a13 * a31 - a03 * a12 * a31 + a03 * a11 * a32 - a01 * a13 * a32 - a02 * a11 * a33 + a01 * a12 * a33;
+		var t03 = a03 * a12 * a21 - a02 * a13 * a21 - a03 * a11 * a22 + a01 * a13 * a22 + a02 * a11 * a23 - a01 * a12 * a23;
+		var det = a00 * t00 + a10 * t01 + a20 * t02 + a30 * t03;
+		if(Math.abs(det) <= glm_GLM.EPSILON) {
+			throw new js__$Boot_HaxeError("Can't invert matrix, det (" + det + ") is too small!");
+		}
+		var idet = 1 / det;
+		dest1[0] = t00 * idet;
+		dest1[1] = (a13 * a22 * a30 - a12 * a23 * a30 - a13 * a20 * a32 + a10 * a23 * a32 + a12 * a20 * a33 - a10 * a22 * a33) * idet;
+		dest1[2] = (a11 * a23 * a30 - a13 * a21 * a30 + a13 * a20 * a31 - a10 * a23 * a31 - a11 * a20 * a33 + a10 * a21 * a33) * idet;
+		dest1[3] = (a12 * a21 * a30 - a11 * a22 * a30 - a12 * a20 * a31 + a10 * a22 * a31 + a11 * a20 * a32 - a10 * a21 * a32) * idet;
+		dest1[4] = t01 * idet;
+		dest1[5] = (a02 * a23 * a30 - a03 * a22 * a30 + a03 * a20 * a32 - a00 * a23 * a32 - a02 * a20 * a33 + a00 * a22 * a33) * idet;
+		dest1[6] = (a03 * a21 * a30 - a01 * a23 * a30 - a03 * a20 * a31 + a00 * a23 * a31 + a01 * a20 * a33 - a00 * a21 * a33) * idet;
+		dest1[7] = (a01 * a22 * a30 - a02 * a21 * a30 + a02 * a20 * a31 - a00 * a22 * a31 - a01 * a20 * a32 + a00 * a21 * a32) * idet;
+		dest1[8] = t02 * idet;
+		dest1[9] = (a03 * a12 * a30 - a02 * a13 * a30 - a03 * a10 * a32 + a00 * a13 * a32 + a02 * a10 * a33 - a00 * a12 * a33) * idet;
+		dest1[10] = (a01 * a13 * a30 - a03 * a11 * a30 + a03 * a10 * a31 - a00 * a13 * a31 - a01 * a10 * a33 + a00 * a11 * a33) * idet;
+		dest1[11] = (a02 * a11 * a30 - a01 * a12 * a30 - a02 * a10 * a31 + a00 * a12 * a31 + a01 * a10 * a32 - a00 * a11 * a32) * idet;
+		dest1[12] = t03 * idet;
+		dest1[13] = (a02 * a13 * a20 - a03 * a12 * a20 + a03 * a10 * a22 - a00 * a13 * a22 - a02 * a10 * a23 + a00 * a12 * a23) * idet;
+		dest1[14] = (a03 * a11 * a20 - a01 * a13 * a20 - a03 * a10 * a21 + a00 * a13 * a21 + a01 * a10 * a23 - a00 * a11 * a23) * idet;
+		dest1[15] = (a01 * a12 * a20 - a02 * a11 * a20 + a02 * a10 * a21 - a00 * a12 * a21 - a01 * a10 * a22 + a00 * a11 * a22) * idet;
+		var a = this.projectionMatrix;
+		var b = this.viewMatrix;
+		var dest2 = this.viewProjectionMatrix;
+		var a001 = a[0];
+		var a011 = a[1];
+		var a021 = a[2];
+		var a031 = a[3];
+		var a101 = a[4];
+		var a111 = a[5];
+		var a121 = a[6];
+		var a131 = a[7];
+		var a201 = a[8];
+		var a211 = a[9];
+		var a221 = a[10];
+		var a231 = a[11];
+		var a301 = a[12];
+		var a311 = a[13];
+		var a321 = a[14];
+		var a331 = a[15];
+		var b00 = b[0];
+		var b01 = b[1];
+		var b02 = b[2];
+		var b03 = b[3];
+		var b10 = b[4];
+		var b11 = b[5];
+		var b12 = b[6];
+		var b13 = b[7];
+		var b20 = b[8];
+		var b21 = b[9];
+		var b22 = b[10];
+		var b23 = b[11];
+		var b30 = b[12];
+		var b31 = b[13];
+		var b32 = b[14];
+		var b33 = b[15];
+		dest2[0] = b00 * a001 + b01 * a101 + b02 * a201 + b03 * a301;
+		dest2[1] = b00 * a011 + b01 * a111 + b02 * a211 + b03 * a311;
+		dest2[2] = b00 * a021 + b01 * a121 + b02 * a221 + b03 * a321;
+		dest2[3] = b00 * a031 + b01 * a131 + b02 * a231 + b03 * a331;
+		dest2[4] = b10 * a001 + b11 * a101 + b12 * a201 + b13 * a301;
+		dest2[5] = b10 * a011 + b11 * a111 + b12 * a211 + b13 * a311;
+		dest2[6] = b10 * a021 + b11 * a121 + b12 * a221 + b13 * a321;
+		dest2[7] = b10 * a031 + b11 * a131 + b12 * a231 + b13 * a331;
+		dest2[8] = b20 * a001 + b21 * a101 + b22 * a201 + b23 * a301;
+		dest2[9] = b20 * a011 + b21 * a111 + b22 * a211 + b23 * a311;
+		dest2[10] = b20 * a021 + b21 * a121 + b22 * a221 + b23 * a321;
+		dest2[11] = b20 * a031 + b21 * a131 + b22 * a231 + b23 * a331;
+		dest2[12] = b30 * a001 + b31 * a101 + b32 * a201 + b33 * a301;
+		dest2[13] = b30 * a011 + b31 * a111 + b32 * a211 + b33 * a311;
+		dest2[14] = b30 * a021 + b31 * a121 + b32 * a221 + b33 * a321;
+		dest2[15] = b30 * a031 + b31 * a131 + b32 * a231 + b33 * a331;
+		mammoth_Mammoth.gl.context.viewport(0,0,1024,1024);
+		mammoth_Mammoth.gl.context.scissor(0,0,1024,1024);
+		var colour = mammoth_defaults_Colours.Black;
+		mammoth_Mammoth.gl.context.clearColor(colour[0],colour[1],colour[2],colour[3]);
+		mammoth_Mammoth.gl.context.clear(16640);
+		mammoth_Mammoth.gl.context.enable(2884);
+		mammoth_Mammoth.gl.context.cullFace(1029);
+		mammoth_Mammoth.gl.context.depthMask(true);
+		mammoth_Mammoth.gl.context.enable(2929);
+		mammoth_Mammoth.gl.context.depthFunc(515);
+		mammoth_Mammoth.gl.context.useProgram(this.shadowMaterial.program);
+		var _this = mammoth_Mammoth.gl;
+		var _this1 = this.shadowMaterial.uniforms;
+		var location = __map_reserved["MVP"] != null ? _this1.getReserved("MVP") : _this1.h["MVP"];
+		_this.context.uniformMatrix4fv(location.location,false,this.MVP);
+		var _this2 = this.shadowMaterial.attributes;
+		var positionLocation = (__map_reserved["position"] != null ? _this2.getReserved("position") : _this2.h["position"]).location;
+		mammoth_Mammoth.gl.context.enableVertexAttribArray(positionLocation);
+		var shadowCaster = this.shadowCasters.iterator();
+		while(shadowCaster.hasNext()) {
+			var shadowCaster1 = shadowCaster.next();
+			var transform1 = shadowCaster1.data.transform;
+			var renderer = shadowCaster1.data.renderer;
+			var mesh = renderer.mesh;
+			var a1 = this.viewProjectionMatrix;
+			var b1 = transform1.m;
+			var dest3 = this.MVP;
+			var a002 = a1[0];
+			var a012 = a1[1];
+			var a022 = a1[2];
+			var a032 = a1[3];
+			var a102 = a1[4];
+			var a112 = a1[5];
+			var a122 = a1[6];
+			var a132 = a1[7];
+			var a202 = a1[8];
+			var a212 = a1[9];
+			var a222 = a1[10];
+			var a232 = a1[11];
+			var a302 = a1[12];
+			var a312 = a1[13];
+			var a322 = a1[14];
+			var a332 = a1[15];
+			var b001 = b1[0];
+			var b011 = b1[1];
+			var b021 = b1[2];
+			var b031 = b1[3];
+			var b101 = b1[4];
+			var b111 = b1[5];
+			var b121 = b1[6];
+			var b131 = b1[7];
+			var b201 = b1[8];
+			var b211 = b1[9];
+			var b221 = b1[10];
+			var b231 = b1[11];
+			var b301 = b1[12];
+			var b311 = b1[13];
+			var b321 = b1[14];
+			var b331 = b1[15];
+			dest3[0] = b001 * a002 + b011 * a102 + b021 * a202 + b031 * a302;
+			dest3[1] = b001 * a012 + b011 * a112 + b021 * a212 + b031 * a312;
+			dest3[2] = b001 * a022 + b011 * a122 + b021 * a222 + b031 * a322;
+			dest3[3] = b001 * a032 + b011 * a132 + b021 * a232 + b031 * a332;
+			dest3[4] = b101 * a002 + b111 * a102 + b121 * a202 + b131 * a302;
+			dest3[5] = b101 * a012 + b111 * a112 + b121 * a212 + b131 * a312;
+			dest3[6] = b101 * a022 + b111 * a122 + b121 * a222 + b131 * a322;
+			dest3[7] = b101 * a032 + b111 * a132 + b121 * a232 + b131 * a332;
+			dest3[8] = b201 * a002 + b211 * a102 + b221 * a202 + b231 * a302;
+			dest3[9] = b201 * a012 + b211 * a112 + b221 * a212 + b231 * a312;
+			dest3[10] = b201 * a022 + b211 * a122 + b221 * a222 + b231 * a322;
+			dest3[11] = b201 * a032 + b211 * a132 + b221 * a232 + b231 * a332;
+			dest3[12] = b301 * a002 + b311 * a102 + b321 * a202 + b331 * a302;
+			dest3[13] = b301 * a012 + b311 * a112 + b321 * a212 + b331 * a312;
+			dest3[14] = b301 * a022 + b311 * a122 + b321 * a222 + b331 * a322;
+			dest3[15] = b301 * a032 + b311 * a132 + b321 * a232 + b331 * a332;
+			if(!mesh.hasAttribute("position")) {
+				continue;
+			}
+			var positionAttribute = mesh.getAttribute("position");
+			mammoth_Mammoth.gl.context.vertexAttribPointer(positionLocation,3,5126,false,positionAttribute.stride,positionAttribute.offset);
+			mammoth_Mammoth.gl.context.bindBuffer(34963,mesh.indexBuffer);
+			mammoth_Mammoth.gl.context.drawElements(4,mesh.indexCount,5123,0);
+			mammoth_Mammoth.stats.drawCalls++;
+			mammoth_Mammoth.stats.triangles += mesh.indexCount / 3 | 0;
+		}
+		mammoth_Mammoth.gl.context.disableVertexAttribArray(positionLocation);
+		mammoth_Mammoth.gl.context.bindFramebuffer(36160,null);
+		return true;
+	}
+	,__class__: mammoth_systems_DirectionalShadowSystem
+};
+var mammoth_systems_DirectionalShadowSystem_$SystemProcess = function(system) {
+	this.system = system;
+	this.updateItems = new edge_View();
+	system.shadowCasters = new edge_View();
+};
+mammoth_systems_DirectionalShadowSystem_$SystemProcess.__name__ = ["mammoth","systems","DirectionalShadowSystem_SystemProcess"];
+mammoth_systems_DirectionalShadowSystem_$SystemProcess.__interfaces__ = [edge_core_ISystemProcess];
+mammoth_systems_DirectionalShadowSystem_$SystemProcess.prototype = {
+	removeEntity: function(entity) {
+		this.updateItems.tryRemove(entity);
+		this.system.shadowCasters.tryRemove(entity);
+	}
+	,addEntity: function(entity) {
+		this.shadowCastersMatchRequirements(entity);
+		this.updateMatchRequirements(entity);
+	}
+	,update: function(engine,delta) {
+		var result = true;
+		var data;
+		var item = this.updateItems.iterator();
+		while(item.hasNext()) {
+			var item1 = item.next();
+			data = item1.data;
+			result = this.system.update(data.transform,data.light);
+			if(!result) {
+				break;
+			}
+		}
+		return result;
+	}
+	,shadowCastersMatchRequirements: function(entity) {
+		var removed = this.system.shadowCasters.tryRemove(entity);
+		var count = 2;
+		var o = { transform : null, renderer : null};
+		var component = entity.map.iterator();
+		while(component.hasNext()) {
+			var component1 = component.next();
+			if(js_Boot.__instanceof(component1,mammoth_components_Transform)) {
+				o.transform = component1;
+				if(--count == 0) {
+					break;
+				} else {
+					continue;
+				}
+			}
+			if(js_Boot.__instanceof(component1,mammoth_components_MeshRenderer)) {
+				o.renderer = component1;
+				if(--count == 0) {
+					break;
+				} else {
+					continue;
+				}
+			}
+		}
+		var added = count == 0 && this.system.shadowCasters.tryAdd(entity,o);
+	}
+	,updateMatchRequirements: function(entity) {
+		var removed = this.updateItems.tryRemove(entity);
+		var count = 2;
+		var o = { transform : null, light : null};
+		var component = entity.map.iterator();
+		while(component.hasNext()) {
+			var component1 = component.next();
+			if(js_Boot.__instanceof(component1,mammoth_components_Transform)) {
+				o.transform = component1;
+				if(--count == 0) {
+					break;
+				} else {
+					continue;
+				}
+			}
+			if(js_Boot.__instanceof(component1,mammoth_components_DirectionalLight)) {
+				o.light = component1;
+				if(--count == 0) {
+					break;
+				} else {
+					continue;
+				}
+			}
+		}
+		var added = count == 0 && this.updateItems.tryAdd(entity,o);
+	}
+	,__class__: mammoth_systems_DirectionalShadowSystem_$SystemProcess
+};
 var mammoth_systems_ModelMatrixSystem = function() {
 	var this1 = new Float32Array(4);
 	this1[0] = 0;
@@ -3704,6 +4185,12 @@ mammoth_systems_RenderSystem.prototype = {
 			mammoth_Mammoth.gl.context.drawElements(4,mesh.indexCount,5123,0);
 			mammoth_Mammoth.stats.drawCalls++;
 			mammoth_Mammoth.stats.triangles += mesh.indexCount / 3 | 0;
+			var _this25 = material.attributes;
+			var materialAttribute2 = new haxe_ds__$StringMap_StringMapIterator(_this25,_this25.arrayKeys());
+			while(materialAttribute2.hasNext()) {
+				var materialAttribute3 = materialAttribute2.next();
+				mammoth_Mammoth.gl.context.disableVertexAttribArray(materialAttribute3.location);
+			}
 		}
 		return true;
 	}

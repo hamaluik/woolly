@@ -13,6 +13,8 @@
 */
 package mammoth.systems;
 
+import mammoth.gl.AttributeLocation;
+import mammoth.types.Mesh;
 import edge.ISystem;
 import edge.View;
 import mammoth.components.MeshRenderer;
@@ -21,6 +23,9 @@ import mammoth.components.DirectionalLight;
 import mammoth.types.Material;
 import mammoth.gl.GL;
 import mammoth.defaults.Materials;
+import mammoth.gl.types.TCullMode;
+import mammoth.gl.types.TDepthFunction;
+import mammoth.defaults.Colours;
 
 class DirectionalShadowSystem implements ISystem {
     private var viewMatrix:Mat4 = Mat4.identity(new Mat4());
@@ -70,6 +75,10 @@ class DirectionalShadowSystem implements ISystem {
             Mammoth.gl.framebufferTexture2D(GL.FRAMEBUFFER, GL.DEPTH_ATTACHMENT, GL.TEXTURE_2D, light.shadowmap, 0);
         }
 
+        if(Mammoth.gl.checkFramebufferStatus(GL.FRAMEBUFFER) != GL.FRAMEBUFFER_COMPLETE) {
+            Log.error('Framebuffer isn\'t complete!');
+        }
+
         // calculate the VP matrix for the light
         // TODO: calculate this smarter
         GLM.orthographic(-10, 10, -10, 10, -10, 20, projectionMatrix);
@@ -79,9 +88,54 @@ class DirectionalShadowSystem implements ISystem {
         // render to the framebuffer!
         Mammoth.gl.viewport(0, 0, 1024, 1024);
         Mammoth.gl.scissor(0, 0, 1024, 1024);
+        Mammoth.gl.clearColor(Colours.Black);
         Mammoth.gl.clear(GL.COLOR_BUFFER_BIT | GL.DEPTH_BUFFER_BIT);
 
-        // TODO: actually render!
+        // setup the state
+        Mammoth.gl.enable(GL.CULL_FACE);
+        Mammoth.gl.cullFace(cast(TCullMode.Back));
+        Mammoth.gl.depthMask(true);
+        Mammoth.gl.enable(GL.DEPTH_TEST);
+        Mammoth.gl.depthFunc(cast(TDepthFunction.LessOrEqual));
+
+        // use our shadow program
+        Mammoth.gl.useProgram(shadowMaterial.program);
+        Mammoth.gl.uniformMatrix4fv(shadowMaterial.uniformLocation('MVP'), cast(MVP));
+
+        // get the position location
+        var positionLocation:AttributeLocation = shadowMaterial.attributeLocation('position');
+        Mammoth.gl.enableVertexAttribArray(positionLocation);
+
+        // now actually render
+        for(shadowCaster in shadowCasters) {
+            // cache the things we care about
+            var transform:Transform = shadowCaster.data.transform;
+            var renderer:MeshRenderer = shadowCaster.data.renderer;
+            var mesh:Mesh = renderer.mesh;
+
+            // skip any meshes that doesn't have position data which is the minimum that we need!
+            if(!mesh.hasAttribute('position')) {
+                continue;
+            }
+
+            // calculate the MVP!
+            Mat4.multMat(viewProjectionMatrix, transform.m, MVP);
+
+            // setup the vertex attribution pointer!
+            var positionAttribute = mesh.getAttribute('position');
+            Mammoth.gl.vertexAttribPointer(positionLocation, 3, GL.FLOAT, false, positionAttribute.stride, positionAttribute.offset);
+
+            // bind the index buffer to the vertices for triangles
+            Mammoth.gl.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
+
+            // and draw those suckers!
+            Mammoth.gl.drawElements(GL.TRIANGLES, mesh.indexCount, GL.UNSIGNED_SHORT, 0);
+            Mammoth.stats.drawCalls++;
+            Mammoth.stats.triangles += Std.int(mesh.indexCount / 3);
+        }
+
+        // re-disable vertex attrib array
+        Mammoth.gl.disableVertexAttribArray(positionLocation);
 
         // switch back to the main framebuffer
         Mammoth.gl.bindFramebuffer(GL.FRAMEBUFFER, null);
