@@ -22,8 +22,9 @@
                 1.0,
                 1.0
             ],
+            "distance": 29.999982833862305,
             "name": "Lamp",
-            "type": "directional"
+            "type": "point"
         }
     ],
     "meshes": [
@@ -63,6 +64,16 @@
     "objects": [
         {
             "camera": "Camera",
+            "components": {
+                "MouseLook": {
+                    "direction": 1.5700000524520874,
+                    "elevation": 0.0,
+                    "sensitivity": 1.0,
+                    "smoothX": 0.0,
+                    "smoothY": 0.0,
+                    "smoothing": 3.0
+                }
+            },
             "name": "Camera",
             "transform": {
                 "rotation": [
@@ -84,6 +95,12 @@
             }
         },
         {
+            "components": {
+                "Spin": {
+                    "angle": 0.0,
+                    "speed": 0.39269909262657166
+                }
+            },
             "name": "Cube",
             "render": {
                 "mesh": "Cube",
@@ -109,6 +126,14 @@
             }
         },
         {
+            "components": {
+                "Bounce": {
+                    "vx": 0.5,
+                    "x": 0.0,
+                    "xMax": 1.0,
+                    "xMin": -1.0
+                }
+            },
             "name": "Icosphere",
             "render": {
                 "mesh": "Icosphere",
@@ -138,7 +163,7 @@
             "name": "Lamp",
             "transform": {
                 "rotation": [
-                    0.2844243347644806,
+                    0.2844243049621582,
                     -0.26885998249053955,
                     0.14802871644496918,
                     0.9082425832748413
@@ -151,7 +176,7 @@
                 "translation": [
                     0.0,
                     0.0,
-                    0.0
+                    3.0
                 ]
             }
         },

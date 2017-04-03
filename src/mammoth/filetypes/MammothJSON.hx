@@ -199,7 +199,7 @@ class MammothJSON {
         Mammoth.resources.meshes.set(meshData.name, mesh);
     }
 
-    private static function loadObject(parentTransform:Transform, object:MammothObject):Void {
+    private static function loadObject(parentTransform:Transform, object:MammothObject, componentFactory:String->Dynamic->Component):Void {
         var entity:Entity = Mammoth.engine.create([]);
         if(object.transform != null) {
             var transform:Transform = new Transform();
@@ -212,7 +212,7 @@ class MammothJSON {
             // load all children recursively
             if(object.children != null) {
                 for(child in object.children) {
-                    loadObject(transform, child);
+                    loadObject(transform, child, componentFactory);
                 }
             }
 
@@ -223,10 +223,10 @@ class MammothJSON {
             var renderer:MeshRenderer = new MeshRenderer();
             
             renderer.mesh = Mammoth.resources.meshes.get(object.render.mesh);
-            if(!Mammoth.resources.materials.exists('standard_1_0')) {
-                Mammoth.resources.materials.set('standard_1_0', Materials.standard(1, 0));
+            if(!Mammoth.resources.materials.exists('standard_1_1')) {
+                Mammoth.resources.materials.set('standard_1_1', Materials.standard(1, 1));
             }
-            renderer.material = Mammoth.resources.materials.get('standard_1_0');
+            renderer.material = Mammoth.resources.materials.get('standard_1_1');
             renderer.materialData = materialDatas.get(object.render.shader);
 
             entity.add(renderer);
@@ -239,9 +239,19 @@ class MammothJSON {
         if(object.light != null) {
             entity.add(lights.get(object.light));
         }
+
+        // TODO: change component factory to some clever macro
+        if(object.components != null) {
+            var componentTypes:Array<String> = Reflect.fields(object.components);
+            for(componentType in componentTypes) {
+                var comp:Dynamic = Reflect.field(object.components, componentType);
+                var c:Component = componentFactory(componentType, comp);
+                if(c != null) entity.add(c);
+            }
+        }
     }
 
-    public static function load(file:MammothFile):Void {
+    public static function load(file:MammothFile, componentFactory:String->Dynamic->Component):Void {
         Log.info('Loading data from ${file.meta.file}..');
 
         // load cameras
@@ -269,7 +279,7 @@ class MammothJSON {
         
         // load actual objects
         for(object in file.objects) {
-            loadObject(null, object);
+            loadObject(null, object, componentFactory);
         }
     }
 

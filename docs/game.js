@@ -322,30 +322,65 @@ Main.main = function() {
 	mammoth_Mammoth.init(Main.onReady);
 };
 Main.onReady = function() {
-	mammoth_Log.log("Loading...",mammoth_LogFunctions.Info,{ fileName : "Main.hx", lineNumber : 26, className : "Main", methodName : "onReady"});
+	mammoth_Log.log("Loading...",mammoth_LogFunctions.Info,{ fileName : "Main.hx", lineNumber : 27, className : "Main", methodName : "onReady"});
 	mammoth_Mammoth.assets.loadJSON("assets/demo.json").then(function(data) {
-		mammoth_filetypes_MammothJSON.load(data);
-		mammoth_Log.log("Done!",mammoth_LogFunctions.Info,{ fileName : "Main.hx", lineNumber : 30, className : "Main", methodName : "onReady"});
-		var entity = mammoth_Mammoth.engine.entities();
-		while(entity.hasNext()) {
-			var entity1 = entity.next();
-			var t = entity1.map.get(Type.getClassName(mammoth_components_Transform));
-			if(t != null) {
-				if(t.name == "Camera") {
-					mammoth_Log.log("Adding MouseLook to \"Camera\"!",mammoth_LogFunctions.Info,{ fileName : "Main.hx", lineNumber : 37, className : "Main", methodName : "onReady"});
-					var mouseLook = new components_MouseLook();
-					entity1.add(mouseLook);
-				}
+		mammoth_filetypes_MammothJSON.load(data,function(type,data1) {
+			switch(type) {
+			case "Bounce":
+				var c = new components_Bounce();
+				c.x = Reflect.field(data1,"x");
+				c.vx = Reflect.field(data1,"vx");
+				c.xMax = Reflect.field(data1,"xMax");
+				c.xMin = Reflect.field(data1,"xMin");
+				return c;
+			case "MouseLook":
+				var c1 = new components_MouseLook();
+				c1.direction = Reflect.field(data1,"direction");
+				c1.elevation = Reflect.field(data1,"elevation");
+				c1.sensitivity = Reflect.field(data1,"sensitivity");
+				c1.smoothing = Reflect.field(data1,"smoothing");
+				return c1;
+			case "Spin":
+				var c2 = new components_Spin();
+				c2.angle = Reflect.field(data1,"angle");
+				c2.speed = Reflect.field(data1,"speed");
+				return c2;
+			default:
+				return null;
 			}
-		}
+		});
+		mammoth_Log.log("Done!",mammoth_LogFunctions.Info,{ fileName : "Main.hx", lineNumber : 57, className : "Main", methodName : "onReady"});
+		mammoth_Mammoth.updatePhase.add(new systems_BounceSystem());
+		mammoth_Mammoth.updatePhase.add(new systems_SpinSystem());
 		mammoth_Mammoth.updatePhase.add(new systems_MouseLookSystem());
 		mammoth_Mammoth.begin();
-	},{ fileName : "Main.hx", lineNumber : 27, className : "Main", methodName : "onReady"}).catchError(function(e) {
-		mammoth_Log.log(e,mammoth_LogFunctions.Error,{ fileName : "Main.hx", lineNumber : 49, className : "Main", methodName : "onReady"});
+	},{ fileName : "Main.hx", lineNumber : 28, className : "Main", methodName : "onReady"}).catchError(function(e) {
+		mammoth_Log.log(e,mammoth_LogFunctions.Error,{ fileName : "Main.hx", lineNumber : 66, className : "Main", methodName : "onReady"});
 	});
 	mammoth_Mammoth.begin();
 };
 Math.__name__ = ["Math"];
+var Reflect = function() { };
+Reflect.__name__ = ["Reflect"];
+Reflect.field = function(o,field) {
+	try {
+		return o[field];
+	} catch( e ) {
+		return null;
+	}
+};
+Reflect.fields = function(o) {
+	var a = [];
+	if(o != null) {
+		var hasOwnProperty = Object.prototype.hasOwnProperty;
+		for( var f in o ) {
+		if(f != "__id__" && f != "hx__closures__" && hasOwnProperty.call(o,f)) {
+			a.push(f);
+		}
+		}
+	}
+	return a;
+};
 var Std = function() { };
 Std.__name__ = ["Std"];
 Std.string = function(s) {
@@ -415,6 +450,17 @@ Type.getClassName = function(c) {
 };
 var mammoth_Component = function() { };
 mammoth_Component.__name__ = ["mammoth","Component"];
+var components_Bounce = function() {
+	this.xMax = 1;
+	this.xMin = -1;
+	this.vx = 1;
+	this.x = 0;
+};
+components_Bounce.__name__ = ["components","Bounce"];
+components_Bounce.__interfaces__ = [mammoth_Component];
+components_Bounce.prototype = {
+	__class__: components_Bounce
+};
 var components_MouseLook = function() {
 	this.smoothY = 0;
 	this.smoothX = 0;
@@ -428,6 +474,15 @@ components_MouseLook.__interfaces__ = [mammoth_Component];
 components_MouseLook.prototype = {
 	__class__: components_MouseLook
 };
+var components_Spin = function() {
+	this.speed = 0.0;
+	this.angle = 0.0;
+};
+components_Spin.__name__ = ["components","Spin"];
+components_Spin.__interfaces__ = [mammoth_Component];
+components_Spin.prototype = {
+	__class__: components_Spin
+};
 var edge_Engine = function() {
 	this.mapEntities = new haxe_ds_ObjectMap();
 	this.listPhases = [];
@@ -439,9 +494,6 @@ edge_Engine.prototype = {
 		this.mapEntities.set(entity,true);
 		this.matchSystems(entity);
 		return entity;
-	}
-	,entities: function() {
-		return this.mapEntities.keys();
 	}
 	,createPhase: function() {
 		var phase = new edge_Phase(this);
@@ -952,10 +1004,7 @@ var haxe_ds_IntMap = function() {
 haxe_ds_IntMap.__name__ = ["haxe","ds","IntMap"];
 haxe_ds_IntMap.__interfaces__ = [haxe_IMap];
 haxe_ds_IntMap.prototype = {
-	get: function(key) {
-		return this.h[key];
-	}
-	,keys: function() {
+	keys: function() {
 		var a = [];
 		for( var key in this.h ) if(this.h.hasOwnProperty(key)) {
 			a.push(key | 0);
@@ -982,9 +1031,6 @@ haxe_ds_ObjectMap.prototype = {
 		var id = key.__id__ || (key.__id__ = ++haxe_ds_ObjectMap.count);
 		this.h[id] = value;
 		this.h.__keys__[id] = key;
-	}
-	,get: function(key) {
-		return this.h[key.__id__];
 	}
 	,remove: function(key) {
 		var id = key.__id__;
@@ -1042,13 +1088,7 @@ var haxe_ds_StringMap = function() {
 haxe_ds_StringMap.__name__ = ["haxe","ds","StringMap"];
 haxe_ds_StringMap.__interfaces__ = [haxe_IMap];
 haxe_ds_StringMap.prototype = {
-	get: function(key) {
-		if(__map_reserved[key] != null) {
-			return this.getReserved(key);
-		}
-		return this.h[key];
-	}
-	,setReserved: function(key,value) {
+	setReserved: function(key,value) {
 		if(this.rh == null) {
 			this.rh = { };
 		}
@@ -2629,7 +2669,7 @@ mammoth_filetypes_MammothJSON.loadMesh = function(meshData) {
 		_this.h[key] = mesh;
 	}
 };
-mammoth_filetypes_MammothJSON.loadObject = function(parentTransform,object) {
+mammoth_filetypes_MammothJSON.loadObject = function(parentTransform,object,componentFactory) {
 	var entity = mammoth_Mammoth.engine.create([]);
 	if(object.transform != null) {
 		var transform = new mammoth_components_Transform();
@@ -2656,7 +2696,7 @@ mammoth_filetypes_MammothJSON.loadObject = function(parentTransform,object) {
 			while(_g < _g1.length) {
 				var child = _g1[_g];
 				++_g;
-				mammoth_filetypes_MammothJSON.loadObject(transform,child);
+				mammoth_filetypes_MammothJSON.loadObject(transform,child,componentFactory);
 			}
 		}
 		entity.add(transform);
@@ -2667,17 +2707,17 @@ mammoth_filetypes_MammothJSON.loadObject = function(parentTransform,object) {
 		var key = object.render.mesh;
 		renderer.mesh = __map_reserved[key] != null ? _this.getReserved(key) : _this.h[key];
 		var _this1 = mammoth_Mammoth.resources.materials;
-		if(!(__map_reserved["standard_1_0"] != null ? _this1.existsReserved("standard_1_0") : _this1.h.hasOwnProperty("standard_1_0"))) {
+		if(!(__map_reserved["standard_1_1"] != null ? _this1.existsReserved("standard_1_1") : _this1.h.hasOwnProperty("standard_1_1"))) {
 			var _this2 = mammoth_Mammoth.resources.materials;
-			var value = mammoth_defaults_Materials.standard(1,0);
-			if(__map_reserved["standard_1_0"] != null) {
-				_this2.setReserved("standard_1_0",value);
+			var value = mammoth_defaults_Materials.standard(1,1);
+			if(__map_reserved["standard_1_1"] != null) {
+				_this2.setReserved("standard_1_1",value);
 			} else {
-				_this2.h["standard_1_0"] = value;
+				_this2.h["standard_1_1"] = value;
 			}
 		}
 		var _this3 = mammoth_Mammoth.resources.materials;
-		renderer.material = __map_reserved["standard_1_0"] != null ? _this3.getReserved("standard_1_0") : _this3.h["standard_1_0"];
+		renderer.material = __map_reserved["standard_1_1"] != null ? _this3.getReserved("standard_1_1") : _this3.h["standard_1_1"];
 		var _this4 = mammoth_filetypes_MammothJSON.materialDatas;
 		var key1 = object.render.shader;
 		renderer.materialData = __map_reserved[key1] != null ? _this4.getReserved(key1) : _this4.h[key1];
@@ -2693,9 +2733,22 @@ mammoth_filetypes_MammothJSON.loadObject = function(parentTransform,object) {
 		var key3 = object.light;
 		entity.add(__map_reserved[key3] != null ? _this6.getReserved(key3) : _this6.h[key3]);
 	}
+	if(object.components != null) {
+		var componentTypes = Reflect.fields(object.components);
+		var _g2 = 0;
+		while(_g2 < componentTypes.length) {
+			var componentType = componentTypes[_g2];
+			++_g2;
+			var comp = Reflect.field(object.components,componentType);
+			var c = componentFactory(componentType,comp);
+			if(c != null) {
+				entity.add(c);
+			}
+		}
+	}
 };
-mammoth_filetypes_MammothJSON.load = function(file) {
-	mammoth_Log.log("Loading data from " + file.meta.file + "..",mammoth_LogFunctions.Info,{ fileName : "MammothJSON.hx", lineNumber : 245, className : "mammoth.filetypes.MammothJSON", methodName : "load"});
+mammoth_filetypes_MammothJSON.load = function(file,componentFactory) {
+	mammoth_Log.log("Loading data from " + file.meta.file + "..",mammoth_LogFunctions.Info,{ fileName : "MammothJSON.hx", lineNumber : 255, className : "mammoth.filetypes.MammothJSON", methodName : "load"});
 	mammoth_filetypes_MammothJSON.cameras = new haxe_ds_StringMap();
 	var _g = 0;
 	var _g1 = file.cameras;
@@ -2732,7 +2785,7 @@ mammoth_filetypes_MammothJSON.load = function(file) {
 	while(_g5 < _g14.length) {
 		var object = _g14[_g5];
 		++_g5;
-		mammoth_filetypes_MammothJSON.loadObject(null,object);
+		mammoth_filetypes_MammothJSON.loadObject(null,object,componentFactory);
 	}
 };
 mammoth_filetypes_MammothJSON.parseFloatArrayURI = function(uri) {
@@ -3750,7 +3803,7 @@ mammoth_systems_RenderSystem.prototype = {
 			while(materialAttribute.hasNext()) {
 				var materialAttribute1 = materialAttribute.next();
 				if(!mesh.hasAttribute(materialAttribute1.name)) {
-					throw new js__$Boot_HaxeError(new mammoth_debug_Exception("Can\t use material " + material.name + " with mesh " + mesh.name + " as mesh is missing attribute " + materialAttribute1.name + "!",true,null,null,{ fileName : "RenderSystem.hx", lineNumber : 173, className : "mammoth.systems.RenderSystem", methodName : "update"}));
+					throw new js__$Boot_HaxeError(new mammoth_debug_Exception("Can\t use material " + material.name + " with mesh " + mesh.name + " as mesh is missing attribute " + materialAttribute1.name + "!",true,null,null,{ fileName : "RenderSystem.hx", lineNumber : 177, className : "mammoth.systems.RenderSystem", methodName : "update"}));
 				}
 				var meshAttribute = mesh.getAttribute(materialAttribute1.name);
 				mammoth_Mammoth.gl.context.enableVertexAttribArray(materialAttribute1.location);
@@ -4553,6 +4606,81 @@ promhx_base_EventLoop.continueOnNextLoop = function() {
 var promhx_error_PromiseError = { __ename__ : true, __constructs__ : ["AlreadyResolved","DownstreamNotFullfilled"] };
 promhx_error_PromiseError.AlreadyResolved = function(message) { var $x = ["AlreadyResolved",0,message]; $x.__enum__ = promhx_error_PromiseError; $x.toString = $estr; return $x; };
 promhx_error_PromiseError.DownstreamNotFullfilled = function(message) { var $x = ["DownstreamNotFullfilled",1,message]; $x.__enum__ = promhx_error_PromiseError; $x.toString = $estr; return $x; };
+var systems_BounceSystem = function() {
+	this.__process__ = new systems_BounceSystem_$SystemProcess(this);
+};
+systems_BounceSystem.__name__ = ["systems","BounceSystem"];
+systems_BounceSystem.__interfaces__ = [edge_ISystem];
+systems_BounceSystem.prototype = {
+	update: function(transform,bounce) {
+		bounce.x += bounce.vx * mammoth_Mammoth.timing.dt;
+		if(bounce.x > bounce.xMax) {
+			bounce.x = bounce.xMax;
+			bounce.vx *= -1;
+		} else if(bounce.x < bounce.xMin) {
+			bounce.x = bounce.xMin;
+			bounce.vx *= -1;
+		}
+		transform.position[0] = bounce.x;
+		return true;
+	}
+	,__class__: systems_BounceSystem
+};
+var systems_BounceSystem_$SystemProcess = function(system) {
+	this.system = system;
+	this.updateItems = new edge_View();
+};
+systems_BounceSystem_$SystemProcess.__name__ = ["systems","BounceSystem_SystemProcess"];
+systems_BounceSystem_$SystemProcess.__interfaces__ = [edge_core_ISystemProcess];
+systems_BounceSystem_$SystemProcess.prototype = {
+	removeEntity: function(entity) {
+		this.updateItems.tryRemove(entity);
+	}
+	,addEntity: function(entity) {
+		this.updateMatchRequirements(entity);
+	}
+	,update: function(engine,delta) {
+		var result = true;
+		var data;
+		var item = this.updateItems.iterator();
+		while(item.hasNext()) {
+			var item1 = item.next();
+			data = item1.data;
+			result = this.system.update(data.transform,data.bounce);
+			if(!result) {
+				break;
+			}
+		}
+		return result;
+	}
+	,updateMatchRequirements: function(entity) {
+		var removed = this.updateItems.tryRemove(entity);
+		var count = 2;
+		var o = { transform : null, bounce : null};
+		var component = entity.map.iterator();
+		while(component.hasNext()) {
+			var component1 = component.next();
+			if(js_Boot.__instanceof(component1,mammoth_components_Transform)) {
+				o.transform = component1;
+				if(--count == 0) {
+					break;
+				} else {
+					continue;
+				}
+			}
+			if(js_Boot.__instanceof(component1,components_Bounce)) {
+				o.bounce = component1;
+				if(--count == 0) {
+					break;
+				} else {
+					continue;
+				}
+			}
+		}
+		var added = count == 0 && this.updateItems.tryAdd(entity,o);
+	}
+	,__class__: systems_BounceSystem_$SystemProcess
+};
 var systems_MouseLookSystem = function() {
 	var this1 = new Float32Array(4);
 	this1[0] = 0;
@@ -4728,6 +4856,87 @@ systems_MouseLookSystem_$SystemProcess.prototype = {
 		var added = count == 0 && this.updateItems.tryAdd(entity,o);
 	}
 	,__class__: systems_MouseLookSystem_$SystemProcess
+};
+var systems_SpinSystem = function() {
+	var this1 = new Float32Array(4);
+	this1[0] = 0;
+	this1[1] = 0;
+	this1[2] = 1;
+	this.axis = this1;
+	this.__process__ = new systems_SpinSystem_$SystemProcess(this);
+};
+systems_SpinSystem.__name__ = ["systems","SpinSystem"];
+systems_SpinSystem.__interfaces__ = [edge_ISystem];
+systems_SpinSystem.prototype = {
+	update: function(transform,spin) {
+		spin.angle += spin.speed * mammoth_Mammoth.timing.dt;
+		var axis = this.axis;
+		var angle = spin.angle;
+		var dest = transform.rotation;
+		angle *= 0.5;
+		var s = Math.sin(angle);
+		dest[0] = s * axis[0];
+		dest[1] = s * axis[1];
+		dest[2] = s * axis[2];
+		dest[3] = Math.cos(angle);
+		return true;
+	}
+	,__class__: systems_SpinSystem
+};
+var systems_SpinSystem_$SystemProcess = function(system) {
+	this.system = system;
+	this.updateItems = new edge_View();
+};
+systems_SpinSystem_$SystemProcess.__name__ = ["systems","SpinSystem_SystemProcess"];
+systems_SpinSystem_$SystemProcess.__interfaces__ = [edge_core_ISystemProcess];
+systems_SpinSystem_$SystemProcess.prototype = {
+	removeEntity: function(entity) {
+		this.updateItems.tryRemove(entity);
+	}
+	,addEntity: function(entity) {
+		this.updateMatchRequirements(entity);
+	}
+	,update: function(engine,delta) {
+		var result = true;
+		var data;
+		var item = this.updateItems.iterator();
+		while(item.hasNext()) {
+			var item1 = item.next();
+			data = item1.data;
+			result = this.system.update(data.transform,data.spin);
+			if(!result) {
+				break;
+			}
+		}
+		return result;
+	}
+	,updateMatchRequirements: function(entity) {
+		var removed = this.updateItems.tryRemove(entity);
+		var count = 2;
+		var o = { transform : null, spin : null};
+		var component = entity.map.iterator();
+		while(component.hasNext()) {
+			var component1 = component.next();
+			if(js_Boot.__instanceof(component1,mammoth_components_Transform)) {
+				o.transform = component1;
+				if(--count == 0) {
+					break;
+				} else {
+					continue;
+				}
+			}
+			if(js_Boot.__instanceof(component1,components_Spin)) {
+				o.spin = component1;
+				if(--count == 0) {
+					break;
+				} else {
+					continue;
+				}
+			}
+		}
+		var added = count == 0 && this.updateItems.tryAdd(entity,o);
+	}
+	,__class__: systems_SpinSystem_$SystemProcess
 };
 var thx_Either = { __ename__ : true, __constructs__ : ["Left","Right"] };
 thx_Either.Left = function(value) { var $x = ["Left",0,value]; $x.__enum__ = thx_Either; $x.toString = $estr; return $x; };

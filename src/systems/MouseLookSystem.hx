@@ -43,6 +43,7 @@ class MouseLookSystem implements ISystem {
         Quat.axisAngle(directionAxis, mouseLook.direction, qDirection);
         Quat.axisAngle(elevationAxis, mouseLook.elevation, qElevation);
 
+        // the order of this is important!
         transform.rotation.identity();
         transform.rotation.multiplyQuats(qDirection, transform.rotation);
         transform.rotation.multiplyQuats(qElevation, transform.rotation);

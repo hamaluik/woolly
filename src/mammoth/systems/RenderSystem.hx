@@ -110,8 +110,10 @@ class RenderSystem implements ISystem {
                 Mammoth.gl.uniformMatrix4fv(material.uniformLocation('P'), cast(camera.p));
             }
         
+            // TODO: sort lights based on distance
             if(material.hasUniform('directionalLights[0].direction')) {
                 var i:Int = 0;
+                // TODO: only set lights if they exist in the material
                 for(dl in directionalLights) {
                     var light:DirectionalLight = dl.data.light;
                     Mammoth.gl.uniform3f(material.uniformLocation('directionalLights[${i}].direction'), light.direction.x, light.direction.y, light.direction.z);
@@ -119,8 +121,10 @@ class RenderSystem implements ISystem {
                     i++;
                 }
             }
+            // TODO: sort lights based on distance
             if(material.hasUniform('pointLights[0].position')) {
                 var i:Int = 0;
+                // TODO: only set lights if they exist in the material
                 for(pl in pointLights) {
                     Mammoth.gl.uniform3f(material.uniformLocation('pointLights[${i}].position'),
                         pl.data.transform.position.x, pl.data.transform.position.y, pl.data.transform.position.z);

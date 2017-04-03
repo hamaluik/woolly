@@ -16,6 +16,7 @@ package;
 import mammoth.Mammoth;
 import mammoth.AssetList;
 import mammoth.Log;
+import mammoth.Component;
 
 class Main {
     public static function main() {
@@ -26,21 +27,37 @@ class Main {
         Log.info("Loading...");
         Mammoth.assets.loadJSON(AssetList.asset___demo__json)
             .then(function(data:Dynamic) {
-                mammoth.filetypes.MammothJSON.load(data);
+                mammoth.filetypes.MammothJSON.load(data, function(type:String, data:Dynamic):Component {
+                    return switch(type) {
+                        case 'Bounce': {
+                            var c:components.Bounce = new components.Bounce();
+                            c.x = Reflect.field(data, 'x');
+                            c.vx = Reflect.field(data, 'vx');
+                            c.xMax = Reflect.field(data, 'xMax');
+                            c.xMin = Reflect.field(data, 'xMin');
+                            c;
+                        }
+                        case 'MouseLook': {
+                            var c:components.MouseLook = new components.MouseLook();
+                            c.direction = Reflect.field(data, 'direction');
+                            c.elevation = Reflect.field(data, 'elevation');
+                            c.sensitivity = Reflect.field(data, 'sensitivity');
+                            c.smoothing = Reflect.field(data, 'smoothing');
+                            c;
+                        }
+                        case 'Spin': {
+                            var c:components.Spin = new components.Spin();
+                            c.angle = Reflect.field(data, 'angle');
+                            c.speed = Reflect.field(data, 'speed');
+                            c;
+                        }
+                        case _: null;
+                    }
+                });
                 Log.info("Done!");
 
-                // print all the objects
-                for(entity in Mammoth.engine.entities()) {
-                    var t:mammoth.components.Transform = entity.get(mammoth.components.Transform);
-                    if(t != null) {
-                        if(t.name == 'Camera') {
-                            mammoth.Log.info('Adding MouseLook to "Camera"!');
-                            var mouseLook:components.MouseLook = new components.MouseLook();
-                            entity.add(mouseLook);
-                        }
-                    }
-                }
-
+                Mammoth.updatePhase.add(new systems.BounceSystem());
+                Mammoth.updatePhase.add(new systems.SpinSystem());
                 Mammoth.updatePhase.add(new systems.MouseLookSystem());
 
                 Mammoth.begin();
