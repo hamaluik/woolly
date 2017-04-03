@@ -24,7 +24,7 @@ class Main {
 
     private static function onReady():Void {
         Log.info("Loading...");
-        Mammoth.assets.loadJSON(AssetList.asset___iso__json)
+        Mammoth.assets.loadJSON(AssetList.asset___demo__json)
             .then(function(data:Dynamic) {
                 mammoth.filetypes.MammothJSON.load(data);
                 Log.info("Done!");
@@ -33,17 +33,15 @@ class Main {
                 for(entity in Mammoth.engine.entities()) {
                     var t:mammoth.components.Transform = entity.get(mammoth.components.Transform);
                     if(t != null) {
-                        if(t.name == 'Cube') {
-                            mammoth.Log.info('Adding spin to "Cube"!');
-                            var spin:components.Spin = new components.Spin();
-                            spin.angle = 0;
-                            spin.speed = Math.PI / 10;
-                            entity.add(spin);
+                        if(t.name == 'Camera') {
+                            mammoth.Log.info('Adding MouseLook to "Camera"!');
+                            var mouseLook:components.MouseLook = new components.MouseLook();
+                            entity.add(mouseLook);
                         }
                     }
                 }
 
-                Mammoth.updatePhase.add(new systems.SpinSystem());
+                Mammoth.updatePhase.add(new systems.MouseLookSystem());
 
                 Mammoth.begin();
             })

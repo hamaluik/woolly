@@ -1,0 +1,210 @@
+{
+    "cameras": [
+        {
+            "aspect": 1.703595982340029,
+            "clearColour": [
+                0.05087608844041824,
+                0.05087608844041824,
+                0.05087608844041824
+            ],
+            "far": 100.0,
+            "fov": 0.5033799409866333,
+            "name": "Camera",
+            "near": 0.10000000149011612,
+            "type": "perspective"
+        }
+    ],
+    "images": [],
+    "lights": [
+        {
+            "colour": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "name": "Lamp",
+            "type": "directional"
+        }
+    ],
+    "meshes": [
+        {
+            "indices": "data:text/plain;base64,CgAAAAwAAAAIAAAAFwAAABMAAAAPAAAADgAAAAsAAAAJAAAABQAAABEAAAABAAAAAgAAABYAAAANAAAAAAAAAAcAAAAEAAAACgAAABAAAAAMAAAAFwAAABUAAAATAAAADgAAABIAAAALAAAABQAAABQAAAARAAAAAgAAAAYAAAAWAAAAAAAAAAMAAAAHAAAA",
+            "name": "Cube",
+            "vertices": "data:text/plain;base64,AACAP///fz8AAIC/AAAAAAAAgD8AAAAAAACAPwAAgL8AAIC/AAAAAAAAgL8AAAAAAQCAv/3/f78AAIC/AACAvwAAAAAAAAAA+v9/vwMAgD8AAIC/AAAAAAD+fz8AAAAABACAP/f/fz8AAIA/AAAAAAAAgD8AAAAA9f9/PwUAgL8AAIA/AAAAAAAAgL8AAAAAAwCAv/r/f78AAIA/AACAvwAAAAAAAAAA//9/vwAAgD8AAIA/AAAAAAAAgD8AAAAAAACAP///fz8AAIC/AAAAAAAAAAAA/n+/AACAP///fz8AAIC/AACAPwAAAAAAAAAAAACAPwAAgL8AAIC/AAAAAAAAAAAAAIC/AACAPwAAgL8AAIC/AACAPwAAAAAAAAAA+v9/vwMAgD8AAIC/AAAAAAAAAAAAAIC/+v9/vwMAgD8AAIC/AACAvwAAAAAAAAAABACAP/f/fz8AAIA/AACAPwAAAAAAAAAABACAP/f/fz8AAIA/AAAAAAAAAAAAAIA/AQCAv/3/f78AAIC/AAAAAAAAAAAAAIC/AQCAv/3/f78AAIC/AAAAAAD+f78AAAAA9f9/PwUAgL8AAIA/AACAPwAAAAAAAAAA9f9/PwUAgL8AAIA/AAAAAAAAAAAAAIA/AwCAv/r/f78AAIA/AAAAAAAAgL8AAAAAAwCAv/r/f78AAIA/AAAAAAAAAAAAAIA///9/vwAAgD8AAIA/AP5/vwAAAAAAAAAA//9/vwAAgD8AAIA/AAAAAAAAAAAAAIA/",
+            "vlayout": [
+                "position",
+                "normal"
+            ]
+        },
+        {
+            "indices": "data:text/plain;base64,AAAAAA0AAAAMAAAAAQAAAA0AAAAPAAAAAAAAAAwAAAARAAAAAAAAABEAAAATAAAAAAAAABMAAAAQAAAAAQAAAA8AAAAWAAAAAgAAAA4AAAAYAAAAAwAAABIAAAAaAAAABAAAABQAAAAcAAAABQAAABUAAAAeAAAAAQAAABYAAAAZAAAAAgAAABgAAAAbAAAAAwAAABoAAAAdAAAABAAAABwAAAAfAAAABQAAAB4AAAAXAAAABgAAACAAAAAlAAAABwAAACEAAAAnAAAACAAAACIAAAAoAAAACQAAACMAAAApAAAACgAAACQAAAAmAAAAJgAAACkAAAALAAAAJgAAACQAAAApAAAAJAAAAAkAAAApAAAAKQAAACgAAAALAAAAKQAAACMAAAAoAAAAIwAAAAgAAAAoAAAAKAAAACcAAAALAAAAKAAAACIAAAAnAAAAIgAAAAcAAAAnAAAAJwAAACUAAAALAAAAJwAAACEAAAAlAAAAIQAAAAYAAAAlAAAAJQAAACYAAAALAAAAJQAAACAAAAAmAAAAIAAAAAoAAAAmAAAAFwAAACQAAAAKAAAAFwAAAB4AAAAkAAAAHgAAAAkAAAAkAAAAHwAAACMAAAAJAAAAHwAAABwAAAAjAAAAHAAAAAgAAAAjAAAAHQAAACIAAAAIAAAAHQAAABoAAAAiAAAAGgAAAAcAAAAiAAAAGwAAACEAAAAHAAAAGwAAABgAAAAhAAAAGAAAAAYAAAAhAAAAGQAAACAAAAAGAAAAGQAAABYAAAAgAAAAFgAAAAoAAAAgAAAAHgAAAB8AAAAJAAAAHgAAABUAAAAfAAAAFQAAAAQAAAAfAAAAHAAAAB0AAAAIAAAAHAAAABQAAAAdAAAAFAAAAAMAAAAdAAAAGgAAABsAAAAHAAAAGgAAABIAAAAbAAAAEgAAAAIAAAAbAAAAGAAAABkAAAAGAAAAGAAAAA4AAAAZAAAADgAAAAEAAAAZAAAAFgAAABcAAAAKAAAAFgAAAA8AAAAXAAAADwAAAAUAAAAXAAAAEAAAABUAAAAFAAAAEAAAABMAAAAVAAAAEwAAAAQAAAAVAAAAEwAAABQAAAAEAAAAEwAAABEAAAAUAAAAEQAAAAMAAAAUAAAAEQAAABIAAAADAAAAEQAAAAwAAAASAAAADAAAAAIAAAASAAAADwAAABAAAAAFAAAADwAAAA0AAAAQAAAADQAAAAAAAAAQAAAADAAAAA4AAAACAAAADAAAAA0AAAAOAAAADQAAAAEAAAAOAAAA",
+            "name": "Icosphere",
+            "vertices": "data:text/plain;base64,AAAAAAAAAAAAAIC/AAAAAAAAAAAAAIC/VD45P++VBr/1+eS+cj05Pw2VBr/K9eS+u4KNvibEWb8A+uS+G4GNvrTDWb/K+eS+HvlkvwAAAABy+eS+yvdkvwAAAADK9eS+u4KNvibEWT8A+uS+G4GNvrTDWT/K+eS+VD45P++VBj/1+eS+cj05Pw2VBj/K9eS+u4KNPibEWb8A+uQ+G4GNPrTDWb/K+eQ+VD45v++VBr/1+eQ+cj05vw2VBr/K9eQ+VD45v++VBj/1+eQ+cj05vw2VBj/K9eQ+u4KNPibEWT8A+uQ+G4GNPrTDWT/K+eQ+HvlkPwAAAABy+eQ+yvdkPwAAAADK9eQ+AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/wFomvmH//759xFm/TVkmvgD+/760w1m/5cPZPr42nr55xFm/tMHZPjw1nr60w1m/vpaGPmMbT7++lga/DZWGPp4ZT78NlQa/D8RZPwAAAAChlga/tMNZPwAAAAANlQa/5cPZPr42nj55xFm/tMHZPjw1nj60w1m/OpYGvwAAAABPxFm/DZUGvwAAAAC0w1m/Li0wv5n//76mlga/YCswvwD+/74NlQa/wFomvmH//z59xFm/TVkmvgD+/z60w1m/Li0wv5n//z6mlga/YCswvwD+/z4NlQa/vpaGPmMbTz++lga/DZWGPp4ZTz8NlQa/h3hzP+c2nr4AAAAA53dzPzw1nr4AAAAAh3hzP+c2nj4AAAAA53dzPzw1nj4AAAAAAAAAAP//f78AAAAAAAAAAAAAgL8AAAAAHnkWP7gbT78AAAAALXcWP54bT78AAAAAh3hzv+c2nr4AAAAA53dzvzw1nr4AAAAAHnkWv7gbT78AAAAALXcWv54bT78AAAAAHnkWv7gbTz8AAAAALXcWv54bTz8AAAAAh3hzv+c2nj4AAAAA53dzvzw1nj4AAAAAHnkWP7gbTz8AAAAALXcWP54bTz8AAAAAAAAAAP//fz8AAAAAAAAAAAAAgD8AAAAALi0wP5n//76mlgY/YCswPwD+/74NlQY/vpaGvmMbT7++lgY/DZWGvp4ZT78NlQY/D8RZvwAAAAChlgY/tMNZvwAAAAANlQY/vpaGvmMbTz++lgY/DZWGvp4ZTz8NlQY/Li0wP5n//z6mlgY/YCswPwD+/z4NlQY/wFomPmH//758xFk/TVkmPgD+/760w1k/OpYGPwAAAABPxFk/DZUGPwAAAAC0w1k/5cPZvr42nr55xFk/tMHZvjw1nr60w1k/5cPZvr42nj55xFk/tMHZvjw1nj60w1k/wFomPmH//z58xFk/TVkmPgD+/z60w1k/",
+            "vlayout": [
+                "position",
+                "normal"
+            ]
+        },
+        {
+            "indices": "data:text/plain;base64,AQAAAAIAAAAAAAAAAQAAAAMAAAACAAAA",
+            "name": "Plane",
+            "vertices": "data:text/plain;base64,AAAgwQAAIMEAAAAAAAAAAAAAAAAAAIA/AAAgQQAAIMEAAAAAAAAAAAAAAAAAAIA/AAAgwQAAIEEAAAAAAAAAAAAAAAAAAIA/AAAgQQAAIEEAAAAAAAAAAAAAAAAAAIA/",
+            "vlayout": [
+                "position",
+                "normal"
+            ]
+        }
+    ],
+    "meta": {
+        "blender": "2.78 (sub 0)",
+        "exporter_version": "0.0.0",
+        "file": "demo_blend"
+    },
+    "objects": [
+        {
+            "camera": "Camera",
+            "name": "Camera",
+            "transform": {
+                "rotation": [
+                    0.5,
+                    -0.5000000596046448,
+                    -0.5000000596046448,
+                    0.5
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "translation": [
+                    0.0,
+                    0.0,
+                    1.5
+                ]
+            }
+        },
+        {
+            "name": "Cube",
+            "render": {
+                "mesh": "Cube",
+                "shader": "Material"
+            },
+            "transform": {
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "translation": [
+                    5.403126239776611,
+                    -0.5497462749481201,
+                    1.0
+                ]
+            }
+        },
+        {
+            "name": "Icosphere",
+            "render": {
+                "mesh": "Icosphere",
+                "shader": "Material"
+            },
+            "transform": {
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "translation": [
+                    1.766086459159851,
+                    4.513033866882324,
+                    2.0
+                ]
+            }
+        },
+        {
+            "light": "Lamp",
+            "name": "Lamp",
+            "transform": {
+                "rotation": [
+                    0.2844243347644806,
+                    -0.26885998249053955,
+                    0.14802871644496918,
+                    0.9082425832748413
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "translation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            }
+        },
+        {
+            "name": "Plane",
+            "render": {
+                "mesh": "Plane",
+                "shader": "Material"
+            },
+            "transform": {
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "translation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            }
+        }
+    ],
+    "shaders": [
+        {
+            "diffuse": {
+                "ambient": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "colour": [
+                    0.6000000238418579,
+                    0.6000000238418579,
+                    0.6000000238418579,
+                    1.0
+                ]
+            },
+            "name": "Material",
+            "textures": []
+        }
+    ],
+    "textures": [
+        {
+            "name": "Tex",
+            "type": "none"
+        }
+    ]
+}

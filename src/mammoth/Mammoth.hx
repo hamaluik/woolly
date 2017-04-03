@@ -79,7 +79,7 @@ class Mammoth {
         renderPhase.add(new mammoth.systems.ModelMatrixSystem());
         renderPhase.add(new mammoth.systems.CameraSystem());
         renderPhase.add(new mammoth.systems.DirectionalLightSystem());
-        renderPhase.add(new mammoth.systems.DirectionalShadowSystem());
+        //renderPhase.add(new mammoth.systems.DirectionalShadowSystem());
         renderPhase.add(new mammoth.systems.RenderSystem());
 
         // and debug rendering
@@ -102,7 +102,10 @@ class Mammoth {
 
     private static function onUpdate(dt:Float):Void {
         Tusk.draw.newFrame();
-        Tusk.updateInput(input.mouseX, input.mouseY, input.mouseDown);
+        input.poll();
+        if(!input.pointerLocked) {
+            Tusk.updateInput(input.mouseX, input.mouseY, input.mouseDown);
+        }
 
         preUpdatePhase.update(dt);
         updatePhase.update(dt);

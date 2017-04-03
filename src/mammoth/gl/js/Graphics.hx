@@ -91,8 +91,12 @@ class Graphics {
         bindTexture(GL.TEXTURE_2D, texture);
 		// create an empty cyan texture to start to indicate loading
         texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, 1, 1, 0, GL.RGBA, GL.UNSIGNED_BYTE,
-              new js.html.Uint8Array([0, 255, 255, 255]));
+			srcURI == null
+				? new mammoth.platform.Uint8Array([0, 255, 255, 255])
+				: new mammoth.platform.Uint8Array([255, 0, 255, 255]));
         bindTexture(GL.TEXTURE_2D, null);
+
+		if(srcURI == null) return texture;
 
         // load the image asynchronously
         var img:js.html.ImageElement = js.Browser.window.document.createImageElement();

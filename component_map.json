@@ -1,4 +1,30 @@
 {
+  "MouseLook": [
+    {
+      "name": "sensitivity",
+      "type": "float"
+    },
+    {
+      "name": "smoothing",
+      "type": "float"
+    },
+    {
+      "name": "elevation",
+      "type": "float"
+    },
+    {
+      "name": "direction",
+      "type": "float"
+    },
+    {
+      "name": "smoothX",
+      "type": "float"
+    },
+    {
+      "name": "smoothY",
+      "type": "float"
+    }
+  ],
   "Bounce": [
     {
       "name": "x",

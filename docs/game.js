@@ -323,7 +323,7 @@ Main.main = function() {
 };
 Main.onReady = function() {
 	mammoth_Log.log("Loading...",mammoth_LogFunctions.Info,{ fileName : "Main.hx", lineNumber : 26, className : "Main", methodName : "onReady"});
-	mammoth_Mammoth.assets.loadJSON("assets/iso.json").then(function(data) {
+	mammoth_Mammoth.assets.loadJSON("assets/demo.json").then(function(data) {
 		mammoth_filetypes_MammothJSON.load(data);
 		mammoth_Log.log("Done!",mammoth_LogFunctions.Info,{ fileName : "Main.hx", lineNumber : 30, className : "Main", methodName : "onReady"});
 		var entity = mammoth_Mammoth.engine.entities();
@@ -331,19 +331,17 @@ Main.onReady = function() {
 			var entity1 = entity.next();
 			var t = entity1.map.get(Type.getClassName(mammoth_components_Transform));
 			if(t != null) {
-				if(t.name == "Cube") {
-					mammoth_Log.log("Adding spin to \"Cube\"!",mammoth_LogFunctions.Info,{ fileName : "Main.hx", lineNumber : 37, className : "Main", methodName : "onReady"});
-					var spin = new components_Spin();
-					spin.angle = 0;
-					spin.speed = Math.PI / 10;
-					entity1.add(spin);
+				if(t.name == "Camera") {
+					mammoth_Log.log("Adding MouseLook to \"Camera\"!",mammoth_LogFunctions.Info,{ fileName : "Main.hx", lineNumber : 37, className : "Main", methodName : "onReady"});
+					var mouseLook = new components_MouseLook();
+					entity1.add(mouseLook);
 				}
 			}
 		}
-		mammoth_Mammoth.updatePhase.add(new systems_SpinSystem());
+		mammoth_Mammoth.updatePhase.add(new systems_MouseLookSystem());
 		mammoth_Mammoth.begin();
 	},{ fileName : "Main.hx", lineNumber : 27, className : "Main", methodName : "onReady"}).catchError(function(e) {
-		mammoth_Log.log(e,mammoth_LogFunctions.Error,{ fileName : "Main.hx", lineNumber : 51, className : "Main", methodName : "onReady"});
+		mammoth_Log.log(e,mammoth_LogFunctions.Error,{ fileName : "Main.hx", lineNumber : 49, className : "Main", methodName : "onReady"});
 	});
 	mammoth_Mammoth.begin();
 };
@@ -417,14 +415,18 @@ Type.getClassName = function(c) {
 };
 var mammoth_Component = function() { };
 mammoth_Component.__name__ = ["mammoth","Component"];
-var components_Spin = function() {
-	this.speed = 0.0;
-	this.angle = 0.0;
+var components_MouseLook = function() {
+	this.smoothY = 0;
+	this.smoothX = 0;
+	this.direction = 0;
+	this.elevation = Math.PI / 2;
+	this.smoothing = 3;
+	this.sensitivity = 1;
 };
-components_Spin.__name__ = ["components","Spin"];
-components_Spin.__interfaces__ = [mammoth_Component];
-components_Spin.prototype = {
-	__class__: components_Spin
+components_MouseLook.__name__ = ["components","MouseLook"];
+components_MouseLook.__interfaces__ = [mammoth_Component];
+components_MouseLook.prototype = {
+	__class__: components_MouseLook
 };
 var edge_Engine = function() {
 	this.mapEntities = new haxe_ds_ObjectMap();
@@ -1941,9 +1943,12 @@ mammoth_gl_js_Graphics.prototype = {
 		var _gthis = this;
 		var texture = this.context.createTexture();
 		this.context.bindTexture(3553,texture);
-		var pixels = new Uint8Array([0,255,255,255]);
+		var pixels = srcURI == null ? new Uint8Array([0,255,255,255]) : new Uint8Array([255,0,255,255]);
 		this.context.texImage2D(3553,0,6408,1,1,0,6408,5121,pixels);
 		this.context.bindTexture(3553,null);
+		if(srcURI == null) {
+			return texture;
+		}
 		var img = window.document.createElement("img");
 		img.addEventListener("load",function() {
 			_gthis.context.bindTexture(3553,texture);
@@ -1966,9 +1971,14 @@ mammoth_gl_js_Graphics.prototype = {
 	,__class__: mammoth_gl_js_Graphics
 };
 var mammoth_platform_js_Input = function() {
+	this.pointerLocked = false;
 	this.mouseDown = false;
+	this.mouseDeltaY = 0;
+	this.mouseDeltaX = 0;
 	this.mouseY = 0;
 	this.mouseX = 0;
+	this.lastMouseY = 0;
+	this.lastMouseX = 0;
 };
 mammoth_platform_js_Input.__name__ = ["mammoth","platform","js","Input"];
 mammoth_platform_js_Input.prototype = {
@@ -1976,11 +1986,29 @@ mammoth_platform_js_Input.prototype = {
 		mammoth_Mammoth.gl.context.canvas.addEventListener("mousemove",$bind(this,this.updateMousePosition));
 		mammoth_Mammoth.gl.context.canvas.addEventListener("mousedown",$bind(this,this.updateMouseDown));
 		mammoth_Mammoth.gl.context.canvas.addEventListener("mouseup",$bind(this,this.updateMouseUp));
+		window.document.addEventListener("pointerlockchange",$bind(this,this.pointerLockChanged));
+	}
+	,lockPointer: function() {
+		mammoth_Mammoth.gl.context.canvas.onclick = $bind(this,this.requestPointerLock);
+	}
+	,requestPointerLock: function() {
+		mammoth_Mammoth.gl.context.canvas.requestPointerLock();
+	}
+	,poll: function() {
+		this.mouseDeltaX = this.mouseX - this.lastMouseX;
+		this.mouseDeltaY = this.mouseY - this.lastMouseY;
+		this.lastMouseX = this.mouseX;
+		this.lastMouseY = this.mouseY;
 	}
 	,updateMousePosition: function(evt) {
 		var rect = mammoth_Mammoth.gl.context.canvas.getBoundingClientRect();
-		this.mouseX = Math.floor((evt.clientX - rect.left) / (rect.right - rect.left) * mammoth_Mammoth.gl.context.canvas.width);
-		this.mouseY = Math.floor((evt.clientY - rect.top) / (rect.bottom - rect.top) * mammoth_Mammoth.gl.context.canvas.height);
+		if(this.pointerLocked) {
+			this.mouseX += evt.movementX;
+			this.mouseY += evt.movementY;
+		} else {
+			this.mouseX = Math.floor((evt.clientX - rect.left) / (rect.right - rect.left) * mammoth_Mammoth.gl.context.canvas.width);
+			this.mouseY = Math.floor((evt.clientY - rect.top) / (rect.bottom - rect.top) * mammoth_Mammoth.gl.context.canvas.height);
+		}
 	}
 	,updateMouseDown: function(evt) {
 		if(evt.button == 0) {
@@ -1990,6 +2018,14 @@ mammoth_platform_js_Input.prototype = {
 	,updateMouseUp: function(evt) {
 		if(evt.button == 0) {
 			this.mouseDown = false;
+		}
+	}
+	,pointerLockChanged: function() {
+		this.pointerLocked = window.document.pointerLockElement == mammoth_Mammoth.gl.context.canvas;
+		if(this.pointerLocked) {
+			mammoth_Mammoth.gl.context.canvas.onclick = null;
+		} else {
+			mammoth_Mammoth.gl.context.canvas.onclick = $bind(this,this.requestPointerLock);
 		}
 	}
 	,__class__: mammoth_platform_js_Input
@@ -2081,7 +2117,6 @@ mammoth_Mammoth.init = function(onReady,updateRate) {
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_ModelMatrixSystem());
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_CameraSystem());
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_DirectionalLightSystem());
-	mammoth_Mammoth.renderPhase.add(new mammoth_systems_DirectionalShadowSystem());
 	mammoth_Mammoth.renderPhase.add(new mammoth_systems_RenderSystem());
 	mammoth_Mammoth.engine.create([new mammoth_components_TuskContext()]);
 	mammoth_Mammoth.debugDrawPhase.add(new mammoth_systems_StatsDisplaySystem());
@@ -2096,7 +2131,10 @@ mammoth_Mammoth.begin = function() {
 };
 mammoth_Mammoth.onUpdate = function(dt) {
 	tusk_Tusk.draw.newFrame();
-	tusk_Tusk.updateInput(mammoth_Mammoth.input.mouseX,mammoth_Mammoth.input.mouseY,mammoth_Mammoth.input.mouseDown);
+	mammoth_Mammoth.input.poll();
+	if(!mammoth_Mammoth.input.pointerLocked) {
+		tusk_Tusk.updateInput(mammoth_Mammoth.input.mouseX,mammoth_Mammoth.input.mouseY,mammoth_Mammoth.input.mouseDown);
+	}
 	mammoth_Mammoth.preUpdatePhase.update(dt);
 	mammoth_Mammoth.updatePhase.update(dt);
 	mammoth_Mammoth.postUpdatePhase.update(dt);
@@ -2213,9 +2251,6 @@ mammoth_components_Camera.prototype = {
 	,__class__: mammoth_components_Camera
 };
 var mammoth_components_DirectionalLight = function() {
-	this.shadowmap = null;
-	this.colourmap = null;
-	this.shadowFramebuffer = null;
 	var this1 = new Float32Array(4);
 	this1[0] = 0;
 	this1[1] = 0;
@@ -2407,17 +2442,6 @@ var mammoth_defaults_Colours = function() { };
 mammoth_defaults_Colours.__name__ = ["mammoth","defaults","Colours"];
 var mammoth_defaults_Materials = function() { };
 mammoth_defaults_Materials.__name__ = ["mammoth","defaults","Materials"];
-mammoth_defaults_Materials.shadow = function() {
-	var material = new mammoth_types_Material("shadow");
-	var vertexSrc = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\n#define SHADER_NAME Shadow\n\n// attribute inputs\nattribute vec3 position;\n\n// camera uniforms\nuniform mat4 MVP;\n\nvoid main() {\n    // set the camera-space position of the vertex\n\tgl_Position = MVP * vec4(position, 1.0);\n}";
-	var fragSrc = "#ifdef GL_ES\nprecision mediump float;\n#endif\n\n#define SHADER_NAME Shadow\n\nvoid main() {\n    gl_FragColor = vec4(gl_FragCoord.z, 1.0, 0.0, 1.0);\n}";
-	material.setShaderSource(vertexSrc,35633);
-	material.setShaderSource(fragSrc,35632);
-	material.compile();
-	material.registerAttribute("position",mammoth_gl_types_TVertexAttribute.Vec3);
-	material.registerUniform("MVP",mammoth_gl_types_TShaderUniform.Matrix4);
-	return material;
-};
 mammoth_defaults_Materials.tusk = function() {
 	var material = new mammoth_types_Material("tusk");
 	material.setShaderSource(tusk_Tusk.vertexShaderSrc,35633);
@@ -3130,472 +3154,6 @@ mammoth_systems_DirectionalLightSystem_$SystemProcess.prototype = {
 		var added = count == 0 && this.updateItems.tryAdd(entity,o);
 	}
 	,__class__: mammoth_systems_DirectionalLightSystem_$SystemProcess
-};
-var mammoth_systems_DirectionalShadowSystem = function() {
-	var this1 = new Float32Array(16);
-	this1[0] = 0;
-	this1[1] = 0;
-	this1[2] = 0;
-	this1[3] = 0;
-	this1[4] = 0;
-	this1[5] = 0;
-	this1[6] = 0;
-	this1[7] = 0;
-	this1[8] = 0;
-	this1[9] = 0;
-	this1[10] = 0;
-	this1[11] = 0;
-	this1[12] = 0;
-	this1[13] = 0;
-	this1[14] = 0;
-	this1[15] = 0;
-	var dest = this1;
-	dest[0] = 1;
-	dest[1] = 0;
-	dest[2] = 0;
-	dest[3] = 0;
-	dest[4] = 0;
-	dest[5] = 1;
-	dest[6] = 0;
-	dest[7] = 0;
-	dest[8] = 0;
-	dest[9] = 0;
-	dest[10] = 1;
-	dest[11] = 0;
-	dest[12] = 0;
-	dest[13] = 0;
-	dest[14] = 0;
-	dest[15] = 1;
-	this.MVP = dest;
-	var this11 = new Float32Array(16);
-	this11[0] = 0;
-	this11[1] = 0;
-	this11[2] = 0;
-	this11[3] = 0;
-	this11[4] = 0;
-	this11[5] = 0;
-	this11[6] = 0;
-	this11[7] = 0;
-	this11[8] = 0;
-	this11[9] = 0;
-	this11[10] = 0;
-	this11[11] = 0;
-	this11[12] = 0;
-	this11[13] = 0;
-	this11[14] = 0;
-	this11[15] = 0;
-	var dest1 = this11;
-	dest1[0] = 1;
-	dest1[1] = 0;
-	dest1[2] = 0;
-	dest1[3] = 0;
-	dest1[4] = 0;
-	dest1[5] = 1;
-	dest1[6] = 0;
-	dest1[7] = 0;
-	dest1[8] = 0;
-	dest1[9] = 0;
-	dest1[10] = 1;
-	dest1[11] = 0;
-	dest1[12] = 0;
-	dest1[13] = 0;
-	dest1[14] = 0;
-	dest1[15] = 1;
-	this.viewProjectionMatrix = dest1;
-	var this12 = new Float32Array(16);
-	this12[0] = 0;
-	this12[1] = 0;
-	this12[2] = 0;
-	this12[3] = 0;
-	this12[4] = 0;
-	this12[5] = 0;
-	this12[6] = 0;
-	this12[7] = 0;
-	this12[8] = 0;
-	this12[9] = 0;
-	this12[10] = 0;
-	this12[11] = 0;
-	this12[12] = 0;
-	this12[13] = 0;
-	this12[14] = 0;
-	this12[15] = 0;
-	var dest2 = this12;
-	dest2[0] = 1;
-	dest2[1] = 0;
-	dest2[2] = 0;
-	dest2[3] = 0;
-	dest2[4] = 0;
-	dest2[5] = 1;
-	dest2[6] = 0;
-	dest2[7] = 0;
-	dest2[8] = 0;
-	dest2[9] = 0;
-	dest2[10] = 1;
-	dest2[11] = 0;
-	dest2[12] = 0;
-	dest2[13] = 0;
-	dest2[14] = 0;
-	dest2[15] = 1;
-	this.projectionMatrix = dest2;
-	var this13 = new Float32Array(16);
-	this13[0] = 0;
-	this13[1] = 0;
-	this13[2] = 0;
-	this13[3] = 0;
-	this13[4] = 0;
-	this13[5] = 0;
-	this13[6] = 0;
-	this13[7] = 0;
-	this13[8] = 0;
-	this13[9] = 0;
-	this13[10] = 0;
-	this13[11] = 0;
-	this13[12] = 0;
-	this13[13] = 0;
-	this13[14] = 0;
-	this13[15] = 0;
-	var dest3 = this13;
-	dest3[0] = 1;
-	dest3[1] = 0;
-	dest3[2] = 0;
-	dest3[3] = 0;
-	dest3[4] = 0;
-	dest3[5] = 1;
-	dest3[6] = 0;
-	dest3[7] = 0;
-	dest3[8] = 0;
-	dest3[9] = 0;
-	dest3[10] = 1;
-	dest3[11] = 0;
-	dest3[12] = 0;
-	dest3[13] = 0;
-	dest3[14] = 0;
-	dest3[15] = 1;
-	this.viewMatrix = dest3;
-	this.__process__ = new mammoth_systems_DirectionalShadowSystem_$SystemProcess(this);
-};
-mammoth_systems_DirectionalShadowSystem.__name__ = ["mammoth","systems","DirectionalShadowSystem"];
-mammoth_systems_DirectionalShadowSystem.__interfaces__ = [edge_ISystem];
-mammoth_systems_DirectionalShadowSystem.prototype = {
-	update: function(transform,light) {
-		if(this.shadowMaterial == null) {
-			this.shadowMaterial = mammoth_defaults_Materials.shadow();
-		}
-		if(light.shadowFramebuffer == null) {
-			light.shadowFramebuffer = mammoth_Mammoth.gl.context.createFramebuffer();
-		}
-		mammoth_Mammoth.gl.context.bindFramebuffer(36160,light.shadowFramebuffer);
-		if(light.colourmap == null) {
-			light.colourmap = mammoth_Mammoth.gl.context.createTexture();
-			mammoth_Mammoth.gl.context.bindTexture(3553,light.colourmap);
-			mammoth_Mammoth.gl.context.texParameteri(3553,10240,9728);
-			mammoth_Mammoth.gl.context.texParameteri(3553,10241,9728);
-			mammoth_Mammoth.gl.context.texParameteri(3553,10242,33071);
-			mammoth_Mammoth.gl.context.texParameteri(3553,10243,33071);
-			mammoth_Mammoth.gl.context.texImage2D(3553,0,6408,1024,1024,0,6408,5121,null);
-			mammoth_Mammoth.gl.context.framebufferTexture2D(36160,36064,3553,light.colourmap,0);
-		}
-		if(light.shadowmap == null) {
-			light.shadowmap = mammoth_Mammoth.gl.context.createTexture();
-			mammoth_Mammoth.gl.context.bindTexture(3553,light.shadowmap);
-			mammoth_Mammoth.gl.context.texParameteri(3553,10240,9728);
-			mammoth_Mammoth.gl.context.texParameteri(3553,10241,9728);
-			mammoth_Mammoth.gl.context.texParameteri(3553,10242,33071);
-			mammoth_Mammoth.gl.context.texParameteri(3553,10243,33071);
-			mammoth_Mammoth.gl.context.texImage2D(3553,0,6402,1024,1024,0,6402,5123,null);
-			mammoth_Mammoth.gl.context.framebufferTexture2D(36160,36096,3553,light.shadowmap,0);
-		}
-		if(mammoth_Mammoth.gl.context.checkFramebufferStatus(36160) != 36053) {
-			mammoth_Log.log("Framebuffer isn't complete!",mammoth_LogFunctions.Error,{ fileName : "DirectionalShadowSystem.hx", lineNumber : 79, className : "mammoth.systems.DirectionalShadowSystem", methodName : "update"});
-		}
-		var dest = this.projectionMatrix;
-		var rl = 0.05;
-		var tb = 0.05;
-		var fn = 0.0333333333333333329;
-		dest[0] = 2 * rl;
-		dest[4] = 0;
-		dest[8] = 0;
-		dest[12] = 0 * rl;
-		dest[1] = 0;
-		dest[5] = 2 * tb;
-		dest[9] = 0;
-		dest[13] = 0 * tb;
-		dest[2] = 0;
-		dest[6] = 0;
-		dest[10] = -2 * fn;
-		dest[14] = -10 * fn;
-		dest[3] = 0;
-		dest[7] = 0;
-		dest[11] = 0;
-		dest[15] = 1;
-		var src = transform.m;
-		var dest1 = this.viewMatrix;
-		var a00 = src[0];
-		var a01 = src[4];
-		var a02 = src[8];
-		var a03 = src[12];
-		var a10 = src[1];
-		var a11 = src[5];
-		var a12 = src[9];
-		var a13 = src[13];
-		var a20 = src[2];
-		var a21 = src[6];
-		var a22 = src[10];
-		var a23 = src[14];
-		var a30 = src[3];
-		var a31 = src[7];
-		var a32 = src[11];
-		var a33 = src[15];
-		var t00 = a12 * a23 * a31 - a13 * a22 * a31 + a13 * a21 * a32 - a11 * a23 * a32 - a12 * a21 * a33 + a11 * a22 * a33;
-		var t01 = a03 * a22 * a31 - a02 * a23 * a31 - a03 * a21 * a32 + a01 * a23 * a32 + a02 * a21 * a33 - a01 * a22 * a33;
-		var t02 = a02 * a13 * a31 - a03 * a12 * a31 + a03 * a11 * a32 - a01 * a13 * a32 - a02 * a11 * a33 + a01 * a12 * a33;
-		var t03 = a03 * a12 * a21 - a02 * a13 * a21 - a03 * a11 * a22 + a01 * a13 * a22 + a02 * a11 * a23 - a01 * a12 * a23;
-		var det = a00 * t00 + a10 * t01 + a20 * t02 + a30 * t03;
-		if(Math.abs(det) <= glm_GLM.EPSILON) {
-			throw new js__$Boot_HaxeError("Can't invert matrix, det (" + det + ") is too small!");
-		}
-		var idet = 1 / det;
-		dest1[0] = t00 * idet;
-		dest1[1] = (a13 * a22 * a30 - a12 * a23 * a30 - a13 * a20 * a32 + a10 * a23 * a32 + a12 * a20 * a33 - a10 * a22 * a33) * idet;
-		dest1[2] = (a11 * a23 * a30 - a13 * a21 * a30 + a13 * a20 * a31 - a10 * a23 * a31 - a11 * a20 * a33 + a10 * a21 * a33) * idet;
-		dest1[3] = (a12 * a21 * a30 - a11 * a22 * a30 - a12 * a20 * a31 + a10 * a22 * a31 + a11 * a20 * a32 - a10 * a21 * a32) * idet;
-		dest1[4] = t01 * idet;
-		dest1[5] = (a02 * a23 * a30 - a03 * a22 * a30 + a03 * a20 * a32 - a00 * a23 * a32 - a02 * a20 * a33 + a00 * a22 * a33) * idet;
-		dest1[6] = (a03 * a21 * a30 - a01 * a23 * a30 - a03 * a20 * a31 + a00 * a23 * a31 + a01 * a20 * a33 - a00 * a21 * a33) * idet;
-		dest1[7] = (a01 * a22 * a30 - a02 * a21 * a30 + a02 * a20 * a31 - a00 * a22 * a31 - a01 * a20 * a32 + a00 * a21 * a32) * idet;
-		dest1[8] = t02 * idet;
-		dest1[9] = (a03 * a12 * a30 - a02 * a13 * a30 - a03 * a10 * a32 + a00 * a13 * a32 + a02 * a10 * a33 - a00 * a12 * a33) * idet;
-		dest1[10] = (a01 * a13 * a30 - a03 * a11 * a30 + a03 * a10 * a31 - a00 * a13 * a31 - a01 * a10 * a33 + a00 * a11 * a33) * idet;
-		dest1[11] = (a02 * a11 * a30 - a01 * a12 * a30 - a02 * a10 * a31 + a00 * a12 * a31 + a01 * a10 * a32 - a00 * a11 * a32) * idet;
-		dest1[12] = t03 * idet;
-		dest1[13] = (a02 * a13 * a20 - a03 * a12 * a20 + a03 * a10 * a22 - a00 * a13 * a22 - a02 * a10 * a23 + a00 * a12 * a23) * idet;
-		dest1[14] = (a03 * a11 * a20 - a01 * a13 * a20 - a03 * a10 * a21 + a00 * a13 * a21 + a01 * a10 * a23 - a00 * a11 * a23) * idet;
-		dest1[15] = (a01 * a12 * a20 - a02 * a11 * a20 + a02 * a10 * a21 - a00 * a12 * a21 - a01 * a10 * a22 + a00 * a11 * a22) * idet;
-		var a = this.projectionMatrix;
-		var b = this.viewMatrix;
-		var dest2 = this.viewProjectionMatrix;
-		var a001 = a[0];
-		var a011 = a[1];
-		var a021 = a[2];
-		var a031 = a[3];
-		var a101 = a[4];
-		var a111 = a[5];
-		var a121 = a[6];
-		var a131 = a[7];
-		var a201 = a[8];
-		var a211 = a[9];
-		var a221 = a[10];
-		var a231 = a[11];
-		var a301 = a[12];
-		var a311 = a[13];
-		var a321 = a[14];
-		var a331 = a[15];
-		var b00 = b[0];
-		var b01 = b[1];
-		var b02 = b[2];
-		var b03 = b[3];
-		var b10 = b[4];
-		var b11 = b[5];
-		var b12 = b[6];
-		var b13 = b[7];
-		var b20 = b[8];
-		var b21 = b[9];
-		var b22 = b[10];
-		var b23 = b[11];
-		var b30 = b[12];
-		var b31 = b[13];
-		var b32 = b[14];
-		var b33 = b[15];
-		dest2[0] = b00 * a001 + b01 * a101 + b02 * a201 + b03 * a301;
-		dest2[1] = b00 * a011 + b01 * a111 + b02 * a211 + b03 * a311;
-		dest2[2] = b00 * a021 + b01 * a121 + b02 * a221 + b03 * a321;
-		dest2[3] = b00 * a031 + b01 * a131 + b02 * a231 + b03 * a331;
-		dest2[4] = b10 * a001 + b11 * a101 + b12 * a201 + b13 * a301;
-		dest2[5] = b10 * a011 + b11 * a111 + b12 * a211 + b13 * a311;
-		dest2[6] = b10 * a021 + b11 * a121 + b12 * a221 + b13 * a321;
-		dest2[7] = b10 * a031 + b11 * a131 + b12 * a231 + b13 * a331;
-		dest2[8] = b20 * a001 + b21 * a101 + b22 * a201 + b23 * a301;
-		dest2[9] = b20 * a011 + b21 * a111 + b22 * a211 + b23 * a311;
-		dest2[10] = b20 * a021 + b21 * a121 + b22 * a221 + b23 * a321;
-		dest2[11] = b20 * a031 + b21 * a131 + b22 * a231 + b23 * a331;
-		dest2[12] = b30 * a001 + b31 * a101 + b32 * a201 + b33 * a301;
-		dest2[13] = b30 * a011 + b31 * a111 + b32 * a211 + b33 * a311;
-		dest2[14] = b30 * a021 + b31 * a121 + b32 * a221 + b33 * a321;
-		dest2[15] = b30 * a031 + b31 * a131 + b32 * a231 + b33 * a331;
-		mammoth_Mammoth.gl.context.viewport(0,0,1024,1024);
-		mammoth_Mammoth.gl.context.scissor(0,0,1024,1024);
-		var colour = mammoth_defaults_Colours.Black;
-		mammoth_Mammoth.gl.context.clearColor(colour[0],colour[1],colour[2],colour[3]);
-		mammoth_Mammoth.gl.context.clear(16640);
-		mammoth_Mammoth.gl.context.enable(2884);
-		mammoth_Mammoth.gl.context.cullFace(1029);
-		mammoth_Mammoth.gl.context.depthMask(true);
-		mammoth_Mammoth.gl.context.enable(2929);
-		mammoth_Mammoth.gl.context.depthFunc(515);
-		mammoth_Mammoth.gl.context.useProgram(this.shadowMaterial.program);
-		var _this = mammoth_Mammoth.gl;
-		var _this1 = this.shadowMaterial.uniforms;
-		var location = __map_reserved["MVP"] != null ? _this1.getReserved("MVP") : _this1.h["MVP"];
-		_this.context.uniformMatrix4fv(location.location,false,this.MVP);
-		var _this2 = this.shadowMaterial.attributes;
-		var positionLocation = (__map_reserved["position"] != null ? _this2.getReserved("position") : _this2.h["position"]).location;
-		mammoth_Mammoth.gl.context.enableVertexAttribArray(positionLocation);
-		var shadowCaster = this.shadowCasters.iterator();
-		while(shadowCaster.hasNext()) {
-			var shadowCaster1 = shadowCaster.next();
-			var transform1 = shadowCaster1.data.transform;
-			var renderer = shadowCaster1.data.renderer;
-			var mesh = renderer.mesh;
-			if(!mesh.hasAttribute("position")) {
-				continue;
-			}
-			var a1 = this.viewProjectionMatrix;
-			var b1 = transform1.m;
-			var dest3 = this.MVP;
-			var a002 = a1[0];
-			var a012 = a1[1];
-			var a022 = a1[2];
-			var a032 = a1[3];
-			var a102 = a1[4];
-			var a112 = a1[5];
-			var a122 = a1[6];
-			var a132 = a1[7];
-			var a202 = a1[8];
-			var a212 = a1[9];
-			var a222 = a1[10];
-			var a232 = a1[11];
-			var a302 = a1[12];
-			var a312 = a1[13];
-			var a322 = a1[14];
-			var a332 = a1[15];
-			var b001 = b1[0];
-			var b011 = b1[1];
-			var b021 = b1[2];
-			var b031 = b1[3];
-			var b101 = b1[4];
-			var b111 = b1[5];
-			var b121 = b1[6];
-			var b131 = b1[7];
-			var b201 = b1[8];
-			var b211 = b1[9];
-			var b221 = b1[10];
-			var b231 = b1[11];
-			var b301 = b1[12];
-			var b311 = b1[13];
-			var b321 = b1[14];
-			var b331 = b1[15];
-			dest3[0] = b001 * a002 + b011 * a102 + b021 * a202 + b031 * a302;
-			dest3[1] = b001 * a012 + b011 * a112 + b021 * a212 + b031 * a312;
-			dest3[2] = b001 * a022 + b011 * a122 + b021 * a222 + b031 * a322;
-			dest3[3] = b001 * a032 + b011 * a132 + b021 * a232 + b031 * a332;
-			dest3[4] = b101 * a002 + b111 * a102 + b121 * a202 + b131 * a302;
-			dest3[5] = b101 * a012 + b111 * a112 + b121 * a212 + b131 * a312;
-			dest3[6] = b101 * a022 + b111 * a122 + b121 * a222 + b131 * a322;
-			dest3[7] = b101 * a032 + b111 * a132 + b121 * a232 + b131 * a332;
-			dest3[8] = b201 * a002 + b211 * a102 + b221 * a202 + b231 * a302;
-			dest3[9] = b201 * a012 + b211 * a112 + b221 * a212 + b231 * a312;
-			dest3[10] = b201 * a022 + b211 * a122 + b221 * a222 + b231 * a322;
-			dest3[11] = b201 * a032 + b211 * a132 + b221 * a232 + b231 * a332;
-			dest3[12] = b301 * a002 + b311 * a102 + b321 * a202 + b331 * a302;
-			dest3[13] = b301 * a012 + b311 * a112 + b321 * a212 + b331 * a312;
-			dest3[14] = b301 * a022 + b311 * a122 + b321 * a222 + b331 * a322;
-			dest3[15] = b301 * a032 + b311 * a132 + b321 * a232 + b331 * a332;
-			var positionAttribute = mesh.getAttribute("position");
-			mammoth_Mammoth.gl.context.vertexAttribPointer(positionLocation,3,5126,false,positionAttribute.stride,positionAttribute.offset);
-			mammoth_Mammoth.gl.context.bindBuffer(34963,mesh.indexBuffer);
-			mammoth_Mammoth.gl.context.drawElements(4,mesh.indexCount,5123,0);
-			mammoth_Mammoth.stats.drawCalls++;
-			mammoth_Mammoth.stats.triangles += mesh.indexCount / 3 | 0;
-		}
-		mammoth_Mammoth.gl.context.disableVertexAttribArray(positionLocation);
-		mammoth_Mammoth.gl.context.bindFramebuffer(36160,null);
-		return true;
-	}
-	,__class__: mammoth_systems_DirectionalShadowSystem
-};
-var mammoth_systems_DirectionalShadowSystem_$SystemProcess = function(system) {
-	this.system = system;
-	this.updateItems = new edge_View();
-	system.shadowCasters = new edge_View();
-};
-mammoth_systems_DirectionalShadowSystem_$SystemProcess.__name__ = ["mammoth","systems","DirectionalShadowSystem_SystemProcess"];
-mammoth_systems_DirectionalShadowSystem_$SystemProcess.__interfaces__ = [edge_core_ISystemProcess];
-mammoth_systems_DirectionalShadowSystem_$SystemProcess.prototype = {
-	removeEntity: function(entity) {
-		this.updateItems.tryRemove(entity);
-		this.system.shadowCasters.tryRemove(entity);
-	}
-	,addEntity: function(entity) {
-		this.shadowCastersMatchRequirements(entity);
-		this.updateMatchRequirements(entity);
-	}
-	,update: function(engine,delta) {
-		var result = true;
-		var data;
-		var item = this.updateItems.iterator();
-		while(item.hasNext()) {
-			var item1 = item.next();
-			data = item1.data;
-			result = this.system.update(data.transform,data.light);
-			if(!result) {
-				break;
-			}
-		}
-		return result;
-	}
-	,shadowCastersMatchRequirements: function(entity) {
-		var removed = this.system.shadowCasters.tryRemove(entity);
-		var count = 2;
-		var o = { transform : null, renderer : null};
-		var component = entity.map.iterator();
-		while(component.hasNext()) {
-			var component1 = component.next();
-			if(js_Boot.__instanceof(component1,mammoth_components_Transform)) {
-				o.transform = component1;
-				if(--count == 0) {
-					break;
-				} else {
-					continue;
-				}
-			}
-			if(js_Boot.__instanceof(component1,mammoth_components_MeshRenderer)) {
-				o.renderer = component1;
-				if(--count == 0) {
-					break;
-				} else {
-					continue;
-				}
-			}
-		}
-		var added = count == 0 && this.system.shadowCasters.tryAdd(entity,o);
-	}
-	,updateMatchRequirements: function(entity) {
-		var removed = this.updateItems.tryRemove(entity);
-		var count = 2;
-		var o = { transform : null, light : null};
-		var component = entity.map.iterator();
-		while(component.hasNext()) {
-			var component1 = component.next();
-			if(js_Boot.__instanceof(component1,mammoth_components_Transform)) {
-				o.transform = component1;
-				if(--count == 0) {
-					break;
-				} else {
-					continue;
-				}
-			}
-			if(js_Boot.__instanceof(component1,mammoth_components_DirectionalLight)) {
-				o.light = component1;
-				if(--count == 0) {
-					break;
-				} else {
-					continue;
-				}
-			}
-		}
-		var added = count == 0 && this.updateItems.tryAdd(entity,o);
-	}
-	,__class__: mammoth_systems_DirectionalShadowSystem_$SystemProcess
 };
 var mammoth_systems_ModelMatrixSystem = function() {
 	var this1 = new Float32Array(4);
@@ -4995,39 +4553,131 @@ promhx_base_EventLoop.continueOnNextLoop = function() {
 var promhx_error_PromiseError = { __ename__ : true, __constructs__ : ["AlreadyResolved","DownstreamNotFullfilled"] };
 promhx_error_PromiseError.AlreadyResolved = function(message) { var $x = ["AlreadyResolved",0,message]; $x.__enum__ = promhx_error_PromiseError; $x.toString = $estr; return $x; };
 promhx_error_PromiseError.DownstreamNotFullfilled = function(message) { var $x = ["DownstreamNotFullfilled",1,message]; $x.__enum__ = promhx_error_PromiseError; $x.toString = $estr; return $x; };
-var systems_SpinSystem = function() {
+var systems_MouseLookSystem = function() {
 	var this1 = new Float32Array(4);
 	this1[0] = 0;
 	this1[1] = 0;
-	this1[2] = 1;
-	this.axis = this1;
-	this.__process__ = new systems_SpinSystem_$SystemProcess(this);
+	this1[2] = 0;
+	this1[3] = 1;
+	var dest = this1;
+	dest[0] = 0;
+	dest[1] = 0;
+	dest[2] = 0;
+	dest[3] = 1;
+	this.qElevation = dest;
+	var this11 = new Float32Array(4);
+	this11[0] = 1;
+	this11[1] = 0;
+	this11[2] = 0;
+	this.elevationAxis = this11;
+	var this12 = new Float32Array(4);
+	this12[0] = 0;
+	this12[1] = 0;
+	this12[2] = 0;
+	this12[3] = 1;
+	var dest1 = this12;
+	dest1[0] = 0;
+	dest1[1] = 0;
+	dest1[2] = 0;
+	dest1[3] = 1;
+	this.qDirection = dest1;
+	var this13 = new Float32Array(4);
+	this13[0] = 0;
+	this13[1] = 0;
+	this13[2] = 1;
+	this.directionAxis = this13;
+	this.__process__ = new systems_MouseLookSystem_$SystemProcess(this);
 };
-systems_SpinSystem.__name__ = ["systems","SpinSystem"];
-systems_SpinSystem.__interfaces__ = [edge_ISystem];
-systems_SpinSystem.prototype = {
-	update: function(transform,spin) {
-		spin.angle += spin.speed * mammoth_Mammoth.timing.dt;
-		var axis = this.axis;
-		var angle = spin.angle;
-		var dest = transform.rotation;
+systems_MouseLookSystem.__name__ = ["systems","MouseLookSystem"];
+systems_MouseLookSystem.__interfaces__ = [edge_ISystem];
+systems_MouseLookSystem.prototype = {
+	before: function() {
+		if(!mammoth_Mammoth.input.pointerLocked) {
+			mammoth_Mammoth.input.lockPointer();
+		}
+	}
+	,update: function(transform,mouseLook) {
+		if(!mammoth_Mammoth.input.pointerLocked) {
+			return true;
+		}
+		var a = mouseLook.smoothX;
+		mouseLook.smoothX = a + 1.0 / mouseLook.smoothing * (mammoth_Mammoth.input.mouseDeltaX - a);
+		var a1 = mouseLook.smoothY;
+		mouseLook.smoothY = a1 + 1.0 / mouseLook.smoothing * (mammoth_Mammoth.input.mouseDeltaY - a1);
+		mouseLook.direction -= mouseLook.smoothX * mouseLook.sensitivity * mammoth_Mammoth.timing.dt;
+		mouseLook.elevation -= mouseLook.smoothY * mouseLook.sensitivity * mammoth_Mammoth.timing.dt;
+		while(mouseLook.direction > 2 * Math.PI) mouseLook.direction -= 2 * Math.PI;
+		while(mouseLook.direction < 0) mouseLook.direction += 2 * Math.PI;
+		if(mouseLook.elevation < 0) {
+			mouseLook.elevation = 0;
+		}
+		if(mouseLook.elevation > Math.PI) {
+			mouseLook.elevation = Math.PI;
+		}
+		var axis = this.directionAxis;
+		var angle = mouseLook.direction;
+		var dest = this.qDirection;
 		angle *= 0.5;
 		var s = Math.sin(angle);
 		dest[0] = s * axis[0];
 		dest[1] = s * axis[1];
 		dest[2] = s * axis[2];
 		dest[3] = Math.cos(angle);
+		var axis1 = this.elevationAxis;
+		var angle1 = mouseLook.elevation;
+		var dest1 = this.qElevation;
+		angle1 *= 0.5;
+		var s1 = Math.sin(angle1);
+		dest1[0] = s1 * axis1[0];
+		dest1[1] = s1 * axis1[1];
+		dest1[2] = s1 * axis1[2];
+		dest1[3] = Math.cos(angle1);
+		var dest2 = transform.rotation;
+		dest2[0] = 0;
+		dest2[1] = 0;
+		dest2[2] = 0;
+		dest2[3] = 1;
+		var a2 = transform.rotation;
+		var b = this.qDirection;
+		var dest3 = transform.rotation;
+		var ax = a2[0];
+		var ay = a2[1];
+		var az = a2[2];
+		var aw = a2[3];
+		var bx = b[0];
+		var by = b[1];
+		var bz = b[2];
+		var bw = b[3];
+		dest3[0] = ax * bw + aw * bx + ay * bz - az * by;
+		dest3[1] = ay * bw + aw * by + az * bx - ax * bz;
+		dest3[2] = az * bw + aw * bz + ax * by - ay * bx;
+		dest3[3] = aw * bw - ax * bx - ay * by - az * bz;
+		var a3 = transform.rotation;
+		var b1 = this.qElevation;
+		var dest4 = transform.rotation;
+		var ax1 = a3[0];
+		var ay1 = a3[1];
+		var az1 = a3[2];
+		var aw1 = a3[3];
+		var bx1 = b1[0];
+		var by1 = b1[1];
+		var bz1 = b1[2];
+		var bw1 = b1[3];
+		dest4[0] = ax1 * bw1 + aw1 * bx1 + ay1 * bz1 - az1 * by1;
+		dest4[1] = ay1 * bw1 + aw1 * by1 + az1 * bx1 - ax1 * bz1;
+		dest4[2] = az1 * bw1 + aw1 * bz1 + ax1 * by1 - ay1 * bx1;
+		dest4[3] = aw1 * bw1 - ax1 * bx1 - ay1 * by1 - az1 * bz1;
 		return true;
 	}
-	,__class__: systems_SpinSystem
+	,__class__: systems_MouseLookSystem
 };
-var systems_SpinSystem_$SystemProcess = function(system) {
+var systems_MouseLookSystem_$SystemProcess = function(system) {
 	this.system = system;
 	this.updateItems = new edge_View();
 };
-systems_SpinSystem_$SystemProcess.__name__ = ["systems","SpinSystem_SystemProcess"];
-systems_SpinSystem_$SystemProcess.__interfaces__ = [edge_core_ISystemProcess];
-systems_SpinSystem_$SystemProcess.prototype = {
+systems_MouseLookSystem_$SystemProcess.__name__ = ["systems","MouseLookSystem_SystemProcess"];
+systems_MouseLookSystem_$SystemProcess.__interfaces__ = [edge_core_ISystemProcess];
+systems_MouseLookSystem_$SystemProcess.prototype = {
 	removeEntity: function(entity) {
 		this.updateItems.tryRemove(entity);
 	}
@@ -5036,12 +4686,15 @@ systems_SpinSystem_$SystemProcess.prototype = {
 	}
 	,update: function(engine,delta) {
 		var result = true;
+		if(this.updateItems.count > 0) {
+			this.system.before();
+		}
 		var data;
 		var item = this.updateItems.iterator();
 		while(item.hasNext()) {
 			var item1 = item.next();
 			data = item1.data;
-			result = this.system.update(data.transform,data.spin);
+			result = this.system.update(data.transform,data.mouseLook);
 			if(!result) {
 				break;
 			}
@@ -5051,7 +4704,7 @@ systems_SpinSystem_$SystemProcess.prototype = {
 	,updateMatchRequirements: function(entity) {
 		var removed = this.updateItems.tryRemove(entity);
 		var count = 2;
-		var o = { transform : null, spin : null};
+		var o = { transform : null, mouseLook : null};
 		var component = entity.map.iterator();
 		while(component.hasNext()) {
 			var component1 = component.next();
@@ -5063,8 +4716,8 @@ systems_SpinSystem_$SystemProcess.prototype = {
 					continue;
 				}
 			}
-			if(js_Boot.__instanceof(component1,components_Spin)) {
-				o.spin = component1;
+			if(js_Boot.__instanceof(component1,components_MouseLook)) {
+				o.mouseLook = component1;
 				if(--count == 0) {
 					break;
 				} else {
@@ -5074,7 +4727,7 @@ systems_SpinSystem_$SystemProcess.prototype = {
 		}
 		var added = count == 0 && this.updateItems.tryAdd(entity,o);
 	}
-	,__class__: systems_SpinSystem_$SystemProcess
+	,__class__: systems_MouseLookSystem_$SystemProcess
 };
 var thx_Either = { __ename__ : true, __constructs__ : ["Left","Right"] };
 thx_Either.Left = function(value) { var $x = ["Left",0,value]; $x.__enum__ = thx_Either; $x.toString = $estr; return $x; };
