@@ -25,6 +25,12 @@ class Mesh {
     public var indexBuffer(default, null):Buffer;
     public var indexCount(default, null):Int;
 
+    public var vertexData(default, null):Array<Float>;
+    public var indexData(default, null):Array<Int>;
+
+    public var extentsMin(default, null):Vec3;
+    public var extentsMax(default, null):Vec3;
+
     public var name(default, null):String;
     public var attributes(default, null):Array<MeshAttribute>;
 
@@ -34,6 +40,9 @@ class Mesh {
         vertexBuffer = Mammoth.gl.createBuffer();
         indexBuffer = Mammoth.gl.createBuffer();
         indexCount = 0;
+
+        extentsMin = new Vec3();
+        extentsMax = new Vec3();
 
         attributes = new Array<MeshAttribute>();
     }
@@ -59,6 +68,7 @@ class Mesh {
         Mammoth.gl.bindBuffer(GL.ARRAY_BUFFER, vertexBuffer);
         Mammoth.gl.bufferData(GL.ARRAY_BUFFER, new Float32Array(data), cast(usage));
         Mammoth.gl.bindBuffer(GL.ARRAY_BUFFER, null);
+        vertexData = data;
         return this;
     }
 
@@ -67,7 +77,38 @@ class Mesh {
         Mammoth.gl.bufferData(GL.ELEMENT_ARRAY_BUFFER, new Int16Array(data), cast(usage));
         Mammoth.gl.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, null);
         indexCount = data.length;
+        indexData = data;
         return this;
+    }
+
+    private function calculateExtents():Void {
+        var stride:Int = 0;
+        var offset:Int = 0;
+        for(attribute in attributes) {
+            if(attribute.name == 'position') {
+                stride = attribute.stride;
+                offset = attribute.offset;
+                break;
+            }
+        }
+        if(stride == 0)
+            throw new mammoth.debug.Exception('Can\'t calculate extents of mesh ${name}, it has no position attribute!', true, 'MeshException');
+
+        var i:Int = offset;
+        while(i < vertexData.length) {
+            var x:Float = vertexData[i];
+            var y:Float = vertexData[i + 1];
+            var z:Float = vertexData[i + 2];
+
+            if(x < extentsMin.x) extentsMin.x = x;
+            if(x > extentsMax.x) extentsMax.x = x;
+            if(y < extentsMin.y) extentsMin.y = y;
+            if(y > extentsMax.y) extentsMax.y = y;
+            if(z < extentsMin.z) extentsMin.z = z;
+            if(z > extentsMax.z) extentsMax.z = z;
+
+            i += Std.int(stride / 4);
+        }
     }
 
     public function compile():Void {
@@ -86,6 +127,8 @@ class Mesh {
         for(attribute in attributes) {
             attribute.stride = offset;
         }
+
+        calculateExtents();
     }
 
     public function hasAttribute(name:String):Bool {

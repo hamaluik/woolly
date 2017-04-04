@@ -45,6 +45,11 @@ class RenderSystem implements ISystem {
         }
     }
 
+    private function shouldCull(camera:Camera, transform:Transform, renderer:MeshRenderer):Bool {
+        // TODO!
+        return false;
+    }
+
     public function update(camera:Camera) {
         // calculate the viewport
         var vpX:Int = Std.int(camera.viewportMin.x * Mammoth.width);
@@ -68,6 +73,10 @@ class RenderSystem implements ISystem {
 
             // calculate the MVP for this object
             Mat4.multMat(camera.vp, transform.m, MVP);
+
+            // TODO: more organized culling?
+            if(shouldCull(camera, transform, renderer))
+                continue;
 
             // apply the states
             if(material.cullMode == TCullMode.None)

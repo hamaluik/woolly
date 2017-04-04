@@ -2668,6 +2668,9 @@ mammoth_filetypes_MammothJSON.loadMesh = function(meshData) {
 	} else {
 		_this.h[key] = mesh;
 	}
+	var this1 = mesh.extentsMin;
+	var this2 = mesh.extentsMax;
+	mammoth_Log.log("mesh " + mesh.name + " extents: " + ("<" + this1[0] + ", " + this1[1] + ", " + this1[2] + ">") + " -> " + ("<" + this2[0] + ", " + this2[1] + ", " + this2[2] + ">"),mammoth_LogFunctions.Debug,{ fileName : "MammothJSON.hx", lineNumber : 201, className : "mammoth.filetypes.MammothJSON", methodName : "loadMesh"});
 };
 mammoth_filetypes_MammothJSON.loadObject = function(parentTransform,object,componentFactory) {
 	var entity = mammoth_Mammoth.engine.create([]);
@@ -2748,7 +2751,7 @@ mammoth_filetypes_MammothJSON.loadObject = function(parentTransform,object,compo
 	}
 };
 mammoth_filetypes_MammothJSON.load = function(file,componentFactory) {
-	mammoth_Log.log("Loading data from " + file.meta.file + "..",mammoth_LogFunctions.Info,{ fileName : "MammothJSON.hx", lineNumber : 255, className : "mammoth.filetypes.MammothJSON", methodName : "load"});
+	mammoth_Log.log("Loading data from " + file.meta.file + "..",mammoth_LogFunctions.Info,{ fileName : "MammothJSON.hx", lineNumber : 257, className : "mammoth.filetypes.MammothJSON", methodName : "load"});
 	mammoth_filetypes_MammothJSON.cameras = new haxe_ds_StringMap();
 	var _g = 0;
 	var _g1 = file.cameras;
@@ -3547,6 +3550,9 @@ mammoth_systems_RenderSystem.prototype = {
 			this.defaultMissingTexture = mammoth_Mammoth.gl.loadTexture(null);
 		}
 	}
+	,shouldCull: function(camera,transform,renderer) {
+		return false;
+	}
 	,update: function(camera) {
 		var vpX = camera.viewportMin[0] * mammoth_Mammoth.gl.context.drawingBufferWidth | 0;
 		var vpY = camera.viewportMin[1] * mammoth_Mammoth.gl.context.drawingBufferHeight | 0;
@@ -3615,6 +3621,9 @@ mammoth_systems_RenderSystem.prototype = {
 			dest[13] = b30 * a01 + b31 * a11 + b32 * a21 + b33 * a31;
 			dest[14] = b30 * a02 + b31 * a12 + b32 * a22 + b33 * a32;
 			dest[15] = b30 * a03 + b31 * a13 + b32 * a23 + b33 * a33;
+			if(this.shouldCull(camera,transform,renderer)) {
+				continue;
+			}
 			if(material.cullMode == 0) {
 				mammoth_Mammoth.gl.context.disable(2884);
 			} else {
@@ -3803,7 +3812,7 @@ mammoth_systems_RenderSystem.prototype = {
 			while(materialAttribute.hasNext()) {
 				var materialAttribute1 = materialAttribute.next();
 				if(!mesh.hasAttribute(materialAttribute1.name)) {
-					throw new js__$Boot_HaxeError(new mammoth_debug_Exception("Can\t use material " + material.name + " with mesh " + mesh.name + " as mesh is missing attribute " + materialAttribute1.name + "!",true,null,null,{ fileName : "RenderSystem.hx", lineNumber : 177, className : "mammoth.systems.RenderSystem", methodName : "update"}));
+					throw new js__$Boot_HaxeError(new mammoth_debug_Exception("Can\t use material " + material.name + " with mesh " + mesh.name + " as mesh is missing attribute " + materialAttribute1.name + "!",true,null,null,{ fileName : "RenderSystem.hx", lineNumber : 186, className : "mammoth.systems.RenderSystem", methodName : "update"}));
 				}
 				var meshAttribute = mesh.getAttribute(materialAttribute1.name);
 				mammoth_Mammoth.gl.context.enableVertexAttribArray(materialAttribute1.location);
@@ -4178,6 +4187,16 @@ var mammoth_types_Mesh = function(name) {
 	this.vertexBuffer = mammoth_Mammoth.gl.context.createBuffer();
 	this.indexBuffer = mammoth_Mammoth.gl.context.createBuffer();
 	this.indexCount = 0;
+	var this1 = new Float32Array(4);
+	this1[0] = 0;
+	this1[1] = 0;
+	this1[2] = 0;
+	this.extentsMin = this1;
+	var this2 = new Float32Array(4);
+	this2[0] = 0;
+	this2[1] = 0;
+	this2[2] = 0;
+	this.extentsMax = this2;
 	this.attributes = [];
 };
 mammoth_types_Mesh.__name__ = ["mammoth","types","Mesh"];
@@ -4200,6 +4219,7 @@ mammoth_types_Mesh.prototype = {
 		var data1 = new Float32Array(data);
 		_this.context.bufferData(34962,data1,usage);
 		mammoth_Mammoth.gl.context.bindBuffer(34962,null);
+		this.vertexData = data;
 		return this;
 	}
 	,setIndexData: function(data,usage) {
@@ -4212,7 +4232,51 @@ mammoth_types_Mesh.prototype = {
 		_this.context.bufferData(34963,data1,usage);
 		mammoth_Mammoth.gl.context.bindBuffer(34963,null);
 		this.indexCount = data.length;
+		this.indexData = data;
 		return this;
+	}
+	,calculateExtents: function() {
+		var stride = 0;
+		var offset = 0;
+		var _g = 0;
+		var _g1 = this.attributes;
+		while(_g < _g1.length) {
+			var attribute = _g1[_g];
+			++_g;
+			if(attribute.name == "position") {
+				stride = attribute.stride;
+				offset = attribute.offset;
+				break;
+			}
+		}
+		if(stride == 0) {
+			throw new js__$Boot_HaxeError(new mammoth_debug_Exception("Can't calculate extents of mesh " + this.name + ", it has no position attribute!",true,"MeshException",null,{ fileName : "Mesh.hx", lineNumber : 95, className : "mammoth.types.Mesh", methodName : "calculateExtents"}));
+		}
+		var i = offset;
+		while(i < this.vertexData.length) {
+			var x = this.vertexData[i];
+			var y = this.vertexData[i + 1];
+			var z = this.vertexData[i + 2];
+			if(x < this.extentsMin[0]) {
+				this.extentsMin[0] = x;
+			}
+			if(x > this.extentsMax[0]) {
+				this.extentsMax[0] = x;
+			}
+			if(y < this.extentsMin[1]) {
+				this.extentsMin[1] = y;
+			}
+			if(y > this.extentsMax[1]) {
+				this.extentsMax[1] = y;
+			}
+			if(z < this.extentsMin[2]) {
+				this.extentsMin[2] = z;
+			}
+			if(z > this.extentsMax[2]) {
+				this.extentsMax[2] = z;
+			}
+			i += stride / 4 | 0;
+		}
 	}
 	,compile: function() {
 		var offset = 0;
@@ -4247,6 +4311,7 @@ mammoth_types_Mesh.prototype = {
 			++_g2;
 			attribute1.stride = offset;
 		}
+		this.calculateExtents();
 	}
 	,hasAttribute: function(name) {
 		var _g = 0;
