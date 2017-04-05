@@ -48,8 +48,16 @@ class RenderSystem implements ISystem {
     private inline function isInPlane(a:Float, b:Float, c:Float, d:Float, mesh:Mesh):Bool {
         // calculate p-vertex // see http://www.txutxi.com/?p=584
         var px:Float = a > 0 ? mesh.extentsMax.x : mesh.extentsMin.x;
-        var py:Float = a > 0 ? mesh.extentsMax.y : mesh.extentsMin.y;
-        var pz:Float = a > 0 ? mesh.extentsMax.z : mesh.extentsMin.z;
+        var py:Float = b > 0 ? mesh.extentsMax.y : mesh.extentsMin.y;
+        var pz:Float = c > 0 ? mesh.extentsMax.z : mesh.extentsMin.z;
+
+        // normalize the plane
+        // TODO: not sure if this is necessary
+        /*var mag:Float = Math.sqrt(a*a + b*b + c*c);
+        a /= mag;
+        b /= mag;
+        c /= mag;
+        d /= mag;*/
 
         // if ax + by + cz + d > 0, we're on the *in* side!
         return (a * px) + (b * py) + (c * pz) + d >= 0;
