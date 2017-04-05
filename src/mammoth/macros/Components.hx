@@ -44,6 +44,18 @@ class Components {
         for(field in fields) {
             if(!isPublic(field)) continue;
 
+            // skip variables that we shouldn't export
+            var shouldSkip:Bool = false;
+            if(field.meta != null) {
+                for(meta in field.meta) {
+                    if(meta.name == 'noExport') {
+                        shouldSkip = true;
+                        break;
+                    }
+                }
+            }
+            if(shouldSkip) continue;
+
             // only do variables
             var type:String = switch(field.kind) {
                 case FVar(t, e): {

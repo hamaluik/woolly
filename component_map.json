@@ -15,14 +15,6 @@
     {
       "name": "direction",
       "type": "float"
-    },
-    {
-      "name": "smoothX",
-      "type": "float"
-    },
-    {
-      "name": "smoothY",
-      "type": "float"
     }
   ],
   "Bounce": [
