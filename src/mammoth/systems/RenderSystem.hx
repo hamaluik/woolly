@@ -64,14 +64,15 @@ class RenderSystem implements ISystem {
     }
 
     private function shouldCull(mvp:Mat4, renderer:MeshRenderer):Bool {
+        // order can maybe be changed here to ditch early for things that are more likely
+        // but this gets messed up by the transformation, since this is happening
+        // in the object space rather than any global space
+
         // near
         if(!isInPlane(mvp.r3c0 + mvp.r2c0, mvp.r3c1 + mvp.r2c1, mvp.r3c2 + mvp.r2c2, mvp.r3c3 + mvp.r2c3, renderer.mesh))
             return true;
         // far
         if(!isInPlane(mvp.r3c0 - mvp.r2c0, mvp.r3c1 - mvp.r2c1, mvp.r3c2 - mvp.r2c2, mvp.r3c3 - mvp.r2c3, renderer.mesh))
-            return true;
-        // bottom
-        if(!isInPlane(mvp.r3c0 + mvp.r1c0, mvp.r3c1 + mvp.r1c1, mvp.r3c2 + mvp.r1c2, mvp.r3c3 + mvp.r1c3, renderer.mesh))
             return true;
         // left
         if(!isInPlane(mvp.r3c0 + mvp.r0c0, mvp.r3c1 + mvp.r0c1, mvp.r3c2 + mvp.r0c2, mvp.r3c3 + mvp.r0c3, renderer.mesh))
@@ -81,6 +82,9 @@ class RenderSystem implements ISystem {
             return true;
         // top
         if(!isInPlane(mvp.r3c0 - mvp.r1c0, mvp.r3c1 - mvp.r1c1, mvp.r3c2 - mvp.r1c2, mvp.r3c3 - mvp.r1c3, renderer.mesh))
+            return true;
+        // bottom
+        if(!isInPlane(mvp.r3c0 + mvp.r1c0, mvp.r3c1 + mvp.r1c1, mvp.r3c2 + mvp.r1c2, mvp.r3c3 + mvp.r1c3, renderer.mesh))
             return true;
 
         return false;
