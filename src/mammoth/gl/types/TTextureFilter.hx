@@ -11,18 +11,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package mammoth.types;
+package mammoth.gl.types;
 
-import haxe.ds.StringMap;
-import mammoth.gl.types.TUniformData;
-import mammoth.types.Texture2D;
+import mammoth.gl.GL;
 
-class MaterialData {
-    public var uniformValues(default, null):StringMap<TUniformData>;
-    public var textures(default, null):Array<Texture2D>;
-
-    public function new() {
-        uniformValues = new StringMap<TUniformData>();
-        textures = new Array<Texture2D>();
-    }
+@:enum
+abstract TTextureFilter(Int) {
+    var Nearest = GL.NEAREST;
+    var Linear = GL.LINEAR;
+    var NearestMipMapNearest = GL.NEAREST_MIPMAP_NEAREST;
+    var NearestMipMapLinear = GL.NEAREST_MIPMAP_LINEAR;
+    var LinearMipMapNearest = GL.LINEAR_MIPMAP_NEAREST;
+    var LinearMipMapLinear = GL.LINEAR_MIPMAP_LINEAR;
 }

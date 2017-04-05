@@ -40,9 +40,10 @@ void main() {
 	vec3 worldNormal = (M * vec4(normal, 0.0)).xyz;
     v_normal = worldNormal;
 	
-    vec3 colour = albedoColour * ambientColour;
+    vec3 col = albedoColour * ambientColour;
+    // TODO: colour attributes
 
-    v_colour = colour;
+    v_colour = col;
     #ifdef ATTRIBUTE_UV
 	v_uv = uv;
     #endif

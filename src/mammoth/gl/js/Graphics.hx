@@ -24,6 +24,8 @@ import mammoth.platform.ArrayBufferView;
 import mammoth.platform.Float32Array;
 import mammoth.platform.Int32Array;
 import mammoth.types.Colour;
+import mammoth.gl.types.TTextureFilter;
+import mammoth.gl.types.TTextureWrap;
 
 @:allow(mammoth.Mammoth)
 class Graphics {
@@ -86,7 +88,7 @@ class Graphics {
         }
     }
 
-	public function loadTexture(srcURI:String):Texture {
+	public function loadTexture(srcURI:String, minFilter:TTextureFilter, magFilter:TTextureFilter, wrapMode:TTextureWrap):Texture {
 		var texture = createTexture();
         bindTexture(GL.TEXTURE_2D, texture);
 		// create an empty cyan texture to start to indicate loading
@@ -102,21 +104,23 @@ class Graphics {
         var img:js.html.ImageElement = js.Browser.window.document.createImageElement();
         img.addEventListener('load', function() {
             bindTexture(GL.TEXTURE_2D, texture);
-			// TODO: make configurable
-            texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_S, GL.CLAMP_TO_EDGE);
-            texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, GL.CLAMP_TO_EDGE);
-            texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.NEAREST);
-            texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, GL.NEAREST);
+            texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_S, cast(wrapMode));
+            texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, cast(wrapMode));
+            texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, cast(minFilter));
+            texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, cast(magFilter));
             context.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, GL.RGBA, GL.UNSIGNED_BYTE, img);
 			bindTexture(GL.TEXTURE_2D, null);
         });
 		img.addEventListener('error', function() {
-			// if the image wasn't found, make the texture magenta!
+			// if the image wasn't found, make the texture magenta to indicate an error!
 			bindTexture(GL.TEXTURE_2D, texture);
 			texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, 1, 1, 0, GL.RGBA, GL.UNSIGNED_BYTE,
 				new js.html.Uint8Array([255, 0, 255, 255]));
 			bindTexture(GL.TEXTURE_2D, null);
+
+			Log.warning('Failed to load texture ${srcURI}!');
 		});
+		Log.info('Loading texture ${srcURI}...');
         img.src = srcURI;
 
 		return texture;

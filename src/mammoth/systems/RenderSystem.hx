@@ -13,6 +13,8 @@
 */
 package mammoth.systems;
 
+import mammoth.gl.types.TTextureWrap;
+import mammoth.gl.types.TTextureFilter;
 import edge.ISystem;
 import edge.View;
 import mammoth.components.MeshRenderer;
@@ -41,7 +43,7 @@ class RenderSystem implements ISystem {
 
     public function before():Void {
         if(defaultMissingTexture == null) {
-            defaultMissingTexture = Mammoth.gl.loadTexture(null);
+            defaultMissingTexture = Mammoth.gl.loadTexture(null, TTextureFilter.Nearest, TTextureFilter.Nearest, TTextureWrap.Clamp);
         }
     }
 
@@ -194,7 +196,7 @@ class RenderSystem implements ISystem {
                     Mammoth.gl.bindTexture(GL.TEXTURE_2D, defaultMissingTexture);
                 }
                 else {
-                    Mammoth.gl.bindTexture(GL.TEXTURE_2D, renderer.materialData.textures[0]);
+                    Mammoth.gl.bindTexture(GL.TEXTURE_2D, renderer.materialData.textures[i].tex);
                 }
             }
 

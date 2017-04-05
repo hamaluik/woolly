@@ -25,9 +25,9 @@ class Main {
 
     private static function onReady():Void {
         Log.info("Loading...");
-        Mammoth.assets.loadJSON(AssetList.asset___demo__json)
+        Mammoth.assets.loadJSON('assets/demo.json')
             .then(function(data:Dynamic) {
-                mammoth.filetypes.MammothJSON.load(data, function(type:String, data:Dynamic):Component {
+                mammoth.filetypes.MammothJSON.load('assets', data, function(type:String, data:Dynamic):Component {
                     return switch(type) {
                         case 'Bounce': {
                             var c:components.Bounce = new components.Bounce();

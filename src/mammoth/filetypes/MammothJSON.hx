@@ -13,6 +13,9 @@
 */
 package mammoth.filetypes;
 
+import mammoth.debug.Exception;
+import mammoth.gl.types.TTextureWrap;
+import mammoth.gl.types.TTextureFilter;
 import mammoth.Log;
 import edge.Entity;
 import mammoth.Component;
@@ -27,6 +30,8 @@ import mammoth.defaults.Materials;
 import mammoth.types.Colour;
 import mammoth.types.MaterialData;
 import mammoth.types.Mesh;
+import mammoth.types.Texture2D;
+import mammoth.types.Image;
 import mammoth.gl.types.TVertexAttribute;
 
 import haxe.io.Bytes;
@@ -81,6 +86,37 @@ typedef MammothShader = {
     @:optional var diffuse:MammothDiffuseShader;
 }
 
+@:enum
+abstract MammothTextureFilter(String) {
+    var Bilinear = "bilinear";
+    var Point = "point";
+}
+
+@:enum
+abstract MammothTextureWrap(String) {
+    var Repeat = "repeat";
+    var Clamp = "clamp";
+}
+
+typedef MammothImageTexture = {
+    var name:String;
+    var filter:MammothTextureFilter;
+    var wrap:MammothTextureWrap;
+}
+
+typedef MammothTexture = {
+    var name:String;
+    var type:String; // TODO: make an enum for blender's image types?
+    var image:MammothImageTexture;
+}
+
+typedef MammothImage = {
+    var name:String;
+    var uri:String;
+    var width:Int;
+    var height:Int;
+}
+
 typedef MammothMesh = {
     var name:String;
     var vertices:String;
@@ -123,12 +159,17 @@ typedef MammothFile = {
     var shaders:Array<MammothShader>;
     var meshes:Array<MammothMesh>;
     var objects:Array<MammothObject>;
+    var images:Array<MammothImage>;
+    var textures:Array<MammothTexture>;
 }
 
 class MammothJSON {
+    private static var basepath:String = '';
     private static var cameras:StringMap<Camera> = new StringMap<Camera>();
     private static var lights:StringMap<Component> = new StringMap<Component>();
     private static var materialDatas:StringMap<MaterialData> = new StringMap<MaterialData>();
+    private static var images:StringMap<Image> = new StringMap<Image>();
+    private static var textures:StringMap<Texture2D> = new StringMap<Texture2D>();
     
     private function new(){}
 
@@ -162,6 +203,31 @@ class MammothJSON {
         });
     }
 
+    private static function loadImage(im:MammothImage):Void {
+        var uri:String = im.uri.replace('//', basepath + '/');
+        var image:Image = new Image(uri, im.width, im.height);
+        images.set(im.name, image);
+    }
+
+    private static function loadTexture(tex:MammothTexture):Void {
+        var texture:Texture2D = new Texture2D();
+        texture.minFilter = switch(tex.image.filter) {
+            case MammothTextureFilter.Bilinear: TTextureFilter.Linear;
+            case MammothTextureFilter.Point: TTextureFilter.Nearest;
+        }
+        texture.magFilter = texture.minFilter;
+        texture.wrapMode = switch(tex.image.wrap) {
+            case MammothTextureWrap.Clamp: TTextureWrap.Clamp;
+            case MammothTextureWrap.Repeat: TTextureWrap.Repeat;
+        }
+
+        var image:Image = images.get(tex.image.name);
+        if(image == null) throw new Exception('Can\'t find image ${tex.image.name}!', true);
+        
+        texture.tex = Mammoth.gl.loadTexture(image.uri, texture.minFilter, texture.magFilter, texture.wrapMode);
+        textures.set(tex.name, texture);
+    }
+
     private static function loadMaterialData(shader:MammothShader):Void {
         var data:MaterialData = new MaterialData();
 
@@ -173,7 +239,12 @@ class MammothJSON {
             data.uniformValues.set('ambientColour', TUniformData.RGB(shader.diffuse.ambient));
         }
 
-        // TODO: textures
+        // this somehow breaks rendering?!
+        for(tex in shader.textures) {
+            var texture:Texture2D = textures.get(tex);
+            if(texture == null) throw new Exception('Can\'t load texture ${tex} for shader ${shader.name} as it wasn\'t found!', true);
+            data.textures.push(texture);
+        }
 
         materialDatas.set(shader.name, data);
     }
@@ -223,11 +294,20 @@ class MammothJSON {
             var renderer:MeshRenderer = new MeshRenderer();
             
             renderer.mesh = Mammoth.resources.meshes.get(object.render.mesh);
-            if(!Mammoth.resources.materials.exists('standard_1_1')) {
-                Mammoth.resources.materials.set('standard_1_1', Materials.standard(1, 1));
+            if(!Mammoth.resources.materials.exists('standard_1_6_0')) {
+                Mammoth.resources.materials.set('standard_1_6_0', Materials.standard(1, 6, 0));
             }
-            renderer.material = Mammoth.resources.materials.get('standard_1_1');
+            if(!Mammoth.resources.materials.exists('standard_1_6_1')) {
+                Mammoth.resources.materials.set('standard_1_6_1', Materials.standard(1, 6, 1));
+            }
+            //renderer.material = Mammoth.resources.materials.get('standard_1_6_0');
             renderer.materialData = materialDatas.get(object.render.shader);
+            renderer.material = switch(renderer.materialData.textures.length) {
+                case 0: Mammoth.resources.materials.get('standard_1_6_0');
+                case 1: Mammoth.resources.materials.get('standard_1_6_1');
+                case _: null;
+            }
+            if(renderer.material == null) throw new Exception('Materials can only use 0 or 1 textures, not ${renderer.materialData.textures.length}!');
 
             entity.add(renderer);
         }
@@ -251,8 +331,10 @@ class MammothJSON {
         }
     }
 
-    public static function load(file:MammothFile, componentFactory:String->Dynamic->Component):Void {
-        Log.info('Loading data from ${file.meta.file}..');
+    public static function load(basepath:String, file:MammothFile, componentFactory:String->Dynamic->Component):Void {
+        MammothJSON.basepath = basepath;
+        if(MammothJSON.basepath.endsWith('/')) MammothJSON.basepath = MammothJSON.basepath.substr(0, MammothJSON.basepath.length - 1);
+        Log.info('Loading data from ${MammothJSON.basepath}/${file.meta.file}..');
 
         // load cameras
         cameras = new StringMap<Camera>();
@@ -264,6 +346,18 @@ class MammothJSON {
         lights = new StringMap<Component>();
         for(light in file.lights) {
             loadLight(light);
+        }
+
+        // load images
+        images = new StringMap<Image>();
+        for(image in file.images) {
+            loadImage(image);
+        }
+
+        // load textures
+        textures = new StringMap<Texture2D>();
+        for(texture in file.textures) {
+            loadTexture(texture);
         }
 
         // load shaders

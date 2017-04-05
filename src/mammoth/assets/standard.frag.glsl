@@ -57,6 +57,7 @@ void main() {
     vec4 outColour = vec4(colour, 1.0);
     #ifdef UNIFORM_TEXTURE
     outColour *= texture2D(texture, v_uv);
+    // outColour *= texture2D(texture, vec2(gl_FragCoord.x / 1024.0, gl_FragCoord.y / 1024.0)); // debugging UVs!
     #endif
 
     // gamma

@@ -13,11 +13,14 @@
 */
 package mammoth.components;
 
+import mammoth.gl.types.TTextureWrap;
+import mammoth.gl.types.TTextureFilter;
 import edge.IComponent;
 import mammoth.types.Material;
 import mammoth.defaults.Materials;
 import mammoth.gl.Buffer;
 import mammoth.types.MaterialData;
+import mammoth.types.Texture2D;
 
 class TuskContext implements IComponent {
     public var material:Material = null;
@@ -29,6 +32,6 @@ class TuskContext implements IComponent {
         material = Materials.tusk();
         buffer = Mammoth.gl.createBuffer();
         data = new MaterialData();
-        data.textures.push(Mammoth.gl.loadTexture(tusk.Tusk.fontTextureSrc));
+        data.textures.push(Texture2D.fromURI(tusk.Tusk.fontTextureSrc, TTextureFilter.Nearest, TTextureFilter.Nearest, TTextureWrap.Clamp));
     }
 }

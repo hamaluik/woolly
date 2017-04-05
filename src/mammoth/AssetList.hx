@@ -13,6 +13,6 @@
 */
 package mammoth;
 
-@:build(mammoth.macros.Assets.buildAssetList())
+//@:build(mammoth.macros.Assets.buildAssetList())
 class AssetList {
 }

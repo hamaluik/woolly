@@ -13,16 +13,14 @@
 */
 package mammoth.types;
 
-import haxe.ds.StringMap;
-import mammoth.gl.types.TUniformData;
-import mammoth.types.Texture2D;
+class Image {
+    public var uri:String = '';
+    public var width:Int = 0;
+    public var height:Int = 0;
 
-class MaterialData {
-    public var uniformValues(default, null):StringMap<TUniformData>;
-    public var textures(default, null):Array<Texture2D>;
-
-    public function new() {
-        uniformValues = new StringMap<TUniformData>();
-        textures = new Array<Texture2D>();
+    public function new(?uri:String, ?width:Int, ?height:Int) {
+        if(uri != null) this.uri = uri;
+        if(width != null) this.width = width;
+        if(height != null) this.height = height;
     }
 }

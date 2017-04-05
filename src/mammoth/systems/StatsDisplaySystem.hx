@@ -44,7 +44,7 @@ class StatsDisplaySystem implements ISystem {
         Mammoth.gl.uniform1i(context.material.uniformLocation('texture'), 0);
 
         Mammoth.gl.activeTexture(GL.TEXTURE0);
-        Mammoth.gl.bindTexture(GL.TEXTURE_2D, context.data.textures[0]);
+        Mammoth.gl.bindTexture(GL.TEXTURE_2D, context.data.textures[0].tex);
 
         var positionLoc:AttributeLocation = context.material.attributeLocation('position');
         var uvLoc:AttributeLocation = context.material.attributeLocation('uv');

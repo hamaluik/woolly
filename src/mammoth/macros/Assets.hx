@@ -75,7 +75,9 @@ class Assets {
         return numCopied;
     }
 
-    public static function buildAssetList():Array<Field> {
+    // TODO: fix this
+    // it is throwing a stack overflow!
+    /*public static function buildAssetList():Array<Field> {
         var fields:Array<Field> = Context.getBuildFields();
 
         var assetSrcFolder = Path.join([Sys.getCwd(), "src", "resources", "assets"]);
@@ -97,7 +99,7 @@ class Assets {
         }
 
         return fields;
-    }
+    }*/
 
     public static function listFiles(directory:String):Array<String> {
         var files:Array<String> = new Array<String>();
