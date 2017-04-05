@@ -45,8 +45,36 @@ class RenderSystem implements ISystem {
         }
     }
 
-    private function shouldCull(camera:Camera, transform:Transform, renderer:MeshRenderer):Bool {
-        // TODO!
+    private inline function isInPlane(a:Float, b:Float, c:Float, d:Float, mesh:Mesh):Bool {
+        // calculate p-vertex // see http://www.txutxi.com/?p=584
+        var px:Float = a > 0 ? mesh.extentsMax.x : mesh.extentsMin.x;
+        var py:Float = a > 0 ? mesh.extentsMax.y : mesh.extentsMin.y;
+        var pz:Float = a > 0 ? mesh.extentsMax.z : mesh.extentsMin.z;
+
+        // if ax + by + cz + d > 0, we're on the *in* side!
+        return (a * px) + (b * py) + (c * pz) + d >= 0;
+    }
+
+    private function shouldCull(mvp:Mat4, renderer:MeshRenderer):Bool {
+        // near
+        if(!isInPlane(mvp.r3c0 + mvp.r2c0, mvp.r3c1 + mvp.r2c1, mvp.r3c2 + mvp.r2c2, mvp.r3c3 + mvp.r2c3, renderer.mesh))
+            return true;
+        // far
+        if(!isInPlane(mvp.r3c0 - mvp.r2c0, mvp.r3c1 - mvp.r2c1, mvp.r3c2 - mvp.r2c2, mvp.r3c3 - mvp.r2c3, renderer.mesh))
+            return true;
+        // bottom
+        if(!isInPlane(mvp.r3c0 + mvp.r1c0, mvp.r3c1 + mvp.r1c1, mvp.r3c2 + mvp.r1c2, mvp.r3c3 + mvp.r1c3, renderer.mesh))
+            return true;
+        // left
+        if(!isInPlane(mvp.r3c0 + mvp.r0c0, mvp.r3c1 + mvp.r0c1, mvp.r3c2 + mvp.r0c2, mvp.r3c3 + mvp.r0c3, renderer.mesh))
+            return true;
+        // right
+        if(!isInPlane(mvp.r3c0 - mvp.r0c0, mvp.r3c1 - mvp.r0c1, mvp.r3c2 - mvp.r0c2, mvp.r3c3 - mvp.r0c3, renderer.mesh))
+            return true;
+        // top
+        if(!isInPlane(mvp.r3c0 - mvp.r1c0, mvp.r3c1 - mvp.r1c1, mvp.r3c2 - mvp.r1c2, mvp.r3c3 - mvp.r1c3, renderer.mesh))
+            return true;
+
         return false;
     }
 
@@ -75,7 +103,9 @@ class RenderSystem implements ISystem {
             Mat4.multMat(camera.vp, transform.m, MVP);
 
             // TODO: more organized culling?
-            if(shouldCull(camera, transform, renderer))
+            // note: culling is done in object space, so MVP **must**
+            // be calculated before the culling equation!
+            if(shouldCull(MVP, renderer))
                 continue;
 
             // apply the states
